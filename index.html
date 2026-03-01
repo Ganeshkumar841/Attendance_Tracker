@@ -1,0 +1,680 @@
+<<<<<<< HEAD
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AttendX — Event Attendance System</title>
+  
+  <!-- SheetJS for Excel Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- ===================================================================== -->
+  <!-- CSS STYLES (Move to style.css locally)                                -->
+  <!-- ===================================================================== -->
+  <link rel="stylesheet" href="styl.css">
+</head>
+<body>
+
+  <!-- ===================================================================== -->
+  <!-- HTML STRUCTURE                                                        -->
+  <!-- ===================================================================== -->
+  <div id="app">
+
+    <!-- LOGIN -->
+    <div id="screen-login" class="screen active">
+      <div class="container">
+        <div class="login-hero">
+          <span class="logo-big">AttendX</span>
+          <p>College Event Attendance Management</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Sign in to continue</div>
+
+          <button class="btn btn-google" onclick="loginGoogle()">
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.6-8 19.6-20 0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5.1l-6.2-5.2C29.3 35.3 26.8 36 24 36c-5.3 0-9.7-2.9-11.3-7.1l-6.5 5C9.6 39.5 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.5-2.6 4.6-4.8 5.9l6.2 5.2C40.8 35.7 44 30.4 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
+            Continue with Google
+          </button>
+
+          <div class="auth-divider">or</div>
+
+          <div class="field">
+            <label>Email Address</label>
+            <input type="email" class="input" id="login-email" placeholder="yourname@college.edu">
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="password" class="input" id="login-password" placeholder="••••••••">
+          </div>
+          <button class="btn btn-primary" onclick="loginEmail()" style="margin-bottom:12px">Sign In / Sign Up</button>
+
+          <p style="font-size:.72rem;color:var(--accent3);text-align:center;margin-top:16px">
+            🚀 Powered by Supabase
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MENU -->
+    <div id="screen-menu" class="screen">
+      <div class="container">
+        <div style="margin-bottom:32px;text-align:center">
+          <div class="logo" style="font-size:1.6rem;margin-bottom:6px">AttendX</div>
+          <p style="color:var(--muted);font-size:.85rem">Welcome back, <span id="user-name">Coordinator</span></p>
+        </div>
+
+        <div class="menu-grid">
+          <div class="menu-card" onclick="showScreen('screen-create')">
+            <div class="menu-icon create">📅</div>
+            <div class="menu-info">
+              <h3>Create New Event</h3>
+              <p>Set up a fresh attendance session</p>
+            </div>
+          </div>
+          <div class="menu-card" onclick="showScreen('screen-join')">
+            <div class="menu-icon join">🔗</div>
+            <div class="menu-info">
+              <h3>Join Existing Event</h3>
+              <p>Multiple coordinators, same event</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:40px;">
+          <div class="card-title" style="margin-bottom:12px">Recent Events</div>
+          <div id="recent-events-list">
+            <p style="color:var(--muted);font-size:.85rem;text-align:center;padding:20px">No events yet</p>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;text-align:center">
+          <button class="btn btn-secondary btn-sm" onclick="logout()" style="width:auto;display:inline-flex">Sign Out</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CREATE EVENT -->
+    <div id="screen-create" class="screen">
+      <div class="full-screen-inner">
+        <div class="container">
+          <button class="back-btn" onclick="showScreen('screen-menu')">← Back</button>
+          <div class="screen-title">Create Event</div>
+          <div class="screen-sub">Set up your attendance session</div>
+
+          <div class="card gap-10">
+            <div class="field">
+              <label>Event Name</label>
+              <input type="text" class="input" id="ev-name" placeholder="Tech Symposium 2024">
+            </div>
+            <div class="field">
+              <label>Date</label>
+              <input type="date" class="input" id="ev-date">
+            </div>
+            <div class="field">
+              <label>Time</label>
+              <input type="time" class="input" id="ev-time">
+            </div>
+            <div class="field">
+              <label>Venue (optional)</label>
+              <input type="text" class="input" id="ev-venue" placeholder="Auditorium B">
+            </div>
+            <div class="field">
+              <label>Event Password</label>
+              <input type="password" class="input" id="ev-pass" placeholder="Coordinators will need this">
+            </div>
+            <button class="btn btn-primary" onclick="createNewEvent()">Create Event →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENT CREATED -->
+    <div id="screen-event-created" class="screen">
+      <div class="full-screen-inner">
+        <div class="container">
+          <div class="screen-title text-center">Event Created! 🎉</div>
+          <div class="screen-sub text-center">Share these details with other coordinators</div>
+
+          <div class="event-id-display">
+            <div class="id-label">Event ID</div>
+            <div class="id-value" id="display-event-id">──────</div>
+            <div class="id-pass">Password: <span id="display-event-pass" style="color:var(--accent2)">••••••</span></div>
+          </div>
+
+          <div style="margin-bottom:20px">
+            <div class="card" style="padding:16px">
+              <div style="font-size:.8rem;color:var(--muted);margin-bottom:4px">Event Name</div>
+              <div id="display-event-name" style="font-weight:600"></div>
+              <div style="font-size:.8rem;color:var(--muted);margin-top:8px;margin-bottom:4px">Date & Time</div>
+              <div id="display-event-dt" style="font-size:.88rem"></div>
+            </div>
+          </div>
+
+          <div class="gap-10">
+            <button class="btn btn-primary" onclick="enterAttendance()">Start Taking Attendance →</button>
+            <button class="btn btn-secondary" onclick="copyEventId()">📋 Copy Event ID</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JOIN EVENT -->
+    <div id="screen-join" class="screen">
+      <div class="full-screen-inner">
+        <div class="container">
+          <button class="back-btn" onclick="showScreen('screen-menu')">← Back</button>
+          <div class="screen-title">Join Event</div>
+          <div class="screen-sub">Enter credentials from the event organizer</div>
+
+          <div class="card gap-10">
+            <div class="field">
+              <label>Event ID</label>
+              <input type="text" class="input" id="join-id" placeholder="e.g. EV2405" style="font-family:'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase">
+            </div>
+            <div class="field">
+              <label>Event Password</label>
+              <input type="password" class="input" id="join-pass" placeholder="••••••••">
+            </div>
+            <button class="btn btn-primary" onclick="joinEvent()">Join Event →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATTENDANCE -->
+    <div id="screen-attendance" class="screen">
+      <div class="app-header">
+        <div class="logo">AttendX</div>
+        <div class="header-event">
+          <strong id="hdr-event-name">Event</strong>
+          <span id="hdr-event-id"></span>
+        </div>
+      </div>
+
+      <div class="att-body">
+        <!-- STATS -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-val" id="stat-total" style="color:var(--accent)">0</div>
+            <div class="stat-lbl">Total</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="stat-attended" style="color:var(--accent3)">0</div>
+            <div class="stat-lbl">Attended</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="stat-prereg" style="color:var(--accent2)">0</div>
+            <div class="stat-lbl">Pre-reg</div>
+          </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="nav-tabs">
+          <button class="nav-tab active" onclick="switchTab('entry')" id="tab-entry">Entry</button>
+          <button class="nav-tab" onclick="switchTab('list')" id="tab-list">View List</button>
+          <button class="nav-tab" onclick="switchTab('export')" id="tab-export">Export</button>
+        </div>
+
+        <!-- ENTRY TAB -->
+        <div id="panel-entry">
+          <div class="entry-panel">
+            <div class="card-title" style="margin-bottom:12px">Select Year</div>
+            <div class="year-grid">
+              <div class="year-btn" onclick="selectYear(1)">1st <span class="prefix">Y28</span></div>
+              <div class="year-btn" onclick="selectYear(2)">2nd <span class="prefix">Y27</span></div>
+              <div class="year-btn" onclick="selectYear(3)">3rd <span class="prefix">Y26</span></div>
+              <div class="year-btn" onclick="selectYear(4)">4th <span class="prefix">Y25</span></div>
+            </div>
+
+            <div class="card-title" style="margin-bottom:12px">Roll Number</div>
+            <div class="roll-input-wrap" id="roll-wrap">
+              <div class="roll-prefix" id="roll-prefix">Y??</div>
+              <input class="roll-suffix" id="roll-input" placeholder="CSE001" maxlength="10"
+                onkeydown="if(event.key==='Enter') addEntry()"
+                oninput="this.value=this.value.toUpperCase()">
+            </div>
+            <p style="font-size:.72rem;color:var(--muted);margin-top:8px">
+              Format: BRANCH + 3-digit number (e.g. CSE042, MECH007)
+            </p>
+            <button class="btn btn-primary" onclick="addEntry()" style="margin-top:16px">
+              ✓ Mark Attendance
+            </button>
+          </div>
+
+          <!-- Pre-register upload note -->
+          <div class="card" style="padding:16px;opacity:.7">
+            <div class="card-title" style="margin-bottom:6px">Pre-registration</div>
+            <p style="font-size:.78rem;color:var(--muted)">Upload a CSV of pre-registered roll numbers to auto-match them during entry.</p>
+            <input type="file" id="prereg-file" accept=".csv" style="display:none" onchange="loadPreregCSV(this)">
+            <button class="btn btn-secondary btn-sm" style="margin-top:12px" onclick="document.getElementById('prereg-file').click()">
+              📂 Upload Pre-reg CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- LIST TAB -->
+        <div id="panel-list" style="display:none">
+          <div class="filter-bar" id="filter-bar">
+            <div class="filter-chip active" onclick="setFilter('all',this)">All</div>
+            <div class="filter-chip" onclick="setFilter('attended',this)">Attended</div>
+            <div class="filter-chip" onclick="setFilter('preregistered',this)">Pre-reg</div>
+          </div>
+          <div id="att-list-container">
+            <div class="empty-state">
+              <div class="icon">📋</div>
+              <p>No entries present yet.<br>Start marking attendance.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- EXPORT TAB -->
+        <div id="panel-export" style="display:none">
+          <div class="export-panel">
+            <div style="font-size:1rem;font-weight:700;margin-bottom:6px">📊 Export Report</div>
+            <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px">
+              Generates a multi-tab Excel workbook segregated by Branch × Year — ready to share with HODs.
+            </p>
+            <button class="btn btn-success" onclick="exportExcel()">
+              ⬇ Download Excel Report
+            </button>
+          </div>
+
+          <div class="card" style="padding:16px;margin-bottom:16px">
+            <div class="card-title" style="margin-bottom:12px">Branch Summary</div>
+            <div id="branch-summary"></div>
+          </div>
+
+          <div class="card" style="padding:16px">
+            <div class="card-title" style="margin-bottom:12px">Event Actions</div>
+            <div class="gap-10">
+              <button class="btn btn-secondary btn-sm" onclick="showScreen('screen-menu')" style="width:100%">← Back to Menu</button>
+              <button class="btn btn-danger btn-sm" onclick="confirmLogout()" style="width:100%">🚪 End Session</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-safe"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT AUTH MODAL -->
+  <div class="modal-overlay" id="modal-edit-auth">
+    <div class="modal">
+      <h3>🔒 Authorization Required</h3>
+      <p>Enter the event password to edit attendance records.</p>
+      <div class="field">
+        <label>Event Password</label>
+        <input type="password" class="input" id="edit-auth-pass" placeholder="••••••••"
+          onkeydown="if(event.key==='Enter') confirmEditAuth()">
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-secondary" onclick="closeModal('modal-edit-auth')" style="flex:1">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmEditAuth()" style="flex:1">Verify</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRM MODAL -->
+  <div class="modal-overlay" id="modal-delete-confirm">
+    <div class="modal">
+      <h3>🗑 Delete Entry?</h3>
+      <p>Remove <strong id="delete-target-roll"></strong> from attendance? This cannot be undone.</p>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-secondary" onclick="closeModal('modal-delete-confirm')" style="flex:1">Cancel</button>
+        <button class="btn btn-danger" onclick="executeDelete()" style="flex:1">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT (Move to app.js locally)                                   -->
+  <!-- ===================================================================== -->
+  <script src="app.js"></script>
+</body>
+=======
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AttendX — Event Attendance System</title>
+  
+  <!-- SheetJS for Excel Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- ===================================================================== -->
+  <!-- CSS STYLES (Move to style.css locally)                                -->
+  <!-- ===================================================================== -->
+  <link rel="stylesheet" href="styl.css">
+</head>
+<body>
+
+  <!-- ===================================================================== -->
+  <!-- HTML STRUCTURE                                                        -->
+  <!-- ===================================================================== -->
+  <div id="app">
+
+    <!-- LOGIN -->
+    <div id="screen-login" class="screen active">
+      <div class="container">
+        <div class="login-hero">
+          <span class="logo-big">AttendX</span>
+          <p>College Event Attendance Management</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Sign in to continue</div>
+
+          <button class="btn btn-google" onclick="loginGoogle()">
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.6-8 19.6-20 0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5.1l-6.2-5.2C29.3 35.3 26.8 36 24 36c-5.3 0-9.7-2.9-11.3-7.1l-6.5 5C9.6 39.5 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.5-2.6 4.6-4.8 5.9l6.2 5.2C40.8 35.7 44 30.4 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
+            Continue with Google
+          </button>
+
+          <div class="auth-divider">or</div>
+
+          <div class="field">
+            <label>Email Address</label>
+            <input type="email" class="input" id="login-email" placeholder="yourname@college.edu">
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="password" class="input" id="login-password" placeholder="••••••••">
+          </div>
+          <button class="btn btn-primary" onclick="loginEmail()" style="margin-bottom:12px">Sign In / Sign Up</button>
+
+          <p style="font-size:.72rem;color:var(--accent3);text-align:center;margin-top:16px">
+            🚀 Powered by Supabase
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MENU -->
+    <div id="screen-menu" class="screen">
+      <div class="container">
+        <div style="margin-bottom:32px;text-align:center">
+          <div class="logo" style="font-size:1.6rem;margin-bottom:6px">AttendX</div>
+          <p style="color:var(--muted);font-size:.85rem">Welcome back, <span id="user-name">Coordinator</span></p>
+        </div>
+
+        <div class="menu-grid">
+          <div class="menu-card" onclick="showScreen('screen-create')">
+            <div class="menu-icon create">📅</div>
+            <div class="menu-info">
+              <h3>Create New Event</h3>
+              <p>Set up a fresh attendance session</p>
+            </div>
+          </div>
+          <div class="menu-card" onclick="showScreen('screen-join')">
+            <div class="menu-icon join">🔗</div>
+            <div class="menu-info">
+              <h3>Join Existing Event</h3>
+              <p>Multiple coordinators, same event</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:40px;">
+          <div class="card-title" style="margin-bottom:12px">Recent Events</div>
+          <div id="recent-events-list">
+            <p style="color:var(--muted);font-size:.85rem;text-align:center;padding:20px">No events yet</p>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;text-align:center">
+          <button class="btn btn-secondary btn-sm" onclick="logout()" style="width:auto;display:inline-flex">Sign Out</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CREATE EVENT -->
+    <div id="screen-create" class="screen">
+      <div class="full-screen-inner">
+        <div class="container">
+          <button class="back-btn" onclick="showScreen('screen-menu')">← Back</button>
+          <div class="screen-title">Create Event</div>
+          <div class="screen-sub">Set up your attendance session</div>
+
+          <div class="card gap-10">
+            <div class="field">
+              <label>Event Name</label>
+              <input type="text" class="input" id="ev-name" placeholder="Tech Symposium 2024">
+            </div>
+            <div class="field">
+              <label>Date</label>
+              <input type="date" class="input" id="ev-date">
+            </div>
+            <div class="field">
+              <label>Time</label>
+              <input type="time" class="input" id="ev-time">
+            </div>
+            <div class="field">
+              <label>Venue (optional)</label>
+              <input type="text" class="input" id="ev-venue" placeholder="Auditorium B">
+            </div>
+            <div class="field">
+              <label>Event Password</label>
+              <input type="password" class="input" id="ev-pass" placeholder="Coordinators will need this">
+            </div>
+            <button class="btn btn-primary" onclick="createNewEvent()">Create Event →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENT CREATED -->
+    <div id="screen-event-created" class="screen">
+      <div class="full-screen-inner">
+        <div class="container">
+          <div class="screen-title text-center">Event Created! 🎉</div>
+          <div class="screen-sub text-center">Share these details with other coordinators</div>
+
+          <div class="event-id-display">
+            <div class="id-label">Event ID</div>
+            <div class="id-value" id="display-event-id">──────</div>
+            <div class="id-pass">Password: <span id="display-event-pass" style="color:var(--accent2)">••••••</span></div>
+          </div>
+
+          <div style="margin-bottom:20px">
+            <div class="card" style="padding:16px">
+              <div style="font-size:.8rem;color:var(--muted);margin-bottom:4px">Event Name</div>
+              <div id="display-event-name" style="font-weight:600"></div>
+              <div style="font-size:.8rem;color:var(--muted);margin-top:8px;margin-bottom:4px">Date & Time</div>
+              <div id="display-event-dt" style="font-size:.88rem"></div>
+            </div>
+          </div>
+
+          <div class="gap-10">
+            <button class="btn btn-primary" onclick="enterAttendance()">Start Taking Attendance →</button>
+            <button class="btn btn-secondary" onclick="copyEventId()">📋 Copy Event ID</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JOIN EVENT -->
+    <div id="screen-join" class="screen">
+      <div class="full-screen-inner">
+        <div class="container">
+          <button class="back-btn" onclick="showScreen('screen-menu')">← Back</button>
+          <div class="screen-title">Join Event</div>
+          <div class="screen-sub">Enter credentials from the event organizer</div>
+
+          <div class="card gap-10">
+            <div class="field">
+              <label>Event ID</label>
+              <input type="text" class="input" id="join-id" placeholder="e.g. EV2405" style="font-family:'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase">
+            </div>
+            <div class="field">
+              <label>Event Password</label>
+              <input type="password" class="input" id="join-pass" placeholder="••••••••">
+            </div>
+            <button class="btn btn-primary" onclick="joinEvent()">Join Event →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATTENDANCE -->
+    <div id="screen-attendance" class="screen">
+      <div class="app-header">
+        <div class="logo">AttendX</div>
+        <div class="header-event">
+          <strong id="hdr-event-name">Event</strong>
+          <span id="hdr-event-id"></span>
+        </div>
+      </div>
+
+      <div class="att-body">
+        <!-- STATS -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-val" id="stat-total" style="color:var(--accent)">0</div>
+            <div class="stat-lbl">Total</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="stat-attended" style="color:var(--accent3)">0</div>
+            <div class="stat-lbl">Attended</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="stat-prereg" style="color:var(--accent2)">0</div>
+            <div class="stat-lbl">Pre-reg</div>
+          </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="nav-tabs">
+          <button class="nav-tab active" onclick="switchTab('entry')" id="tab-entry">Entry</button>
+          <button class="nav-tab" onclick="switchTab('list')" id="tab-list">View List</button>
+          <button class="nav-tab" onclick="switchTab('export')" id="tab-export">Export</button>
+        </div>
+
+        <!-- ENTRY TAB -->
+        <div id="panel-entry">
+          <div class="entry-panel">
+            <div class="card-title" style="margin-bottom:12px">Select Year</div>
+            <div class="year-grid">
+              <div class="year-btn" onclick="selectYear(1)">1st <span class="prefix">Y28</span></div>
+              <div class="year-btn" onclick="selectYear(2)">2nd <span class="prefix">Y27</span></div>
+              <div class="year-btn" onclick="selectYear(3)">3rd <span class="prefix">Y26</span></div>
+              <div class="year-btn" onclick="selectYear(4)">4th <span class="prefix">Y25</span></div>
+            </div>
+
+            <div class="card-title" style="margin-bottom:12px">Roll Number</div>
+            <div class="roll-input-wrap" id="roll-wrap">
+              <div class="roll-prefix" id="roll-prefix">Y??</div>
+              <input class="roll-suffix" id="roll-input" placeholder="CSE001" maxlength="10"
+                onkeydown="if(event.key==='Enter') addEntry()"
+                oninput="this.value=this.value.toUpperCase()">
+            </div>
+            <p style="font-size:.72rem;color:var(--muted);margin-top:8px">
+              Format: BRANCH + 3-digit number (e.g. CSE042, MECH007)
+            </p>
+            <button class="btn btn-primary" onclick="addEntry()" style="margin-top:16px">
+              ✓ Mark Attendance
+            </button>
+          </div>
+
+          <!-- Pre-register upload note -->
+          <div class="card" style="padding:16px;opacity:.7">
+            <div class="card-title" style="margin-bottom:6px">Pre-registration</div>
+            <p style="font-size:.78rem;color:var(--muted)">Upload a CSV of pre-registered roll numbers to auto-match them during entry.</p>
+            <input type="file" id="prereg-file" accept=".csv" style="display:none" onchange="loadPreregCSV(this)">
+            <button class="btn btn-secondary btn-sm" style="margin-top:12px" onclick="document.getElementById('prereg-file').click()">
+              📂 Upload Pre-reg CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- LIST TAB -->
+        <div id="panel-list" style="display:none">
+          <div class="filter-bar" id="filter-bar">
+            <div class="filter-chip active" onclick="setFilter('all',this)">All</div>
+            <div class="filter-chip" onclick="setFilter('attended',this)">Attended</div>
+            <div class="filter-chip" onclick="setFilter('preregistered',this)">Pre-reg</div>
+          </div>
+          <div id="att-list-container">
+            <div class="empty-state">
+              <div class="icon">📋</div>
+              <p>No entries present yet.<br>Start marking attendance.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- EXPORT TAB -->
+        <div id="panel-export" style="display:none">
+          <div class="export-panel">
+            <div style="font-size:1rem;font-weight:700;margin-bottom:6px">📊 Export Report</div>
+            <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px">
+              Generates a multi-tab Excel workbook segregated by Branch × Year — ready to share with HODs.
+            </p>
+            <button class="btn btn-success" onclick="exportExcel()">
+              ⬇ Download Excel Report
+            </button>
+          </div>
+
+          <div class="card" style="padding:16px;margin-bottom:16px">
+            <div class="card-title" style="margin-bottom:12px">Branch Summary</div>
+            <div id="branch-summary"></div>
+          </div>
+
+          <div class="card" style="padding:16px">
+            <div class="card-title" style="margin-bottom:12px">Event Actions</div>
+            <div class="gap-10">
+              <button class="btn btn-secondary btn-sm" onclick="showScreen('screen-menu')" style="width:100%">← Back to Menu</button>
+              <button class="btn btn-danger btn-sm" onclick="confirmLogout()" style="width:100%">🚪 End Session</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-safe"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT AUTH MODAL -->
+  <div class="modal-overlay" id="modal-edit-auth">
+    <div class="modal">
+      <h3>🔒 Authorization Required</h3>
+      <p>Enter the event password to edit attendance records.</p>
+      <div class="field">
+        <label>Event Password</label>
+        <input type="password" class="input" id="edit-auth-pass" placeholder="••••••••"
+          onkeydown="if(event.key==='Enter') confirmEditAuth()">
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-secondary" onclick="closeModal('modal-edit-auth')" style="flex:1">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmEditAuth()" style="flex:1">Verify</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRM MODAL -->
+  <div class="modal-overlay" id="modal-delete-confirm">
+    <div class="modal">
+      <h3>🗑 Delete Entry?</h3>
+      <p>Remove <strong id="delete-target-roll"></strong> from attendance? This cannot be undone.</p>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-secondary" onclick="closeModal('modal-delete-confirm')" style="flex:1">Cancel</button>
+        <button class="btn btn-danger" onclick="executeDelete()" style="flex:1">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT (Move to app.js locally)                                   -->
+  <!-- ===================================================================== -->
+  <script src="app.js"></script>
+</body>
+>>>>>>> 6b11ebc (Connecting local project to GitHub)
+</html>
