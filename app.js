@@ -1,6 +1,4 @@
-// ══════════════════════════════════════════════════
 //  SUPABASE CONFIGURATION
-// ══════════════════════════════════════════════════
 const SUPABASE_URL = 'https://dlycduroumqqaiywwxwm.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRseWNkdXJvdW1xcWFpeXd3eHdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMDE3MTgsImV4cCI6MjA4Nzg3NzcxOH0.sDjlAAEL6o1lwUHuAs0L4mS7uxU7feIBvYkbIzWNkto';
 
@@ -11,9 +9,7 @@ try {
   console.warn("Supabase not initialized properly. Add your keys!");
 }
 
-// ══════════════════════════════════════════════════
 //  STATE
-// ══════════════════════════════════════════════════
 const state = {
   user: null,
   currentEvent: null,
@@ -26,9 +22,30 @@ const state = {
 
 let realtimeSubscription = null;
 
-const YEAR_PREFIX = { 1: 'Y28', 2: 'Y27', 3: 'Y26', 4: 'Y25' };
+// Dynamic Academic Year Logic (Starts in July)
+function computeYears() {
+  const now = new Date();
+  let startYear = now.getFullYear();
+  if (now.getMonth() < 6) { startYear -= 1; } // If before July, academic year started last year
+  return {
+    1: 'Y' + (startYear).toString().slice(-2),
+    2: 'Y' + (startYear - 1).toString().slice(-2),
+    3: 'Y' + (startYear - 2).toString().slice(-2),
+    4: 'Y' + (startYear - 3).toString().slice(-2)
+  };
+}
+const YEAR_PREFIX = computeYears();
 const YEAR_LABELS = { 1: '1st', 2: '2nd', 3: '3rd', 4: '4th' };
 let selectedYear = null;
+
+// Initialize dynamic years in UI on load
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById('y1-prefix').textContent = YEAR_PREFIX[1];
+  document.getElementById('y2-prefix').textContent = YEAR_PREFIX[2];
+  document.getElementById('y3-prefix').textContent = YEAR_PREFIX[3];
+  document.getElementById('y4-prefix').textContent = YEAR_PREFIX[4];
+  document.getElementById('ev-date').valueAsDate = new Date();
+});
 
 function mapDbToLocal(dbRow) {
   return {
@@ -45,14 +62,12 @@ function mapDbToLocal(dbRow) {
   };
 }
 
-// ══════════════════════════════════════════════════
 //  NAVIGATION
-// ══════════════════════════════════════════════════
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (id === 'screen-attendance') updateAttendanceUI();
-  if (id === 'screen-menu') fetchRecentEvents();
+  if (id === 'screen-join') fetchRecentEvents(); // Moved fetch call here
 }
 
 function switchTab(tab) {
@@ -63,9 +78,20 @@ function switchTab(tab) {
   if (tab === 'export') renderBranchSummary();
 }
 
-// ══════════════════════════════════════════════════
+// PASSWORD TOGGLE
+function togglePwd(id, btn) {
+  const input = document.getElementById(id);
+  const svg = btn.querySelector('svg');
+  if (input.type === 'password') {
+    input.type = 'text';
+    svg.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+  } else {
+    input.type = 'password';
+    svg.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+  }
+}
+
 //  AUTH
-// ══════════════════════════════════════════════════
 supabaseClient.auth.getSession().then(({ data: { session } }) => {
   if (session) {
     state.user = {
@@ -133,9 +159,7 @@ async function logout() {
 }
 function confirmLogout() { logout(); }
 
-// ══════════════════════════════════════════════════
 //  EVENTS
-// ══════════════════════════════════════════════════
 function generateEventId() { return 'EV' + Math.random().toString(36).substr(2, 4).toUpperCase(); }
 
 async function fetchRecentEvents() {
@@ -150,14 +174,14 @@ async function fetchRecentEvents() {
 function renderRecentEvents() {
   const c = document.getElementById('recent-events-list');
   if (state.events.length === 0) {
-    c.innerHTML = '<p style="color:var(--muted);font-size:.85rem;text-align:center;padding:20px">No events yet</p>';
+    c.innerHTML = '<p style="color:var(--muted);font-size:.85rem;text-align:center;padding:20px">No recent events found</p>';
     return;
   }
   c.innerHTML = state.events.map(ev => `
     <div class="att-item" style="cursor:pointer;margin-bottom:8px" onclick="quickJoin('${ev.id}')">
       <div>
         <div class="att-roll">${ev.name}</div>
-        <div class="att-meta">${ev.id} · ${ev.date}</div>
+        <div class="att-meta">${ev.id} · ${ev.date} ${ev.organization ? '· ' + ev.organization : ''}</div>
       </div>
       <div class="status-badge status-attended">Resume</div>
     </div>
@@ -169,13 +193,14 @@ async function createNewEvent() {
   const date   = document.getElementById('ev-date').value;
   const time   = document.getElementById('ev-time').value || null;
   const venue  = document.getElementById('ev-venue').value.trim() || null;
+  const org    = document.getElementById('ev-org').value.trim() || null;
   const pass   = document.getElementById('ev-pass').value;
 
-  if (!name || !date || !pass) { toast('Fill in all required fields', 'error'); return; }
+  if (!name || !date || !pass) { toast('Fill in required fields', 'error'); return; }
 
   const newEvent = {
     id: generateEventId(),
-    name, date, time, venue, password: pass,
+    name, date, time, venue, password: pass, organization: org,
     created_by: state.user?.name,
   };
 
@@ -243,9 +268,7 @@ function enterAttendance() {
   switchTab('entry');
 }
 
-// ══════════════════════════════════════════════════
 //  REAL-TIME SYNCRONIZATION
-// ══════════════════════════════════════════════════
 function subscribeToAttendance(eventId) {
   if (realtimeSubscription) supabaseClient.removeChannel(realtimeSubscription);
 
@@ -267,9 +290,7 @@ function subscribeToAttendance(eventId) {
     .subscribe();
 }
 
-// ══════════════════════════════════════════════════
 //  YEAR SELECTION
-// ══════════════════════════════════════════════════
 function selectYear(y) {
   selectedYear = y;
   updateYearUI();
@@ -283,9 +304,7 @@ function updateYearUI() {
   document.getElementById('roll-prefix').textContent = selectedYear ? YEAR_PREFIX[selectedYear] : 'Y??';
 }
 
-// ══════════════════════════════════════════════════
 //  ATTENDANCE ENTRY
-// ══════════════════════════════════════════════════
 async function addEntry() {
   if (!selectedYear) { toast('Select a year first', 'error'); return; }
 
@@ -311,7 +330,12 @@ async function addEntry() {
         .eq('id', existing.id)
         .select().single();
         
-      if (!error) {
+      if (!error && data) {
+        // Explicitly update local state for immediate UI reflection
+        const existingIdx = state.attendance.findIndex(a => a.id === existing.id);
+        state.attendance[existingIdx] = mapDbToLocal(data);
+        updateAttendanceUI();
+        
         toast('✓ Pre-reg verified: ' + fullRoll, 'success');
         document.getElementById('roll-input').value = '';
       }
@@ -344,13 +368,15 @@ async function addEntry() {
     return;
   }
 
+  // Explicitly update local state for immediate UI reflection
+  state.attendance.push(mapDbToLocal(data));
+  updateAttendanceUI();
+
   document.getElementById('roll-input').value = '';
   toast('✓ Marked: ' + fullRoll, 'success');
 }
 
-// ══════════════════════════════════════════════════
 //  PRE-REG CSV UPLOAD
-// ══════════════════════════════════════════════════
 async function loadPreregCSV(input) {
   const file = input.files[0];
   if (!file) return;
@@ -392,9 +418,7 @@ async function loadPreregCSV(input) {
   input.value = '';
 }
 
-// ══════════════════════════════════════════════════
 //  UI UPDATES
-// ══════════════════════════════════════════════════
 function updateAttendanceUI() {
   const all       = state.attendance;
   const attended  = all.filter(a => a.status === 'attended');
@@ -436,7 +460,7 @@ function renderList() {
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <span class="status-badge status-${a.status}">${a.status === 'attended' ? '✓ Present' : '○ Pre-reg'}</span>
-        <button class="btn btn-danger btn-sm" onclick="requestDelete('${a.id}')">✕</button>
+        <button class="btn btn-danger btn-sm" onclick="requestDelete('${a.id}')" title="Delete Entry"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
       </div>
     </div>
   `).join('') + '</div>';
@@ -446,9 +470,7 @@ function formatTime(iso) {
   return new Date(iso).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 }
 
-// ══════════════════════════════════════════════════
 //  EDIT / DELETE
-// ══════════════════════════════════════════════════
 function requestDelete(id) {
   state.pendingDeleteId = id;
   const entry = state.attendance.find(a => a.id === id);
@@ -483,9 +505,7 @@ async function executeDelete() {
   state.pendingDeleteId = null;
 }
 
-// ══════════════════════════════════════════════════
 //  EXPORT
-// ══════════════════════════════════════════════════
 function renderBranchSummary() {
   const c = document.getElementById('branch-summary');
   const branches = groupByBranch(state.attendance.filter(a => a.status === 'attended'));
@@ -499,7 +519,7 @@ function renderBranchSummary() {
         <div style="font-weight:600">${branch}</div>
         <div style="font-size:.72rem;color:var(--muted)">${Object.keys(groupByYear(students)).join(', ')} Year</div>
       </div>
-      <div style="font-family:'Space Mono',monospace;font-size:1.1rem;color:var(--accent3)">${students.length}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:1.1rem;color:var(--text)">${students.length}</div>
     </div>
   `).join('');
 }
@@ -525,6 +545,7 @@ function exportExcel() {
     ['AttendX — Attendance Report'],
     ['Event', ev.name],
     ['Date', ev.date],
+    ['Organization', ev.organization || 'N/A'],
     ['Venue', ev.venue || 'N/A'],
     ['Generated', new Date().toLocaleString('en-IN')],
     [],
@@ -538,18 +559,19 @@ function exportExcel() {
   const attended = state.attendance.filter(a => a.status === 'attended');
   const byBranch = groupByBranch(attended);
 
+  // Separate sheet based on branches, inside the sheet sorted by year of study
   Object.entries(byBranch).forEach(([branch, students]) => {
-    const byYear = groupByYear(students);
-    Object.entries(byYear).forEach(([yearLabel, sts]) => {
-      const sheetName = (branch + '_' + yearLabel.replace(' Year', 'Y')).substring(0, 31);
-      const rows = [
-        ['Roll No', 'Year', 'Branch', 'Status', 'Time', 'Recorded By'],
-        ...sts.map(s => [s.rollNo, s.yearLabel + ' Year', s.branch, s.status, formatTime(s.timestamp), s.recordedBy])
-      ];
-      const ws = XLSX.utils.aoa_to_sheet(rows);
-      ws['!cols'] = [{ wch: 16 }, { wch: 10 }, { wch: 10 }, { wch: 14 }, { wch: 10 }, { wch: 20 }];
-      XLSX.utils.book_append_sheet(wb, ws, sheetName);
-    });
+    // Sort students array ascending by Year (1st, 2nd, 3rd, 4th)
+    students.sort((a, b) => a.year - b.year);
+    
+    const sheetName = branch.substring(0, 31); // Excel limits sheet names to 31 chars
+    const rows = [
+      ['Roll No', 'Year', 'Branch', 'Status', 'Time', 'Recorded By'],
+      ...students.map(s => [s.rollNo, s.yearLabel + ' Year', s.branch, s.status, formatTime(s.timestamp), s.recordedBy])
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{ wch: 16 }, { wch: 10 }, { wch: 10 }, { wch: 14 }, { wch: 10 }, { wch: 20 }];
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
   });
 
   const allRows = [
@@ -564,9 +586,7 @@ function exportExcel() {
   toast('Excel exported!', 'success');
 }
 
-// ══════════════════════════════════════════════════
 //  MODALS & TOAST
-// ══════════════════════════════════════════════════
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
@@ -582,5 +602,3 @@ function toast(msg, type = 'info') {
 document.querySelectorAll('.modal-overlay').forEach(o => {
   o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
 });
-
-document.getElementById('ev-date').valueAsDate = new Date();
