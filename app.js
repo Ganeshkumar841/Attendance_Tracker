@@ -508,6 +508,34 @@ async function executeDelete() {
   state.pendingDeleteId = null;
 }
 
+async function executeDeleteEvent() {
+  const pass = document.getElementById('delete-event-pass').value;
+  if (!pass) { toast('Enter the event password', 'error'); return; }
+  if (pass !== state.currentEvent?.password) { toast('Incorrect password', 'error'); return; }
+
+  const eventId = state.currentEvent.id;
+
+  // Delete all attendance records first
+  const { error: attErr } = await supabaseClient.from('attendance').delete().eq('event_id', eventId);
+  if (attErr) { toast('Failed to delete attendance records: ' + attErr.message, 'error'); return; }
+
+  // Delete the event itself
+  const { error: evErr } = await supabaseClient.from('events').delete().eq('id', eventId);
+  if (evErr) { toast('Failed to delete event: ' + evErr.message, 'error'); return; }
+
+  // Clean up local state
+  if (realtimeSubscription) supabaseClient.removeChannel(realtimeSubscription);
+  state.currentEvent = null;
+  state.attendance = [];
+  state.editAuthorized = false;
+  state.events = state.events.filter(e => e.id !== eventId);
+
+  closeModal('modal-delete-event');
+  document.getElementById('delete-event-pass').value = '';
+  toast('Event and all data permanently deleted', 'success');
+  showScreen('screen-menu');
+}
+
 //  EXPORT
 function renderBranchSummary() {
   const c = document.getElementById('branch-summary');
