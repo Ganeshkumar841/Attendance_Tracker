@@ -382,11 +382,18 @@ async function addEntry() {
 async function loadPreregCSV(input) {
   const file = input.files[0];
   if (!file) return;
+
+  const btn = document.querySelector('#panel-entry .btn-secondary');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="prereg-spinner"></span> Uploading…';
+  }
+
   const reader = new FileReader();
   reader.onload = async (e) => {
     const lines = e.target.result.split('\n').map(l => l.trim()).filter(Boolean);
     const toInsert = [];
-    
+
     lines.forEach(roll => {
       roll = roll.toUpperCase().replace(/[^A-Z0-9]/g, '');
       if (!roll) return;
@@ -396,7 +403,7 @@ async function loadPreregCSV(input) {
         const year = yearEntry ? parseInt(yearEntry[0]) : 1;
         const suffix = roll.substring(3);
         const branch = suffix.replace(/\d+/, '');
-        
+
         toInsert.push({
           event_id: state.currentEvent.id,
           roll_no: roll,
@@ -409,11 +416,27 @@ async function loadPreregCSV(input) {
         });
       }
     });
-    
-    if (toInsert.length > 0) {
-        const { error } = await supabaseClient.from('attendance').insert(toInsert);
-        if (error) { toast("Error uploading pre-registrations", "error"); }
-        else { toast(`Uploaded ${toInsert.length} pre-registered students`, 'success'); }
+
+    const resetBtn = () => {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = 'Upload Pre-reg CSV';
+      }
+    };
+
+    if (toInsert.length === 0) {
+      toast('No new roll numbers to add', 'info');
+      resetBtn();
+    } else {
+      const { data, error } = await supabaseClient.from('attendance').insert(toInsert).select();
+      if (error) {
+        toast('Error uploading pre-registrations', 'error');
+      } else {
+        data.forEach(row => state.attendance.push(mapDbToLocal(row)));
+        updateAttendanceUI();
+        toast(`✓ ${data.length} pre-registered students added`, 'success');
+      }
+      resetBtn();
     }
   };
   reader.readAsText(file);
@@ -431,6 +454,11 @@ function updateAttendanceUI() {
   document.getElementById('stat-prereg').textContent    = prereg.length;
 
   renderList();
+
+  // Keep branch summary in sync if export tab is open
+  if (document.getElementById('panel-export')?.style.display !== 'none') {
+    renderBranchSummary();
+  }
 }
 
 function setFilter(f, el) {
