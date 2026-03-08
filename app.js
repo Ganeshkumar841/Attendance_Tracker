@@ -67,7 +67,7 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (id === 'screen-attendance') updateAttendanceUI();
-  if (id === 'screen-join') fetchRecentEvents(); // Moved fetch call here
+  if (id === 'screen-join') fetchRecentEvents(); 
 }
 
 function switchTab(tab) {
@@ -183,7 +183,7 @@ function renderRecentEvents() {
         <div class="att-roll">${ev.name}</div>
         <div class="att-meta">${ev.id} · ${ev.date} ${ev.organization ? '· ' + ev.organization : ''}</div>
       </div>
-      <div class="status-badge status-attended">Resume</div>
+      <div class="status-badge status-attended">Select to verify</div>
     </div>
   `).join('');
 }
@@ -242,12 +242,14 @@ async function joinEvent() {
   toast('Joined ' + ev.name, 'success');
 }
 
-async function quickJoin(id) {
+// Prompts user for password instead of joining directly
+function quickJoin(id) {
   const ev = state.events.find(e => e.id === id);
   if (!ev) return;
-  state.currentEvent = ev;
-  await fetchAttendance(ev.id);
-  enterAttendance();
+  document.getElementById('join-id').value = ev.id;
+  document.getElementById('join-pass').value = '';
+  document.getElementById('join-pass').focus();
+  toast(`Please enter password for ${ev.name}`, 'info');
 }
 
 async function fetchAttendance(eventId) {
@@ -467,6 +469,7 @@ function renderList() {
 }
 
 function formatTime(iso) {
+  if (!iso) return '-';
   return new Date(iso).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 }
 
@@ -538,52 +541,51 @@ function groupByYear(data) {
 function exportExcel() {
   if (state.attendance.length === 0) { toast('No attendance data to export', 'error'); return; }
 
-  const wb = XLSX.utils.book_new();
   const ev = state.currentEvent;
 
-  const summaryData = [
-    ['AttendX — Attendance Report'],
-    ['Event', ev.name],
-    ['Date', ev.date],
-    ['Organization', ev.organization || 'N/A'],
-    ['Venue', ev.venue || 'N/A'],
-    ['Generated', new Date().toLocaleString('en-IN')],
-    [],
-    ['Total Entries', state.attendance.length],
-    ['Attended', state.attendance.filter(a => a.status === 'attended').length],
-    ['Pre-registered (not attended)', state.attendance.filter(a => a.status === 'preregistered').length],
-  ];
-  const ws0 = XLSX.utils.aoa_to_sheet(summaryData);
-  XLSX.utils.book_append_sheet(wb, ws0, 'Summary');
+  // Group all students (attended and pre-registered) by branch
+  const byBranch = groupByBranch(state.attendance);
+  let fileCount = 0;
 
-  const attended = state.attendance.filter(a => a.status === 'attended');
-  const byBranch = groupByBranch(attended);
-
-  // Separate sheet based on branches, inside the sheet sorted by year of study
-  Object.entries(byBranch).forEach(([branch, students]) => {
-    // Sort students array ascending by Year (1st, 2nd, 3rd, 4th)
-    students.sort((a, b) => a.year - b.year);
+  // Loop through branches and download separate Excels
+  Object.entries(byBranch).forEach(([branch, students], index) => {
     
-    const sheetName = branch.substring(0, 31); // Excel limits sheet names to 31 chars
+    // Sort students: Descending by year prefix (Y25, Y24...), then ascending by full roll no
+    students.sort((a, b) => {
+      const yearPrefixA = a.rollNo.match(/^[A-Z]+\d+/)?.[0] || '';
+      const yearPrefixB = b.rollNo.match(/^[A-Z]+\d+/)?.[0] || '';
+      
+      // Sort in descending order: e.g., Y25 comes before Y24
+      if (yearPrefixA !== yearPrefixB) {
+        return yearPrefixB.localeCompare(yearPrefixA);
+      }
+      // Same prefix year, sort full rollNo ascending
+      return a.rollNo.localeCompare(b.rollNo);
+    });
+
+    const wb = XLSX.utils.book_new();
+
     const rows = [
-      ['Roll No', 'Year', 'Branch', 'Status', 'Time', 'Recorded By'],
+      ['Registered Number (Roll No)', 'Year', 'Branch', 'Status', 'Time', 'Recorded By'],
       ...students.map(s => [s.rollNo, s.yearLabel + ' Year', s.branch, s.status, formatTime(s.timestamp), s.recordedBy])
     ];
+
     const ws = XLSX.utils.aoa_to_sheet(rows);
-    ws['!cols'] = [{ wch: 16 }, { wch: 10 }, { wch: 10 }, { wch: 14 }, { wch: 10 }, { wch: 20 }];
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    ws['!cols'] = [{ wch: 28 }, { wch: 10 }, { wch: 10 }, { wch: 14 }, { wch: 10 }, { wch: 20 }];
+    
+    XLSX.utils.book_append_sheet(wb, ws, branch.substring(0, 31));
+
+    const filename = `Attendance_${ev.name.replace(/\s+/g,'_')}_${branch}.xlsx`;
+
+    // Download multiple files sequentially using a slight timeout
+    setTimeout(() => {
+        XLSX.writeFile(wb, filename);
+    }, index * 400);
+
+    fileCount++;
   });
 
-  const allRows = [
-    ['Roll No', 'Year', 'Branch', 'Status', 'Time', 'Recorded By'],
-    ...state.attendance.map(s => [s.rollNo, s.yearLabel + ' Year', s.branch, s.status, formatTime(s.timestamp), s.recordedBy])
-  ];
-  const wsAll = XLSX.utils.aoa_to_sheet(allRows);
-  XLSX.utils.book_append_sheet(wb, wsAll, 'All Entries');
-
-  const filename = `Attendance_${ev.name.replace(/\s+/g,'_')}_${ev.date || 'today'}.xlsx`;
-  XLSX.writeFile(wb, filename);
-  toast('Excel exported!', 'success');
+  toast(`Exporting ${fileCount} Excel file(s)...`, 'success');
 }
 
 //  MODALS & TOAST

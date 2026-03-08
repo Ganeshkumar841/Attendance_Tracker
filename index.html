@@ -8,7 +8,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
-  <!-- Changed to Inter Font for cleaner minimalist feel -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -200,7 +199,7 @@
           <div style="margin-top:40px;">
             <div class="card-title" style="margin-bottom:12px;display:flex;align-items:center;gap:10px">
                 <span style="flex:1;height:1px;background:var(--border)"></span>
-                Or select recent event
+                Or select recent event to verify
                 <span style="flex:1;height:1px;background:var(--border)"></span>
             </div>
             <div id="recent-events-list">
@@ -312,10 +311,10 @@
           <div class="card" style="padding:20px; margin-bottom:16px; border:1px solid var(--border);">
             <div style="font-size:1rem;font-weight:600;margin-bottom:8px">Export Report</div>
             <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.5;">
-              Generates a multi-tab Excel workbook. Sheets are separated by Branch and sorted internally by Year of Study.
+              Generates separate Excel files for each branch. Students are ordered by their registered year (Y25, Y24, etc.).
             </p>
             <button class="btn btn-primary" onclick="exportExcel()">
-              Download Excel Report
+              Download Excel Report(s)
             </button>
           </div>
 
