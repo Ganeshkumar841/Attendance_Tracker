@@ -9,17 +9,17 @@
     --border-bright:    rgba(255,255,255,0.15);
 
     /* Neon accents */
-    --accent:           #6a8d0a;       /* neon lime  */
-    --accent-hover:     #6a8d0a;
-    --accent2:          #521770;       /* neon purple */
-    --accent3:          #7d233e;       /* neon pink   */
+    --accent:           #bcff00;       /* neon lime  */
+    --accent-hover:     #d4ff4d;
+    --accent2:          #d277ff;       /* neon purple */
+    --accent3:          #ff6b98;       /* neon pink   */
 
     /* Status */
-    --success:          #6a8d0a;
-    --danger:           #7d233e;
+    --success:          #bcff00;
+    --danger:           #ff6b98;
 
     /* Text */
-    --text:             #9090c6;
+    --text:             #f4f4f5;
     --muted:            #6b6b72;
 
     /* Glows */
@@ -32,7 +32,7 @@
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: #170707;
+    background: #09090b;
     background-image:
         radial-gradient(ellipse 80% 60% at 80% -10%, rgba(188,255,0,0.07) 0%, transparent 60%),
         radial-gradient(ellipse 60% 50% at -10% 80%, rgba(210,119,255,0.07) 0%, transparent 60%);
@@ -56,7 +56,7 @@ body {
     display: flex; align-items: center; justify-content: space-between;
     padding: 18px 24px;
     border-bottom: 1px solid var(--border-bright);
-    background: rgba(72, 17, 17, 0.75);
+    background: rgba(9,9,11,0.75);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     position: sticky; top: 0; z-index: 100;
@@ -67,7 +67,7 @@ body {
     font-family: 'Inter', sans-serif;
     font-size: 1.3rem; font-weight: 900;
     letter-spacing: -0.04em;
-    background: linear-gradient(90deg, #6a8d0a, #d277ff);
+    background: linear-gradient(90deg, #bcff00, #d277ff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -118,14 +118,14 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #ffd00090, #ffd00090);
+    background: linear-gradient(135deg, #bcff00, #a8e800);
     color: #0a1200;
     font-weight: 800;
     border: none;
     box-shadow: 0 0 20px rgba(188,255,0,0.25);
 }
 .btn-primary:hover {
-    background: linear-gradient(135deg, #ffd00090, #ffd00090);
+    background: linear-gradient(135deg, #d4ff4d, #bcff00);
     box-shadow: 0 0 32px rgba(188,255,0,0.4);
     transform: translateY(-1px);
 }
@@ -137,7 +137,7 @@ body {
     border: 1px solid var(--border-bright);
 }
 .btn-secondary:hover {
-    background: rgba(77, 6, 6, 0.05);
+    background: rgba(255,255,255,0.05);
     border-color: rgba(255,255,255,0.25);
 }
 
@@ -367,7 +367,7 @@ body {
     font-family: 'Inter', sans-serif;
     font-size: 2.6rem; font-weight: 900;
     letter-spacing: -0.05em; display: block; margin-bottom: 10px;
-    background: linear-gradient(90deg, #576f13 20%, #5b157e 60%, #630c26 100%);
+    background: linear-gradient(90deg, #bcff00 20%, #d277ff 60%, #ff6b98 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
