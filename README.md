@@ -1,4 +1,4 @@
-### AttendX — Event Attendance System
+# AttendX — Event Attendance System
 
 AttendX is a streamlined, real-time college event attendance management web application built for event coordinators. It features a modern "Luminous Void" dark user interface, instant database synchronization, dynamic academic year handling, multi-file branch-wise Excel exporting capabilities, and **enterprise-grade security**.
 
