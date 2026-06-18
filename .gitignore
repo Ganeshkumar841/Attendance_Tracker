@@ -2,3 +2,27 @@
 /basic_outline_for_attendance_app.jpeg
 /constraints_for_attendance_app.jpeg
 /phases-5.txt
+
+# Environment configuration (contains sensitive keys)
+.env
+.env.local
+.env.*.local
+
+# OS and IDE files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Node modules (if used)
+node_modules/
+
+# Backup files
+*.backup
+*.bak

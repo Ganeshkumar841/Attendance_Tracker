@@ -296,7 +296,194 @@ body {
     border: 1px solid rgba(210,119,255,0.2);
 }
 
-/* ── CSV Hint ── */
+/* ── Validation & Error Feedback ── */
+.validation-feedback {
+    display: none;
+    font-size: .72rem;
+    color: var(--danger);
+    margin-top: 6px;
+    padding: 6px 8px;
+    background: rgba(255, 107, 152, 0.08);
+    border-left: 2px solid var(--danger);
+    border-radius: 4px;
+}
+
+.input:invalid, .input.error {
+    border-color: var(--danger) !important;
+    background: rgba(255, 107, 152, 0.03) !important;
+}
+
+/* ── Connection Status Indicator ── */
+.connection-status {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(9, 9, 11, 0.9);
+    border: 1px solid var(--border-bright);
+    border-radius: 20px;
+    font-size: .7rem;
+    color: var(--muted);
+    z-index: 999;
+    backdrop-filter: blur(16px);
+    transition: all .15s;
+}
+
+.connection-status.connected {
+    border-color: rgba(188, 255, 0, 0.4);
+    color: var(--success);
+}
+
+.connection-status.disconnected {
+    border-color: rgba(255, 107, 152, 0.4);
+    color: var(--danger);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.connection-status.connected .status-dot {
+    background: var(--success);
+    animation: none;
+}
+
+.connection-status.disconnected .status-dot {
+    background: var(--danger);
+    animation: pulse 0.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ── Loading Spinner ── */
+.spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Button Loading State ── */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn[aria-busy="true"] {
+    opacity: 0.8;
+}
+
+/* ── Password Strength Meter ── */
+.password-strength {
+    display: flex;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.strength-bar {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    transition: background .2s;
+}
+
+.strength-bar.filled {
+    background: var(--muted);
+}
+
+.strength-bar.filled.weak {
+    background: var(--danger);
+}
+
+.strength-bar.filled.fair {
+    background: #ff9800;
+}
+
+.strength-bar.filled.good {
+    background: var(--accent2);
+}
+
+.strength-bar.filled.strong {
+    background: var(--success);
+}
+
+.strength-label {
+    font-size: .65rem;
+    color: var(--muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+/* ── File Upload Info ── */
+.file-info {
+    font-size: .75rem;
+    color: var(--muted);
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 6px;
+    margin-top: 8px;
+    border-left: 2px solid var(--accent2);
+}
+
+/* ── Error Toast Enhancements ── */
+#toast.error {
+    border-color: rgba(255, 107, 152, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, .6), 0 0 16px rgba(255, 107, 152, 0.12);
+}
+
+#toast.warning {
+    border-color: rgba(255, 152, 0, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, .6), 0 0 16px rgba(255, 152, 0, 0.12);
+}
+
+/* ── Accessibility Improvements ── */
+:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.btn:focus, .input:focus, .year-btn:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* ── Skip to Content Link (Accessibility) ── */
+.skip-to-content {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--accent);
+    color: #0a1200;
+    padding: 8px;
+    text-decoration: none;
+    z-index: 1000;
+}
+
+.skip-to-content:focus {
+    top: 0;
+}
+
+
 .csv-hint {
     background: rgba(255,255,255,0.02);
     border: 1px dashed rgba(255,255,255,0.1);
