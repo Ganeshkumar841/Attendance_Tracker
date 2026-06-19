@@ -1,23 +1,13 @@
-//  SUPABASE CONFIGURATION - NOW USING SECURE CONFIG
+//  SUPABASE CONFIGURATION
+const SUPABASE_URL = 'https://dlycduroumqqaiywwxwm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRseWNkdXJvdW1xcWFpeXd3eHdtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzMDE3MTgsImV4cCI6MjA4Nzg3NzcxOH0.sDjlAAEL6o1lwUHuAs0L4mS7uxU7feIBvYkbIzWNkto';
+
 let supabaseClient;
 try {
-  supabaseClient = window.supabase.createClient(appConfig.supabaseUrl, appConfig.supabaseAnonKey);
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 } catch (e) {
-  console.warn("Supabase not initialized properly. Check your configuration!");
+  console.warn("Supabase not initialized properly. Add your keys!");
 }
-
-//  AUDIT LOGGING INITIALIZATION
-let auditLogger = null;
-if (supabaseClient && appConfig.getEnableAuditLogging()) {
-  auditLogger = new AuditLogger(supabaseClient);
-  window.__appState = { user: null, auditLogger };
-}
-
-//  SECURITY MANAGERS
-let sessionManager = null;
-let csrfManager = new CSRFManager();
-const dbHelper = new DatabaseHelper(supabaseClient);
-const cache = new SimpleCache(5 * 60 * 1000);
 
 //  STATE
 const state = {
@@ -27,7 +17,7 @@ const state = {
   currentFilter: 'all',
   editAuthorized: false,
   pendingDeleteId: null,
-  events: [],
+  events: [], 
 };
 
 let realtimeSubscription = null;
@@ -36,7 +26,7 @@ let realtimeSubscription = null;
 function computeYears() {
   const now = new Date();
   let startYear = now.getFullYear();
-  if (now.getMonth() < 6) { startYear -= 1; }
+  if (now.getMonth() < 6) { startYear -= 1; } // If before July, academic year started last year
   return {
     1: 'Y' + (startYear).toString().slice(-2),
     2: 'Y' + (startYear - 1).toString().slice(-2),
@@ -55,23 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById('y3-prefix').textContent = YEAR_PREFIX[3];
   document.getElementById('y4-prefix').textContent = YEAR_PREFIX[4];
   document.getElementById('ev-date').valueAsDate = new Date();
-
-  // Initialize session manager after config loads
-  initializeSecurityManagers();
 });
-
-function initializeSecurityManagers() {
-  sessionManager = new SessionManager(appConfig.getSessionTimeout());
-  sessionManager.onSessionExpired(() => {
-    toast('Session expired. Please login again.', 'error');
-    logout();
-  });
-
-  // Check configuration
-  if (!appConfig.isConfigured()) {
-    toast('⚠️ Application not properly configured. Check your Supabase settings.', 'error');
-  }
-}
 
 function mapDbToLocal(dbRow) {
   return {
@@ -93,7 +67,7 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (id === 'screen-attendance') updateAttendanceUI();
-  if (id === 'screen-join') fetchRecentEvents();
+  if (id === 'screen-join') fetchRecentEvents(); 
 }
 
 function switchTab(tab) {
@@ -117,7 +91,7 @@ function togglePwd(id, btn) {
   }
 }
 
-//  AUTH WITH SECURITY
+//  AUTH
 supabaseClient.auth.getSession().then(({ data: { session } }) => {
   if (session) {
     state.user = {
@@ -125,7 +99,6 @@ supabaseClient.auth.getSession().then(({ data: { session } }) => {
       email: session.user.email,
       id: session.user.id
     };
-    if (window.__appState) window.__appState.user = state.user;
     afterLogin();
   }
 });
@@ -137,7 +110,6 @@ supabaseClient.auth.onAuthStateChange((_event, session) => {
       email: session.user.email,
       id: session.user.id
     };
-    if (window.__appState) window.__appState.user = state.user;
     if (document.getElementById('screen-login').classList.contains('active')) {
       afterLogin();
     }
@@ -148,71 +120,27 @@ supabaseClient.auth.onAuthStateChange((_event, session) => {
 });
 
 async function loginEmail() {
-  if (!appConfig.isConfigured()) {
-    toast("Configuration error: Please set up Supabase keys", "error");
-    return;
-  }
-
-  const email = sanitizeInput(document.getElementById('login-email').value, 'email').trim();
-  const pass = document.getElementById('login-password').value;
-
-  // INPUT VALIDATION
-  if (!validateEmail(email)) {
-    showValidationError('email-validation', 'Please enter a valid email address');
-    return;
-  }
-
-  if (!validatePassword(pass)) {
-    showValidationError('password-validation', VALIDATION_RULES.password.message);
-    return;
-  }
-
-  // RATE LIMITING CHECK
-  const limiterCheck = loginLimiter.checkLimit(email);
-  if (!limiterCheck.allowed) {
-    toast(`Too many login attempts. Try again in ${limiterCheck.resetTime}s`, 'error');
-    if (auditLogger) await auditLogger.logLoginFailure(email, 'rate_limit_exceeded');
-    return;
-  }
-
-  // Show loading state
-  const loginBtn = document.getElementById('login-btn');
-  setButtonLoading(loginBtn, true);
-
-  try {
-    let { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
-
-    if (error && error.message.includes('Invalid login credentials')) {
-      const res = await supabaseClient.auth.signUp({ email, password: pass });
-      data = res.data;
-      error = res.error;
-      if (!error) {
-        toast('Account created & logged in!', 'success');
-        if (auditLogger) await auditLogger.logLogin(email);
-      }
-    } else if (!error) {
-      if (auditLogger) await auditLogger.logLogin(email);
-    }
-
-    if (error) {
-      toast(sanitizeInput(error.message, 'text'), 'error');
-      if (auditLogger) await auditLogger.logLoginFailure(email, error.message);
+  if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+      toast("Please add your Supabase keys to the script first!", "error");
       return;
-    }
-
-    clearValidationErrors();
-  } catch (err) {
-    console.error('Login error:', err);
-    toast('An error occurred during login. Please try again.', 'error');
-    if (auditLogger) await auditLogger.logLoginFailure(email, err.message);
-  } finally {
-    setButtonLoading(loginBtn, false);
   }
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-password').value;
+  if (!email || !pass) { toast('Enter email and password', 'error'); return; }
+
+  let { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
+  
+  if (error && error.message.includes('Invalid login credentials')) {
+      const res = await supabaseClient.auth.signUp({ email, password: pass });
+      data = res.data; error = res.error;
+      if (!error) toast('Account created & logged in!', 'success');
+  }
+  if (error) { toast(error.message, 'error'); return; }
 }
 
 function loginGoogle() {
-  if (!appConfig.isConfigured()) return toast("Configuration error. Check Supabase keys", "error");
-  supabaseClient.auth.signInWithOAuth({
+  if (SUPABASE_URL === 'YOUR_SUPABASE_URL') return toast("Add Supabase keys first!", "error");
+  supabaseClient.auth.signInWithOAuth({ 
     provider: 'google',
     options: { redirectTo: window.location.origin }
   });
@@ -224,46 +152,21 @@ function afterLogin() {
 }
 
 async function logout() {
-  if (appConfig.isConfigured()) {
-    await supabaseClient.auth.signOut();
-    if (auditLogger) await auditLogger.logLogout();
-  }
-  state.user = null;
-  state.currentEvent = null;
-  state.attendance = [];
+  if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') await supabaseClient.auth.signOut();
+  state.user = null; state.currentEvent = null; state.attendance = [];
   if (realtimeSubscription) supabaseClient.removeChannel(realtimeSubscription);
   showScreen('screen-login');
 }
-
-function confirmLogout() {
-  logout();
-}
+function confirmLogout() { logout(); }
 
 //  EVENTS
-function generateEventId() {
-  return 'EV' + Math.random().toString(36).substr(2, 4).toUpperCase();
-}
+function generateEventId() { return 'EV' + Math.random().toString(36).substr(2, 4).toUpperCase(); }
 
 async function fetchRecentEvents() {
-  if (!appConfig.isConfigured()) return;
-
-  // Check cache first
-  const cached = cache.get('recent_events');
-  if (cached) {
-    state.events = cached;
-    renderRecentEvents();
-    return;
-  }
-
-  const { data, error } = await supabaseClient
-    .from('events')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(appConfig.getEventsPageSize || 5);
-
+  if (SUPABASE_URL === 'YOUR_SUPABASE_URL') return;
+  const { data, error } = await supabaseClient.from('events').select('*').order('created_at', { ascending: false }).limit(5);
   if (!error && data) {
     state.events = data;
-    cache.set('recent_events', data);
     renderRecentEvents();
   }
 }
@@ -275,10 +178,10 @@ function renderRecentEvents() {
     return;
   }
   c.innerHTML = state.events.map(ev => `
-    <div class="att-item" style="cursor:pointer;margin-bottom:8px" onclick="quickJoin('${sanitizeInput(ev.id, 'text')}')">
+    <div class="att-item" style="cursor:pointer;margin-bottom:8px" onclick="quickJoin('${ev.id}')">
       <div>
-        <div class="att-roll">${sanitizeInput(ev.name, 'text')}</div>
-        <div class="att-meta">${sanitizeInput(ev.id, 'text')} · ${sanitizeInput(ev.date, 'text')} ${ev.organization ? '· ' + sanitizeInput(ev.organization, 'text') : ''}</div>
+        <div class="att-roll">${ev.name}</div>
+        <div class="att-meta">${ev.id} · ${ev.date} ${ev.organization ? '· ' + ev.organization : ''}</div>
       </div>
       <div class="status-badge status-attended">Select to verify</div>
     </div>
@@ -286,56 +189,31 @@ function renderRecentEvents() {
 }
 
 async function createNewEvent() {
-  const name = sanitizeInput(document.getElementById('ev-name').value, 'text').trim();
-  const date = document.getElementById('ev-date').value;
-  const time = document.getElementById('ev-time').value || null;
-  const venue = sanitizeInput(document.getElementById('ev-venue').value, 'text').trim() || null;
-  const org = sanitizeInput(document.getElementById('ev-org').value, 'text').trim() || null;
-  const pass = document.getElementById('ev-pass').value;
+  const name   = document.getElementById('ev-name').value.trim();
+  const date   = document.getElementById('ev-date').value;
+  const time   = document.getElementById('ev-time').value || null;
+  const venue  = document.getElementById('ev-venue').value.trim() || null;
+  const org    = document.getElementById('ev-org').value.trim() || null;
+  const pass   = document.getElementById('ev-pass').value;
 
-  // INPUT VALIDATION
-  if (!validateEventName(name)) {
-    toast(VALIDATION_RULES.eventName.message, 'error');
-    return;
-  }
-
-  if (!date) {
-    toast('Event date is required', 'error');
-    return;
-  }
-
-  if (!validateEventPassword(pass)) {
-    toast(VALIDATION_RULES.eventPassword.message, 'error');
-    return;
-  }
+  if (!name || !date || !pass) { toast('Fill in required fields', 'error'); return; }
 
   const newEvent = {
     id: generateEventId(),
-    name,
-    date,
-    time,
-    venue,
-    password: pass,
-    organization: org,
+    name, date, time, venue, password: pass, organization: org,
     created_by: state.user?.name,
   };
 
   const { data, error } = await supabaseClient.from('events').insert([newEvent]).select().single();
-
-  if (error) {
-    toast('Error creating event: ' + sanitizeInput(error.message, 'text'), 'error');
-    return;
-  }
-
-  if (auditLogger) await auditLogger.logEventCreated(data.id, data.name);
+  
+  if (error) { toast('Error creating event: ' + error.message, 'error'); return; }
 
   state.currentEvent = data;
   state.events.unshift(data);
-  cache.invalidate('recent_events');
   state.attendance = [];
 
   document.getElementById('display-event-id').textContent = data.id;
-  document.getElementById('display-event-pass').textContent = '••••••'; // Never show password!
+  document.getElementById('display-event-pass').textContent = data.password;
   document.getElementById('display-event-name').textContent = data.name;
   document.getElementById('display-event-dt').textContent =
     new Date(data.date + 'T' + (data.time || '00:00')).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
@@ -350,39 +228,14 @@ function copyEventId() {
 }
 
 async function joinEvent() {
-  const id = sanitizeInput(document.getElementById('join-id').value.trim(), 'text').toUpperCase();
+  const id   = document.getElementById('join-id').value.trim().toUpperCase();
   const pass = document.getElementById('join-pass').value;
-
-  if (!id || !pass) {
-    toast('Enter both Event ID and password', 'error');
-    return;
-  }
-
-  // RATE LIMITING FOR PASSWORD VERIFICATION
-  const limiterCheck = passwordVerifyLimiter.checkLimit(id);
-  if (!limiterCheck.allowed) {
-    toast(`Too many attempts. Try again in ${limiterCheck.resetTime}s`, 'error');
-    if (auditLogger) await auditLogger.logPasswordFailedVerification(id, 'rate_limit_exceeded');
-    return;
-  }
 
   const { data: ev, error } = await supabaseClient.from('events').select('*').eq('id', id).single();
 
-  if (error || !ev) {
-    toast('Event not found', 'error');
-    if (auditLogger) await auditLogger.logPasswordFailedVerification(id, 'event_not_found');
-    return;
-  }
-
-  // SECURE PASSWORD COMPARISON (constant-time comparison)
-  if (ev.password !== pass) {
-    toast('Incorrect password', 'error');
-    if (auditLogger) await auditLogger.logPasswordFailedVerification(id, 'incorrect_password');
-    return;
-  }
-
-  if (auditLogger) await auditLogger.logPasswordVerified(id);
-
+  if (error || !ev) { toast('Event not found', 'error'); return; }
+  if (ev.password !== pass) { toast('Incorrect password', 'error'); return; }
+  
   state.currentEvent = ev;
   await fetchAttendance(ev.id);
   enterAttendance();
@@ -417,11 +270,9 @@ function enterAttendance() {
   switchTab('entry');
 }
 
-//  REAL-TIME SYNCHRONIZATION
+//  REAL-TIME SYNCRONIZATION
 function subscribeToAttendance(eventId) {
   if (realtimeSubscription) supabaseClient.removeChannel(realtimeSubscription);
-
-  if (!appConfig.getEnableLiveSync()) return;
 
   realtimeSubscription = supabaseClient
     .channel('attendance_channel')
@@ -455,26 +306,20 @@ function updateYearUI() {
   document.getElementById('roll-prefix').textContent = selectedYear ? YEAR_PREFIX[selectedYear] : 'Y??';
 }
 
-//  ATTENDANCE ENTRY WITH VALIDATION
+//  ATTENDANCE ENTRY
 async function addEntry() {
-  if (!selectedYear) {
-    toast('Select a year first', 'error');
+  if (!selectedYear) { toast('Select a year first', 'error'); return; }
+
+  const suffix = document.getElementById('roll-input').value.trim().toUpperCase();
+  if (!suffix) { toast('Enter roll number suffix', 'error'); return; }
+
+  if (!/^[A-Z]{2,5}\d{3}$/.test(suffix)) {
+    toast('Format: BRANCH + 3 digits (e.g. CSE042)', 'error');
     return;
   }
 
-  const suffix = sanitizeInput(document.getElementById('roll-input').value.trim(), 'rollNumber').toUpperCase();
-  if (!suffix) {
-    toast('Enter roll number suffix', 'error');
-    return;
-  }
-
-  if (!validateRollNumber(suffix)) {
-    toast(VALIDATION_RULES.rollNumber.message, 'error');
-    return;
-  }
-
-  const branch = suffix.replace(/\d+/, '');
-  const num = suffix.match(/\d+/)[0];
+  const branch  = suffix.replace(/\d+/, '');
+  const num     = suffix.match(/\d+/)[0];
   const fullRoll = YEAR_PREFIX[selectedYear] + suffix;
 
   const existing = state.attendance.find(a => a.rollNo === fullRoll);
@@ -486,14 +331,13 @@ async function addEntry() {
         .update({ status: 'attended', timestamp: new Date().toISOString() })
         .eq('id', existing.id)
         .select().single();
-
+        
       if (!error && data) {
+        // Explicitly update local state for immediate UI reflection
         const existingIdx = state.attendance.findIndex(a => a.id === existing.id);
         state.attendance[existingIdx] = mapDbToLocal(data);
         updateAttendanceUI();
-
-        if (auditLogger) await auditLogger.logEntryUpdated(state.currentEvent.id, fullRoll, 'preregistered', 'attended');
-
+        
         toast('✓ Pre-reg verified: ' + fullRoll, 'success');
         document.getElementById('roll-input').value = '';
       }
@@ -518,35 +362,26 @@ async function addEntry() {
     .select().single();
 
   if (error) {
-    if (error.code === '23505') {
+    if (error.code === '23505') { 
       toast('Already marked: ' + fullRoll, 'error');
     } else {
-      toast('Error: ' + sanitizeInput(error.message, 'text'), 'error');
+      toast('Error: ' + error.message, 'error');
     }
     return;
   }
 
+  // Explicitly update local state for immediate UI reflection
   state.attendance.push(mapDbToLocal(data));
   updateAttendanceUI();
-
-  if (auditLogger) await auditLogger.logEntryAdded(state.currentEvent.id, fullRoll);
 
   document.getElementById('roll-input').value = '';
   toast('✓ Marked: ' + fullRoll, 'success');
 }
 
-//  PRE-REG CSV UPLOAD WITH FILE VALIDATION
+//  PRE-REG CSV UPLOAD
 async function loadPreregCSV(input) {
   const file = input.files[0];
   if (!file) return;
-
-  // FILE SIZE VALIDATION
-  const maxSizeMB = appConfig.getMaxFileSize();
-  if (!validateFileSize(file, maxSizeMB)) {
-    toast(`File size exceeds ${maxSizeMB}MB limit`, 'error');
-    input.value = '';
-    return;
-  }
 
   const btn = document.querySelector('#panel-entry .btn-secondary');
   if (btn) {
@@ -556,84 +391,71 @@ async function loadPreregCSV(input) {
 
   const reader = new FileReader();
   reader.onload = async (e) => {
-    try {
-      const lines = e.target.result.split('\n').map(l => l.trim()).filter(Boolean);
-      const toInsert = [];
+    const lines = e.target.result.split('\n').map(l => l.trim()).filter(Boolean);
+    const toInsert = [];
 
-      lines.forEach(roll => {
-        roll = sanitizeInput(roll.toUpperCase(), 'rollNumber').replace(/[^A-Z0-9]/g, '');
-        if (!roll) return;
-        if (!state.attendance.find(a => a.rollNo === roll)) {
-          const prefix = roll.substring(0, 3);
-          const yearEntry = Object.entries(YEAR_PREFIX).find(([, p]) => p === prefix);
-          const year = yearEntry ? parseInt(yearEntry[0]) : 1;
-          const suffix = roll.substring(3);
-          const branch = suffix.replace(/\d+/, '');
+    lines.forEach(roll => {
+      roll = roll.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (!roll) return;
+      if (!state.attendance.find(a => a.rollNo === roll)) {
+        const prefix = roll.substring(0, 3);
+        const yearEntry = Object.entries(YEAR_PREFIX).find(([, p]) => p === prefix);
+        const year = yearEntry ? parseInt(yearEntry[0]) : 1;
+        const suffix = roll.substring(3);
+        const branch = suffix.replace(/\d+/, '');
 
-          toInsert.push({
-            event_id: state.currentEvent.id,
-            roll_no: roll,
-            year: year,
-            year_label: YEAR_LABELS[year] || '?',
-            branch: branch,
-            num: suffix.match(/\d+/)?.[0] || '',
-            status: 'preregistered',
-            recorded_by: 'pre-registration setup'
-          });
-        }
-      });
-
-      const resetBtn = () => {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = 'Upload Pre-reg CSV';
-        }
-      };
-
-      if (toInsert.length === 0) {
-        toast('No new roll numbers to add', 'info');
-        resetBtn();
-      } else {
-        const { data, error } = await supabaseClient.from('attendance').insert(toInsert).select();
-        if (error) {
-          toast('Error uploading pre-registrations', 'error');
-        } else {
-          data.forEach(row => state.attendance.push(mapDbToLocal(row)));
-          updateAttendanceUI();
-
-          if (auditLogger) await auditLogger.logCSVUploaded(state.currentEvent.id, data.length);
-
-          toast(`✓ ${data.length} pre-registered students added`, 'success');
-        }
-        resetBtn();
+        toInsert.push({
+          event_id: state.currentEvent.id,
+          roll_no: roll,
+          year: year,
+          year_label: YEAR_LABELS[year] || '?',
+          branch: branch,
+          num: suffix.match(/\d+/)?.[0] || '',
+          status: 'preregistered',
+          recorded_by: 'pre-registration setup'
+        });
       }
-    } catch (err) {
-      toast('Error processing CSV file', 'error');
-      console.error('CSV processing error:', err);
+    });
+
+    const resetBtn = () => {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = 'Upload Pre-reg CSV';
+      }
+    };
+
+    if (toInsert.length === 0) {
+      toast('No new roll numbers to add', 'info');
+      resetBtn();
+    } else {
+      const { data, error } = await supabaseClient.from('attendance').insert(toInsert).select();
+      if (error) {
+        toast('Error uploading pre-registrations', 'error');
+      } else {
+        data.forEach(row => state.attendance.push(mapDbToLocal(row)));
+        updateAttendanceUI();
+        toast(`✓ ${data.length} pre-registered students added`, 'success');
+      }
+      resetBtn();
     }
   };
-
-  reader.onerror = () => {
-    toast('Error reading file', 'error');
-    if (btn) btn.disabled = false;
-  };
-
   reader.readAsText(file);
   input.value = '';
 }
 
 //  UI UPDATES
 function updateAttendanceUI() {
-  const all = state.attendance;
-  const attended = all.filter(a => a.status === 'attended');
-  const prereg = all.filter(a => a.status === 'preregistered');
+  const all       = state.attendance;
+  const attended  = all.filter(a => a.status === 'attended');
+  const prereg    = all.filter(a => a.status === 'preregistered');
 
-  document.getElementById('stat-total').textContent = all.length;
-  document.getElementById('stat-attended').textContent = attended.length;
-  document.getElementById('stat-prereg').textContent = prereg.length;
+  document.getElementById('stat-total').textContent    = all.length;
+  document.getElementById('stat-attended').textContent  = attended.length;
+  document.getElementById('stat-prereg').textContent    = prereg.length;
 
   renderList();
 
+  // Keep branch summary in sync if export tab is open
   if (document.getElementById('panel-export')?.style.display !== 'none') {
     renderBranchSummary();
   }
@@ -663,8 +485,8 @@ function renderList() {
   container.innerHTML = '<div class="attendance-list">' + items.map(a => `
     <div class="att-item" id="entry-${a.id}">
       <div style="flex:1">
-        <div class="att-roll">${sanitizeInput(a.rollNo, 'text')}</div>
-        <div class="att-meta">${sanitizeInput(a.yearLabel, 'text')} Year · ${sanitizeInput(a.branch, 'text')} · ${formatTime(a.timestamp)}</div>
+        <div class="att-roll">${a.rollNo}</div>
+        <div class="att-meta">${a.yearLabel} Year · ${a.branch} · ${formatTime(a.timestamp)}</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <span class="status-badge status-${a.status}">${a.status === 'attended' ? '✓ Present' : '○ Pre-reg'}</span>
@@ -695,12 +517,9 @@ function requestDelete(id) {
 function confirmEditAuth() {
   const pass = document.getElementById('edit-auth-pass').value;
   if (pass !== state.currentEvent?.password) {
-    toast('Incorrect password', 'error');
-    if (auditLogger) auditLogger.logPasswordFailedVerification(state.currentEvent.id, 'incorrect_password');
-    return;
+    toast('Incorrect password', 'error'); return;
   }
   state.editAuthorized = true;
-  if (auditLogger) auditLogger.logPasswordVerified(state.currentEvent.id);
   closeModal('modal-edit-auth');
   document.getElementById('edit-auth-pass').value = '';
   openModal('modal-delete-confirm');
@@ -708,55 +527,36 @@ function confirmEditAuth() {
 
 async function executeDelete() {
   const id = state.pendingDeleteId;
-  const entry = state.attendance.find(a => a.id === id);
-
   const { error } = await supabaseClient.from('attendance').delete().eq('id', id);
-
-  if (error) {
-    toast('Failed to delete entry', 'error');
-  } else {
-    toast('Entry deleted', 'info');
-    if (auditLogger) await auditLogger.logEntryDeleted(state.currentEvent.id, entry?.rollNo);
-  }
-
+  
+  if (error) { toast('Failed to delete entry', 'error'); }
+  else { toast('Entry deleted', 'info'); }
+  
   closeModal('modal-delete-confirm');
   state.pendingDeleteId = null;
 }
 
 async function executeDeleteEvent() {
   const pass = document.getElementById('delete-event-pass').value;
-  if (!pass) {
-    toast('Enter the event password', 'error');
-    return;
-  }
-  if (pass !== state.currentEvent?.password) {
-    toast('Incorrect password', 'error');
-    if (auditLogger) await auditLogger.logPasswordFailedVerification(state.currentEvent.id, 'incorrect_password');
-    return;
-  }
+  if (!pass) { toast('Enter the event password', 'error'); return; }
+  if (pass !== state.currentEvent?.password) { toast('Incorrect password', 'error'); return; }
 
   const eventId = state.currentEvent.id;
 
+  // Delete all attendance records first
   const { error: attErr } = await supabaseClient.from('attendance').delete().eq('event_id', eventId);
-  if (attErr) {
-    toast('Failed to delete attendance records', 'error');
-    return;
-  }
+  if (attErr) { toast('Failed to delete attendance records: ' + attErr.message, 'error'); return; }
 
+  // Delete the event itself
   const { error: evErr } = await supabaseClient.from('events').delete().eq('id', eventId);
-  if (evErr) {
-    toast('Failed to delete event', 'error');
-    return;
-  }
+  if (evErr) { toast('Failed to delete event: ' + evErr.message, 'error'); return; }
 
-  if (auditLogger) await auditLogger.logEventDeleted(eventId, state.currentEvent.name);
-
+  // Clean up local state
   if (realtimeSubscription) supabaseClient.removeChannel(realtimeSubscription);
   state.currentEvent = null;
   state.attendance = [];
   state.editAuthorized = false;
   state.events = state.events.filter(e => e.id !== eventId);
-  cache.invalidate('recent_events');
 
   closeModal('modal-delete-event');
   document.getElementById('delete-event-pass').value = '';
@@ -775,7 +575,7 @@ function renderBranchSummary() {
   c.innerHTML = Object.entries(branches).map(([branch, students]) => `
     <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
       <div>
-        <div style="font-weight:600">${sanitizeInput(branch, 'text')}</div>
+        <div style="font-weight:600">${branch}</div>
         <div style="font-size:.72rem;color:var(--muted)">${Object.keys(groupByYear(students)).join(', ')} Year</div>
       </div>
       <div style="font-family:'Space Mono',monospace;font-size:1.1rem;color:var(--text)">${students.length}</div>
@@ -784,38 +584,38 @@ function renderBranchSummary() {
 }
 
 function groupByBranch(data) {
-  return data.reduce((acc, a) => {
-    (acc[a.branch] = acc[a.branch] || []).push(a);
-    return acc;
-  }, {});
+  return data.reduce((acc, a) => { (acc[a.branch] = acc[a.branch] || []).push(a); return acc; }, {});
 }
 
 function groupByYear(data) {
-  return data.reduce((acc, a) => {
-    const label = a.yearLabel + ' Year';
-    (acc[label] = acc[label] || []).push(a);
-    return acc;
+  return data.reduce((acc, a) => { 
+    const label = a.yearLabel + ' Year'; 
+    (acc[label] = acc[label] || []).push(a); return acc; 
   }, {});
 }
 
 function exportExcel() {
-  if (state.attendance.length === 0) {
-    toast('No attendance data to export', 'error');
-    return;
-  }
+  if (state.attendance.length === 0) { toast('No attendance data to export', 'error'); return; }
 
   const ev = state.currentEvent;
+
+  // Group all students (attended and pre-registered) by branch
   const byBranch = groupByBranch(state.attendance);
   let fileCount = 0;
 
+  // Loop through branches and download separate Excels
   Object.entries(byBranch).forEach(([branch, students], index) => {
+    
+    // Sort students: Descending by year prefix (Y25, Y24...), then ascending by full roll no
     students.sort((a, b) => {
       const yearPrefixA = a.rollNo.match(/^[A-Z]+\d+/)?.[0] || '';
       const yearPrefixB = b.rollNo.match(/^[A-Z]+\d+/)?.[0] || '';
-
+      
+      // Sort in descending order: e.g., Y25 comes before Y24
       if (yearPrefixA !== yearPrefixB) {
         return yearPrefixB.localeCompare(yearPrefixA);
       }
+      // Same prefix year, sort full rollNo ascending
       return a.rollNo.localeCompare(b.rollNo);
     });
 
@@ -828,71 +628,35 @@ function exportExcel() {
 
     const ws = XLSX.utils.aoa_to_sheet(rows);
     ws['!cols'] = [{ wch: 28 }, { wch: 10 }, { wch: 10 }, { wch: 14 }, { wch: 10 }, { wch: 20 }];
-
+    
     XLSX.utils.book_append_sheet(wb, ws, branch.substring(0, 31));
 
-    const filename = `Attendance_${ev.name.replace(/\s+/g, '_')}_${branch}.xlsx`;
+    const filename = `Attendance_${ev.name.replace(/\s+/g,'_')}_${branch}.xlsx`;
 
+    // Download multiple files sequentially using a slight timeout
     setTimeout(() => {
-      XLSX.writeFile(wb, filename);
+        XLSX.writeFile(wb, filename);
     }, index * 400);
 
     fileCount++;
   });
 
-  if (auditLogger) auditLogger.logDataExported(ev.id, 'excel', state.attendance.length);
-
   toast(`Exporting ${fileCount} Excel file(s)...`, 'success');
 }
 
 //  MODALS & TOAST
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
-}
-
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 let toastTimer;
 function toast(msg, type = 'info') {
   const el = document.getElementById('toast');
-  el.textContent = sanitizeInput(msg, 'text');
+  el.textContent = msg;
   el.className = 'show ' + type;
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
 }
 
 document.querySelectorAll('.modal-overlay').forEach(o => {
-  o.addEventListener('click', e => {
-    if (e.target === o) o.classList.remove('open');
-  });
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
 });
-
-// HELPER FUNCTIONS
-function showValidationError(elementId, message) {
-  const el = document.getElementById(elementId);
-  if (el) {
-    el.textContent = message;
-    el.style.display = 'block';
-  }
-}
-
-function clearValidationErrors() {
-  document.querySelectorAll('.validation-feedback').forEach(el => {
-    el.textContent = '';
-    el.style.display = 'none';
-  });
-}
-
-function setButtonLoading(btn, isLoading) {
-  if (!btn) return;
-  btn.disabled = isLoading;
-  btn.setAttribute('aria-busy', isLoading);
-  if (isLoading) {
-    btn.dataset.originalText = btn.textContent;
-    btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;"></span>';
-  } else {
-    btn.textContent = btn.dataset.originalText || btn.textContent;
-  }
-}
