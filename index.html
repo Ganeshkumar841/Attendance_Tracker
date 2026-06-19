@@ -10,23 +10,11 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="styl.css">
-
-  <!-- Utility Scripts -->
-  <script src="config.js"></script>
-  <script src="utils/validation.js"></script>
-  <script src="utils/security.js"></script>
-  <script src="utils/logger.js"></script>
-  <script src="utils/database.js"></script>
 </head>
 <body>
-  <!-- Connection Status Indicator -->
-  <div id="connection-status" class="connection-status" title="Connection status">
-    <span class="status-dot"></span>
-    <span class="status-text">Connected</span>
-  </div>
 
   <div id="app">
 
@@ -49,24 +37,19 @@
           <div class="auth-divider">or</div>
 
           <div class="field">
-            <label for="login-email">Email Address</label>
-            <input type="email" class="input" id="login-email" placeholder="yourname@college.edu"
-              aria-label="Email Address" aria-describedby="email-validation">
-            <div class="validation-feedback" id="email-validation"></div>
+            <label>Email Address</label>
+            <input type="email" class="input" id="login-email" placeholder="yourname@college.edu">
           </div>
           <div class="field">
-            <label for="login-password">Password</label>
+            <label>Password</label>
             <div class="pwd-wrap">
-              <input type="password" class="input" id="login-password" placeholder="••••••••"
-                aria-label="Password" aria-describedby="password-validation">
-              <button type="button" class="eye-btn" onclick="togglePwd('login-password', this)"
-                aria-label="Toggle password visibility">
+              <input type="password" class="input" id="login-password" placeholder="••••••••">
+              <button type="button" class="eye-btn" onclick="togglePwd('login-password', this)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               </button>
             </div>
-            <div class="validation-feedback" id="password-validation"></div>
           </div>
-          <button class="btn btn-primary" onclick="loginEmail()" id="login-btn" aria-busy="false">Sign In / Sign Up</button>
+          <button class="btn btn-primary" onclick="loginEmail()" style="margin-bottom:12px">Sign In / Sign Up</button>
         </div>
       </div>
     </div>
@@ -293,8 +276,7 @@
           <div class="card" style="padding:20px;">
             <div class="card-title" style="margin-bottom:6px">Pre-registration</div>
             <p style="font-size:.8rem;color:var(--muted);margin-bottom:12px;line-height:1.4;">
-                Upload a CSV of pre-registered roll numbers to automatically verify them during manual entry.<br>
-                Make sure that the file is in "CSV (Comma delimited) (*.csv)".
+                Upload a CSV of pre-registered roll numbers to automatically verify them during manual entry.
             </p>
             
             <div class="csv-hint">
