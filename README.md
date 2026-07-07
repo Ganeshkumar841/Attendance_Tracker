@@ -4,7 +4,7 @@ AttendX is a streamlined, real-time college event attendance management web appl
 
 ---
 
-## ✨ Features
+##  Features
 
 * **Real-time Synchronization:** Powered by Supabase Postgres Changes, allowing multiple coordinators to log attendance concurrently on different devices without conflicts.
 * **Intelligent Academic Year Mapping:** Dynamically calculates current student batches (`Y26`, `Y25`, etc.) based on an academic cycle starting every July.
@@ -24,18 +24,18 @@ AttendX is a streamlined, real-time college event attendance management web appl
 
 ---
 
-## 🔒 Security Features
+##  Security Features
 
 ### Implemented
-- ✅ **Input Validation & Sanitization** - All user inputs validated and sanitized to prevent XSS
-- ✅ **Rate Limiting** - Brute-force protection on login (5 attempts per 15 min) and password verification (3 attempts per 10 min)
-- ✅ **Audit Logging** - All significant actions logged with timestamp, user, and action type
-- ✅ **Session Management** - Automatic session timeout after 30 minutes of inactivity
-- ✅ **CSRF Protection** - Token-based CSRF protection for state-changing operations
-- ✅ **Secure Password Handling** - Passwords never displayed in UI or stored in plain text
-- ✅ **File Upload Security** - File size limits (default 5MB) and format validation
-- ✅ **Environment Configuration** - Sensitive keys loaded from environment, not hardcoded
-- ✅ **Error Recovery** - Retry logic with exponential backoff for failed operations
+-  **Input Validation & Sanitization** - All user inputs validated and sanitized to prevent XSS
+-  **Rate Limiting** - Brute-force protection on login (5 attempts per 15 min) and password verification (3 attempts per 10 min)
+-  **Audit Logging** - All significant actions logged with timestamp, user, and action type
+-  **Session Management** - Automatic session timeout after 30 minutes of inactivity
+-  **CSRF Protection** - Token-based CSRF protection for state-changing operations
+-  **Secure Password Handling** - Passwords never displayed in UI or stored in plain text
+-  **File Upload Security** - File size limits (default 5MB) and format validation
+-  **Environment Configuration** - Sensitive keys loaded from environment, not hardcoded
+-  **Error Recovery** - Retry logic with exponential backoff for failed operations
 
 ### Backend Requirements (Supabase)
 The following should be configured in your Supabase database:
@@ -66,7 +66,7 @@ The following should be configured in your Supabase database:
 
 ---
 
-## 🛠 Tech Stack & Dependencies
+##  Tech Stack & Dependencies
 
 * **Frontend Architecture:** Vanilla JavaScript (ES6+), HTML5, CSS3 Variables & Custom Gradients.
 * **Database & Auth Provider:** [Supabase](https://supabase.com/) (Auth, Database, and Realtime Engine).
@@ -78,7 +78,7 @@ The following should be configured in your Supabase database:
 
 ---
 
-## ⚙️ Installation & Setup
+##  Installation & Setup
 
 ### 1. Clone the Repository
 ```bash
@@ -168,7 +168,7 @@ Visit `http://localhost:8000` in your browser.
 
 ---
 
-## 📱 Usage
+##  Usage
 
 ### As an Event Coordinator
 
@@ -189,7 +189,7 @@ Visit `http://localhost:8000` in your browser.
 
 ---
 
-## 🔐 Security Best Practices
+##  Security Best Practices
 
 ### For Deployment
 1. Use HTTPS in production (SSL/TLS certificate required)
@@ -210,37 +210,10 @@ Visit `http://localhost:8000` in your browser.
 - Validated before processing
 - Not stored permanently
 
----
-
-## 📊 Configuration Options
-
-Edit `.env` to customize:
-
-```env
-# Session timeout (ms)
-SESSION_TIMEOUT_MS=1800000  # 30 minutes
-
-# Rate limiting
-MAX_LOGIN_ATTEMPTS=5
-LOGIN_ATTEMPT_WINDOW_MS=900000  # 15 minutes
-
-# File uploads
-MAX_FILE_SIZE_MB=5
-
-# Pagination
-ATTENDANCE_PAGE_SIZE=50
-
-# Features
-ENABLE_LIVE_SYNC=true
-ENABLE_AUDIT_LOGGING=true
-
-# Debug
-DEBUG=false
-```
 
 ---
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### "Configuration error" message
 - Check `.env` file has correct Supabase URL and API key
@@ -258,7 +231,7 @@ DEBUG=false
 
 ---
 
-## 📈 Scalability Considerations
+##  Scalability Considerations
 
 - Real-time sync supports 100+ concurrent users
 - Pagination implemented for 1000+ attendance records
@@ -268,7 +241,7 @@ DEBUG=false
 
 ---
 
-## 📄 License
+##  License
 
 This project is provided as-is for educational and institutional use.
 
