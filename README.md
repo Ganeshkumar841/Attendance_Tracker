@@ -61,6 +61,7 @@ The following should be configured in your Supabase database:
 
 * **Frontend Architecture:** Vanilla JavaScript (ES6+), HTML5, CSS3 Variables & Custom Gradients.
 * **Database & Auth Provider:** [Supabase](https://supabase.com/) (Auth, Database, and Realtime Engine).
+* **Performance Monitoring:** [Vercel Speed Insights](https://vercel.com/docs/speed-insights) (Web Vitals tracking).
 * **External CDN Libraries:**
     * `Supabase JS Client` (`@supabase/supabase-js@2`)
     * `SheetJS` (`xlsx.full.min.js` v0.18.5)
@@ -76,7 +77,14 @@ git clone <repository-url>
 cd Attendance_Tracker
 ```
 
-### 2. Configure Environment Variables
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+This installs `@vercel/speed-insights` and development dependencies for local testing.
+
+### 3. Configure Environment Variables
 
 Create a `.env` file from the template:
 ```bash
@@ -94,7 +102,7 @@ MAX_LOGIN_ATTEMPTS=5
 MAX_FILE_SIZE_MB=5
 ```
 
-### 3. Set Up Supabase
+### 4. Set Up Supabase
 
 1. Create a new Supabase project at [supabase.com](https://supabase.com)
 2. Create the required tables:
@@ -142,10 +150,23 @@ MAX_FILE_SIZE_MB=5
 3. Enable Supabase Auth (Google OAuth optional)
 4. Configure RLS policies (see Security section above)
 
-### 4. Run Locally
+### 5. Enable Vercel Speed Insights
+
+1. Deploy your project to Vercel (see Deployment section below)
+2. In your Vercel dashboard, navigate to your project
+3. Go to **Analytics** > **Speed Insights**
+4. Click **Enable Speed Insights**
+5. The script will automatically start collecting Web Vitals data
+
+**Note:** Speed Insights works automatically when deployed to Vercel. The script tags in `index.html` ensure compatibility with Vercel's infrastructure.
+
+### 6. Run Locally
 
 ```bash
-# Using Python
+# Using npm (recommended)
+npm start
+
+# Or using Python
 python3 -m http.server 8000
 
 # Or using Node.js
@@ -155,6 +176,40 @@ npx http-server
 ```
 
 Visit `http://localhost:8000` in your browser.
+
+---
+
+##  Deployment
+
+### Deploy to Vercel
+
+1. **Install Vercel CLI** (if not already installed):
+   ```bash
+   npm install -g vercel
+   ```
+
+2. **Deploy your project**:
+   ```bash
+   vercel
+   ```
+
+3. **Configure environment variables** in the Vercel dashboard:
+   - Go to your project settings
+   - Add `SUPABASE_URL` and `SUPABASE_ANON_KEY`
+
+4. **Enable Speed Insights** (see step 5 in Installation)
+
+5. **View your live site** at the provided Vercel URL
+
+### Monitoring Performance
+
+Once Speed Insights is enabled, you can view:
+- **Core Web Vitals:** LCP, FID, CLS scores
+- **Real User Metrics:** Actual performance data from your users
+- **Performance Trends:** Track improvements over time
+- **Device & Location Breakdown:** See performance by geography and device type
+
+Access these metrics in your Vercel dashboard under **Analytics** > **Speed Insights**.
 
 ---
 
