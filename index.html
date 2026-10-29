@@ -73,7 +73,7 @@
           <div id="auth-view-credentials">
             <div class="field" id="field-login-email">
               <label for="login-email">Email Address</label>
-              <input type="email" class="input" id="login-email" placeholder="yourname@college.edu" autocomplete="email" onkeydown="if(event.key==='Enter') loginEmail()">
+              <input type="email" class="input" id="login-email" placeholder="Email" autocomplete="email" onkeydown="if(event.key==='Enter') loginEmail()">
             </div>
 
             <div class="field" id="field-login-password">
@@ -82,7 +82,7 @@
                 <button type="button" class="link-btn" id="forgot-pwd-link" onclick="switchAuthMode('reset')">Forgot password?</button>
               </div>
               <div class="pwd-wrap">
-                <input type="password" class="input" id="login-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter') loginEmail()">
+                <input type="password" class="input" id="login-password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter') loginEmail()">
                 <button type="button" class="eye-btn" onclick="togglePwd('login-password', this)">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
