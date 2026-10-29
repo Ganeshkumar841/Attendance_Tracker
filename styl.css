@@ -1,51 +1,55 @@
 :root, [data-theme="dark"] {
-    /* Dark Mode — Inspired by Google AI Studio & Gemini API (Obsidian + Cobalt Blue Glow) */
-    --bg: #07090e;
-    --bg-elevated: #0b0f17;
-    --surface: #111622;
-    --surface2: #171e2e;
-    --surface-hover: #1c2538;
-    --surface-tint: rgba(59, 130, 246, 0.12);
-    --border: rgba(148, 163, 184, 0.14);
-    --border-strong: rgba(59, 130, 246, 0.45);
+    /* Google AI Studio / Gemini Dark Palette */
+    --bg: #0b0d11;
+    --bg-elevated: #11141c;
+    --surface: #131722;
+    --surface2: #1b202e;
+    --surface-hover: #21283a;
+    --surface-tint: rgba(138, 180, 248, 0.12);
+    --border: rgba(255, 255, 255, 0.11);
+    --border-strong: rgba(138, 180, 248, 0.5);
     
-    /* Primary Blue Palette */
-    --primary: #2563eb;
-    --primary-hover: #1d4ed8;
+    /* Google Blue Accents (Dark Mode) */
+    --primary: #1a73e8;
+    --primary-hover: #1967d2;
     --primary-text: #ffffff;
-    --accent: #60a5fa;
-    --accent2: #93c5fd;
+    --accent: #8ab4f8;
+    --accent2: #aecbfa;
     
     /* Semantic Status */
-    --success: #10b981;
-    --success-bg: rgba(16, 185, 129, 0.12);
-    --danger: #ef4444;
-    --danger-bg: rgba(239, 68, 68, 0.12);
+    --success: #34a853;
+    --success-bg: rgba(52, 168, 83, 0.14);
+    --danger: #ea4335;
+    --danger-bg: rgba(234, 67, 53, 0.14);
     
     /* Typography */
-    --text: #f8fafc;
-    --text-secondary: #cbd5e1;
-    --muted: #94a3b8;
+    --text: #e8eaed;
+    --text-secondary: #bdc1c6;
+    --muted: #9aa0a6;
+    
+    /* Font Stacks — Authentic Google Sans / Product Sans + Roboto + Google Sans Mono */
+    --font-sans: 'Google Sans', 'Google Sans Display', 'Product Sans', 'Plus Jakarta Sans', 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-mono: 'Google Sans Mono', 'JetBrains Mono', 'Roboto Mono', monospace;
     
     /* Effects */
-    --card-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.55), 0 0 24px -4px rgba(37, 99, 235, 0.08);
-    --glow-bg: radial-gradient(ellipse 70% 45% at 50% 0%, rgba(37, 99, 235, 0.20) 0%, rgba(14, 165, 233, 0.06) 45%, transparent 75%);
-    --header-bg: rgba(7, 9, 14, 0.82);
-    --input-bg: #0b0e16;
+    --card-shadow: 0 8px 28px -6px rgba(0, 0, 0, 0.5);
+    --glow-bg: radial-gradient(ellipse 65% 40% at 50% 0%, rgba(26, 115, 232, 0.16) 0%, transparent 72%);
+    --header-bg: rgba(11, 13, 17, 0.88);
+    --input-bg: #0e1118;
 }
 
 [data-theme="light"] {
-    /* Light Mode — Inspired by Google Ads / Workspace (Crisp White + Google Blue) */
+    /* Google Workspace / Google Ads Light Palette */
     --bg: #ffffff;
-    --bg-elevated: #f8fafc;
+    --bg-elevated: #f8f9fa;
     --surface: #ffffff;
-    --surface2: #f1f5f9;
+    --surface2: #f1f3f4;
     --surface-hover: #e8f0fe;
     --surface-tint: #e8f0fe;
     --border: #dadce0;
     --border-strong: #1a73e8;
     
-    /* Primary Blue Palette */
+    /* Google Blue Accents (Light Mode) */
     --primary: #1a73e8;
     --primary-hover: #1557b0;
     --primary-text: #ffffff;
@@ -53,10 +57,10 @@
     --accent2: #174ea6;
     
     /* Semantic Status */
-    --success: #059669;
-    --success-bg: rgba(5, 150, 105, 0.1);
-    --danger: #dc2626;
-    --danger-bg: rgba(220, 38, 38, 0.08);
+    --success: #1e8e3e;
+    --success-bg: #e6f4ea;
+    --danger: #d93025;
+    --danger-bg: #fce8e6;
     
     /* Typography */
     --text: #202124;
@@ -64,16 +68,16 @@
     --muted: #5f6368;
     
     /* Effects */
-    --card-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
-    --glow-bg: radial-gradient(ellipse 75% 40% at 50% 0%, rgba(26, 115, 232, 0.09) 0%, transparent 70%);
-    --header-bg: rgba(255, 255, 255, 0.88);
-    --input-bg: #f8fafc;
+    --card-shadow: 0 2px 12px rgba(60, 64, 67, 0.08);
+    --glow-bg: radial-gradient(ellipse 70% 35% at 50% 0%, rgba(26, 115, 232, 0.06) 0%, transparent 70%);
+    --header-bg: rgba(255, 255, 255, 0.92);
+    --input-bg: #f8f9fa;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-sans);
     background-color: var(--bg);
     background-image: var(--glow-bg);
     background-attachment: fixed;
@@ -82,6 +86,8 @@ body {
     min-height: 100vh;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     transition: background-color .2s ease, color .2s ease;
 }
 
@@ -90,11 +96,11 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 28px;
+    padding: 14px 32px;
     border-bottom: 1px solid var(--border);
     background: var(--header-bg);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     position: sticky;
     top: 0;
     z-index: 200;
@@ -115,29 +121,18 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Space Mono', monospace;
+    font-family: var(--font-sans);
     font-weight: 700;
-    font-size: .9rem;
-    box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
+    font-size: .88rem;
+    letter-spacing: -0.02em;
 }
 
 .logo {
-    font-family: 'Inter', sans-serif;
-    font-size: 1.15rem;
-    font-weight: 700;
+    font-family: var(--font-sans);
+    font-size: 1.2rem;
+    font-weight: 500;
     color: var(--text);
-    letter-spacing: -0.03em;
-}
-
-.brand-badge {
-    font-size: .68rem;
-    font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 9999px;
-    background: var(--surface-tint);
-    color: var(--accent);
-    border: 1px solid rgba(59, 130, 246, 0.22);
-    letter-spacing: .02em;
+    letter-spacing: -0.02em;
 }
 
 .nav-actions {
@@ -150,13 +145,13 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    padding: 7px 14px;
+    padding: 7px 15px;
     border-radius: 9999px;
     background: var(--surface);
     border: 1px solid var(--border);
     color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: .78rem;
+    font-family: var(--font-sans);
+    font-size: .8rem;
     font-weight: 500;
     cursor: pointer;
     transition: all .15s ease;
@@ -171,31 +166,13 @@ body {
     color: var(--accent);
 }
 
-/* Soft Blue Info Strip (Inspired by Google Ads Banner) */
-.info-strip {
-    background: var(--surface-tint);
-    border-bottom: 1px solid rgba(59, 130, 246, 0.18);
-    padding: 9px 20px;
-    text-align: center;
-    font-size: .78rem;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-.info-strip strong {
-    color: var(--accent);
-    font-weight: 600;
-}
-
 /* ── Layout ── */
-#app { position: relative; z-index: 1; min-height: calc(100vh - 60px); display: flex; flex-direction: column; }
+#app { position: relative; z-index: 1; min-height: calc(100vh - 59px); display: flex; flex-direction: column; }
 
 .screen { display: none; flex: 1; }
 .screen.active { display: flex; flex-direction: column; }
 
-.container { max-width: 480px; margin: 0 auto; padding: 0 20px; width: 100%; }
+.container { max-width: 460px; margin: 0 auto; padding: 0 20px; width: 100%; }
 .container-wide { max-width: 760px; margin: 0 auto; padding: 0 20px; width: 100%; }
 
 /* ── Event Context Subheader ── */
@@ -203,21 +180,21 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 24px;
+    padding: 16px 28px;
     border-bottom: 1px solid var(--border);
     background: var(--surface);
 }
 
 .header-event {
-    font-size: .75rem;
+    font-size: .78rem;
     color: var(--muted);
     text-align: right;
 }
 .header-event strong {
     color: var(--text);
     display: block;
-    font-size: .92rem;
-    font-weight: 600;
+    font-size: .95rem;
+    font-weight: 500;
 }
 
 /* ── Cards ── */
@@ -231,28 +208,29 @@ body {
 }
 
 .card-title {
-    font-size: .72rem;
-    font-weight: 600;
-    letter-spacing: .06em;
+    font-size: .75rem;
+    font-weight: 500;
+    letter-spacing: .04em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--muted);
     margin-bottom: 16px;
 }
 
-/* ── Pill & Action Buttons ── */
+/* ── Google Pill Buttons ── */
 .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 12px 22px;
+    padding: 11px 22px;
     border-radius: 9999px;
-    font-family: 'Inter', sans-serif;
-    font-size: .9rem;
-    font-weight: 600;
+    font-family: var(--font-sans);
+    font-size: .88rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
     cursor: pointer;
     border: 1px solid transparent;
-    transition: all .18s ease;
+    transition: all .15s ease;
     text-decoration: none;
     width: 100%;
 }
@@ -260,31 +238,29 @@ body {
 .btn-primary {
     background: var(--primary);
     color: var(--primary-text);
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
 }
 .btn-primary:hover {
     background: var(--primary-hover);
-    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.38);
-    transform: translateY(-1px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(26, 115, 232, 0.25);
 }
 
 .btn-secondary {
-    background: var(--surface2);
-    color: var(--text);
+    background: transparent;
+    color: var(--accent);
     border: 1px solid var(--border);
 }
 .btn-secondary:hover {
     border-color: var(--border-strong);
-    background: var(--surface-hover);
+    background: var(--surface-tint);
 }
 
 .btn-danger {
     background: var(--danger-bg);
     color: var(--danger);
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    border: 1px solid rgba(234, 67, 53, 0.3);
 }
 .btn-danger:hover {
-    background: rgba(239, 68, 68, 0.18);
+    background: rgba(234, 67, 53, 0.2);
     border-color: var(--danger);
 }
 
@@ -306,7 +282,7 @@ body {
 .field { margin-bottom: 18px; }
 .field label {
     display: block;
-    font-size: .78rem;
+    font-size: .8rem;
     font-weight: 500;
     color: var(--text-secondary);
     margin-bottom: 7px;
@@ -317,16 +293,16 @@ body {
     padding: 12px 15px;
     background: var(--input-bg);
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 8px;
     color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: .94rem;
+    font-family: var(--font-sans);
+    font-size: .92rem;
     transition: border-color .15s, box-shadow .15s;
     outline: none;
 }
 .input:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
 }
 .input::placeholder { color: var(--muted); opacity: 0.65; }
 
@@ -351,11 +327,11 @@ body {
 }
 
 .year-btn {
-    padding: 13px 8px;
-    border-radius: 12px;
-    font-family: 'Space Mono', monospace;
+    padding: 12px 8px;
+    border-radius: 10px;
+    font-family: var(--font-sans);
     font-size: .88rem;
-    font-weight: 700;
+    font-weight: 500;
     cursor: pointer;
     border: 1px solid var(--border);
     background: var(--input-bg);
@@ -371,13 +347,13 @@ body {
     background: var(--primary);
     border-color: var(--primary);
     color: #fff;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 .year-btn .prefix {
+    font-family: var(--font-mono);
     font-size: .68rem;
-    opacity: .8;
+    opacity: .85;
     display: block;
-    margin-top: 4px;
+    margin-top: 3px;
     font-weight: 400;
 }
 
@@ -387,37 +363,37 @@ body {
     align-items: center;
     background: var(--input-bg);
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 8px;
     overflow: hidden;
     transition: border-color .15s, box-shadow .15s;
 }
 .roll-input-wrap:focus-within {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
 }
 
 .roll-prefix {
-    padding: 13px 16px;
+    padding: 12px 16px;
     background: var(--surface-tint);
-    font-family: 'Space Mono', monospace;
+    font-family: var(--font-mono);
     font-size: .92rem;
     color: var(--accent);
     white-space: nowrap;
     border-right: 1px solid var(--border);
-    font-weight: 700;
+    font-weight: 500;
 }
 
 .roll-suffix {
     flex: 1;
-    padding: 13px 16px;
+    padding: 12px 16px;
     background: transparent;
     border: none;
     outline: none;
     color: var(--text);
-    font-family: 'Space Mono', monospace;
-    font-size: .98rem;
+    font-family: var(--font-mono);
+    font-size: .95rem;
     text-transform: uppercase;
-    font-weight: 700;
+    font-weight: 500;
 }
 
 /* ── Attendance List ── */
@@ -427,12 +403,12 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 15px 18px;
+    padding: 14px 18px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
     gap: 12px;
-    transition: border-color .15s ease, transform .15s ease;
+    transition: border-color .15s ease;
     animation: slideIn .2s ease;
 }
 .att-item:hover {
@@ -445,40 +421,36 @@ body {
 }
 
 .att-roll {
-    font-family: 'Space Mono', monospace;
+    font-family: var(--font-mono);
     font-size: .92rem;
-    font-weight: 700;
+    font-weight: 500;
     color: var(--text);
 }
 
-.att-meta { font-size: .76rem; color: var(--muted); margin-top: 4px; }
+.att-meta { font-size: .76rem; color: var(--muted); margin-top: 3px; }
 
 .status-badge {
-    font-size: .68rem;
+    font-size: .7rem;
     padding: 4px 10px;
     border-radius: 9999px;
-    font-weight: 600;
-    letter-spacing: .03em;
-    text-transform: uppercase;
+    font-weight: 500;
 }
 .status-attended {
     background: var(--success-bg);
     color: var(--success);
-    border: 1px solid rgba(16, 185, 129, 0.25);
 }
 .status-preregistered {
     background: var(--surface-tint);
     color: var(--accent);
-    border: 1px solid rgba(59, 130, 246, 0.22);
 }
 
 /* ── CSV Hint ── */
 .csv-hint {
     background: var(--input-bg);
     border: 1px dashed var(--border);
-    border-radius: 10px;
+    border-radius: 8px;
     padding: 14px;
-    font-size: 0.76rem;
+    font-size: 0.78rem;
     color: var(--muted);
 }
 
@@ -494,8 +466,8 @@ body {
     padding: 11px 22px;
     border-radius: 9999px;
     font-size: .85rem;
-    font-weight: 600;
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+    font-weight: 500;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
     transition: transform .3s cubic-bezier(.34,1.56,.64,1);
     z-index: 1000;
     white-space: nowrap;
@@ -510,8 +482,8 @@ body {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(6px);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
     z-index: 500;
     align-items: center;
     justify-content: center;
@@ -532,47 +504,34 @@ body {
     from { opacity: 0; transform: scale(.95); }
     to { opacity: 1; transform: scale(1); }
 }
-.modal h3 { font-size: 1.12rem; margin-bottom: 8px; font-weight: 700; }
-.modal p { font-size: .85rem; color: var(--muted); margin-bottom: 20px; line-height: 1.45; }
+.modal h3 { font-size: 1.12rem; margin-bottom: 8px; font-weight: 500; }
+.modal p { font-size: .86rem; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
 
-/* ── Login & Hero (Inspired by Gemini API & Google Ads Hero) ── */
+/* ── Login & Hero ── */
 #screen-login {
     align-items: center;
     justify-content: center;
-    padding: 36px 20px 56px;
+    padding: 40px 20px 56px;
 }
 .login-hero {
     text-align: center;
     margin-bottom: 28px;
 }
-.hero-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 13px;
-    border-radius: 9999px;
-    background: var(--surface-tint);
-    border: 1px solid rgba(59, 130, 246, 0.25);
-    color: var(--accent);
-    font-size: .74rem;
-    font-weight: 600;
-    margin-bottom: 14px;
-}
 .login-hero .logo-big {
-    font-family: 'Inter', sans-serif;
-    font-size: 2.35rem;
-    font-weight: 700;
+    font-family: var(--font-sans);
+    font-size: 2.25rem;
+    font-weight: 500;
     color: var(--text);
     display: block;
     margin-bottom: 8px;
-    letter-spacing: -0.035em;
+    letter-spacing: -0.025em;
 }
 .login-hero p {
     color: var(--muted);
-    font-size: .95rem;
+    font-size: .94rem;
     max-width: 360px;
     margin: 0 auto;
-    line-height: 1.45;
+    line-height: 1.5;
 }
 
 .auth-divider {
@@ -583,7 +542,7 @@ body {
     color: var(--muted);
     font-size: .75rem;
     text-transform: uppercase;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: .05em;
 }
 .auth-divider::before, .auth-divider::after {
@@ -593,7 +552,7 @@ body {
     background: var(--border);
 }
 
-/* ── Menu Grid (Inspired by Google AI Studio Integrations Cards) ── */
+/* ── Menu Grid (Google AI Studio Integrations Style) ── */
 .menu-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -602,20 +561,18 @@ body {
 .menu-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 14px;
     padding: 24px;
     cursor: pointer;
-    transition: all .2s ease;
+    transition: all .18s ease;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    box-shadow: var(--card-shadow);
 }
 .menu-card:hover {
     border-color: var(--border-strong);
     background: var(--surface2);
-    transform: translateY(-2px);
 }
 .menu-card-left {
     display: flex;
@@ -623,20 +580,19 @@ body {
     gap: 16px;
 }
 .menu-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--accent);
     flex-shrink: 0;
-    border: 1px solid rgba(59, 130, 246, 0.22);
     background: var(--surface-tint);
 }
 .menu-info h3 {
-    font-size: 1.02rem;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 500;
     color: var(--text);
     margin-bottom: 4px;
 }
@@ -646,11 +602,11 @@ body {
 }
 .menu-arrow {
     color: var(--muted);
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     transition: transform .18s ease, color .18s ease;
 }
 .menu-card:hover .menu-arrow {
-    transform: translateX(4px);
+    transform: translateX(3px);
     color: var(--accent);
 }
 
@@ -667,16 +623,16 @@ body {
     font-size: .72rem;
     color: var(--accent);
     text-transform: uppercase;
-    letter-spacing: .1em;
+    letter-spacing: .08em;
     margin-bottom: 6px;
-    font-weight: 700;
+    font-weight: 500;
 }
 .event-id-display .id-value {
-    font-family: 'Space Mono', monospace;
-    font-size: 2.1rem;
-    font-weight: 700;
+    font-family: var(--font-mono);
+    font-size: 2rem;
+    font-weight: 500;
     color: var(--text);
-    letter-spacing: .15em;
+    letter-spacing: .12em;
 }
 .event-id-display .id-pass {
     font-size: .82rem;
@@ -700,20 +656,19 @@ body {
     border-radius: 14px;
     padding: 18px 14px;
     text-align: center;
-    box-shadow: var(--card-shadow);
 }
 .stat-val {
     font-size: 1.55rem;
-    font-weight: 700;
-    font-family: 'Space Mono', monospace;
+    font-weight: 500;
+    font-family: var(--font-sans);
 }
 .stat-lbl {
-    font-size: .68rem;
+    font-size: .7rem;
     color: var(--muted);
     text-transform: uppercase;
-    letter-spacing: .08em;
-    margin-top: 5px;
-    font-weight: 600;
+    letter-spacing: .06em;
+    margin-top: 4px;
+    font-weight: 500;
 }
 
 .entry-panel {
@@ -722,10 +677,9 @@ body {
     border-radius: 16px;
     padding: 24px;
     margin-bottom: 20px;
-    box-shadow: var(--card-shadow);
 }
 .empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
-.empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; opacity: .35; }
+.empty-state .icon { font-size: 2.4rem; margin-bottom: 12px; opacity: .35; }
 .empty-state p { font-size: .88rem; }
 
 .nav-tabs {
@@ -740,8 +694,9 @@ body {
     flex: 1;
     padding: 9px 14px;
     border-radius: 9999px;
+    font-family: var(--font-sans);
     font-size: .82rem;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
     text-align: center;
     color: var(--muted);
@@ -752,15 +707,14 @@ body {
 .nav-tab.active {
     background: var(--primary);
     color: #fff;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
 }
 
 .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
 .filter-chip {
     padding: 7px 16px;
     border-radius: 9999px;
-    font-size: .76rem;
-    font-weight: 600;
+    font-size: .78rem;
+    font-weight: 500;
     cursor: pointer;
     border: 1px solid var(--border);
     background: var(--surface);
@@ -805,13 +759,13 @@ body {
     display: inline-flex;
     align-items: center;
     padding: 8px 0;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-sans);
     margin-bottom: 16px;
     transition: opacity .15s;
 }
 .back-btn:hover { opacity: 0.8; }
-.screen-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.025em; }
-.screen-sub { font-size: .88rem; color: var(--muted); margin-bottom: 28px; }
+.screen-title { font-size: 1.65rem; font-weight: 500; margin-bottom: 6px; letter-spacing: -0.02em; }
+.screen-sub { font-size: .9rem; color: var(--muted); margin-bottom: 28px; }
 .full-screen-inner { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 36px 20px; }
 
 /* ── Auth Mode Tabs, Helpers & Verification ── */
@@ -828,19 +782,18 @@ body {
     padding: 8px 12px;
     border-radius: 9999px;
     font-size: .82rem;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
     text-align: center;
     color: var(--muted);
     transition: all .15s ease;
     border: none;
     background: transparent;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-sans);
 }
 .auth-tab.active {
     background: var(--primary);
     color: #fff;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
 }
 .auth-row-between {
     display: flex;
@@ -855,19 +808,19 @@ body {
     background: none;
     border: none;
     color: var(--accent);
-    font-size: .76rem;
-    font-weight: 600;
+    font-size: .78rem;
+    font-weight: 500;
     cursor: pointer;
     padding: 0;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-sans);
     transition: opacity .15s;
 }
 .link-btn:hover {
-    opacity: 0.8;
+    opacity: 0.85;
     text-decoration: underline;
 }
 .pwd-hint {
-    font-size: .74rem;
+    font-size: .75rem;
     color: var(--muted);
     margin-top: 7px;
     line-height: 1.45;
@@ -876,7 +829,7 @@ body {
     display: none;
     padding: 12px 14px;
     border-radius: 10px;
-    font-size: .8rem;
+    font-size: .82rem;
     line-height: 1.45;
     margin-bottom: 16px;
     border: 1px solid var(--border);
@@ -888,24 +841,24 @@ body {
 }
 .auth-banner.error {
     background: var(--danger-bg);
-    border-color: rgba(239, 68, 68, 0.35);
+    border-color: rgba(234, 67, 53, 0.35);
     color: var(--danger);
 }
 .auth-banner.success {
     background: var(--success-bg);
-    border-color: rgba(16, 185, 129, 0.35);
+    border-color: rgba(52, 168, 83, 0.35);
     color: var(--success);
 }
 .auth-banner.info {
     background: var(--surface-tint);
-    border-color: rgba(59, 130, 246, 0.3);
+    border-color: rgba(26, 115, 232, 0.3);
     color: var(--text);
 }
 .otp-input {
-    font-family: 'Space Mono', monospace;
-    font-size: .92rem;
+    font-family: var(--font-mono);
+    font-size: .9rem;
     text-align: left;
-    font-weight: 600;
+    font-weight: 500;
 }
 .step-box {
     background: var(--input-bg);
@@ -913,17 +866,17 @@ body {
     border-radius: 10px;
     padding: 12px 14px;
     margin-bottom: 14px;
-    font-size: .78rem;
+    font-size: .8rem;
     line-height: 1.5;
     color: var(--text-secondary);
 }
 .step-box strong {
     color: var(--accent);
+    font-weight: 500;
 }
 
 @media (max-width: 520px) {
     .global-nav { padding: 12px 16px; }
-    .brand-badge { display: none; }
     .card { padding: 22px 18px; }
     .login-hero .logo-big { font-size: 1.95rem; }
 }

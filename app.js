@@ -1,4 +1,4 @@
-//  CAPTURE INITIAL URL HASH / QUERY BEFORE SUPABASE CONSUMES IT
+//  CAPTURE INITIAL URL HASH / QUERY BEFORE CLIENT CONSUMES IT
 const INITIAL_URL_HASH = window.location.hash || '';
 const INITIAL_URL_SEARCH = window.location.search || '';
 const IS_INITIAL_RECOVERY = INITIAL_URL_HASH.includes('type=recovery') || INITIAL_URL_SEARCH.includes('type=recovery');
@@ -16,7 +16,7 @@ try {
     });
   }
 } catch (e) {
-  console.warn("Supabase not initialized properly. Add your keys!", e);
+  console.warn("Backend client not initialized properly.", e);
 }
 
 //  STATE
@@ -36,6 +36,61 @@ const state = {
 };
 
 let realtimeSubscription = null;
+
+//  USER-FRIENDLY ERROR SANITIZER (Hides internal/provider rate-limit messages)
+function formatAuthError(error, context = 'general') {
+  const raw = (typeof error === 'string' ? error : error?.message || '').toLowerCase();
+  const status = error?.status || 0;
+
+  // Rate limits / email sending restrictions / security cooldowns
+  if (
+    status === 429 ||
+    raw.includes('rate limit') ||
+    raw.includes('too many requests') ||
+    raw.includes('over_email_send_rate_limit') ||
+    raw.includes('over_request_rate_limit') ||
+    raw.includes('for security purposes') ||
+    raw.includes('can only request this') ||
+    raw.includes('email_send_rate_limit') ||
+    raw.includes('2 emails') ||
+    raw.includes('limit')
+  ) {
+    if (context === 'reset' || context === 'recovery' || context === 'update-password') {
+      return 'Password reset limit reached. Please try again after an hour.';
+    }
+    if (context === 'signup' || context === 'resend' || context === 'otp') {
+      return 'Verification email limit reached. Please try again after an hour.';
+    }
+    return 'Too many sign-in attempts right now. Please try again after an hour.';
+  }
+
+  if (raw.includes('invalid login credentials') || raw.includes('invalid_grant')) {
+    return 'Incorrect email or password. If you do not have an account yet, switch to Sign Up.';
+  }
+  if (raw.includes('email not confirmed')) {
+    return 'Your email address is not verified yet. Please check your inbox for the verification link.';
+  }
+  if (raw.includes('already registered') || raw.includes('already exists')) {
+    return 'An account with this email already exists. Please sign in instead.';
+  }
+  if (raw.includes('expired') || raw.includes('otp_expired') || raw.includes('invalid token') || raw.includes('token has expired')) {
+    return 'This verification link or code has expired. Please request a new email.';
+  }
+  if (raw.includes('different from the old password') || raw.includes('same_password')) {
+    return 'Please choose a new password that is different from your previous password.';
+  }
+  if (raw.includes('current password')) {
+    return 'Unable to update password at the moment. Please request a fresh password reset link or try again later.';
+  }
+  if (raw.includes('weak_password') || raw.includes('at least')) {
+    return 'Password must be at least 8 characters long and include both letters and digits.';
+  }
+  if (raw.includes('network') || raw.includes('fetch')) {
+    return 'Network connection error. Please check your internet connection and try again.';
+  }
+
+  return 'Unable to complete this request right now. Please try again after some time.';
+}
 
 //  THEME MANAGEMENT (DARK / LIGHT MODE)
 function applyTheme(theme) {
@@ -102,7 +157,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const rawParams = new URLSearchParams(INITIAL_URL_HASH.replace(/^#/, '') || INITIAL_URL_SEARCH.replace(/^\?/, ''));
     const errDesc = rawParams.get('error_description');
     if (errDesc) {
-      showAuthBanner(decodeURIComponent(errDesc.replace(/\+/g, ' ')), 'error');
+      const friendly = formatAuthError(decodeURIComponent(errDesc.replace(/\+/g, ' ')), 'otp');
+      showAuthBanner(friendly, 'error');
     }
   }
 
@@ -128,6 +184,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         setUserFromSession(data.session);
         afterLogin();
         return;
+      } else if (error) {
+        showAuthBanner(formatAuthError(error, linkType), 'error');
       }
     }
   }
@@ -283,7 +341,7 @@ function switchAuthMode(mode) {
     pwdField.style.display      = 'none';
     resetBackWrap.style.display = 'block';
     submitBtn.textContent       = 'Send Reset Email';
-    showAuthBanner('Enter your email address to receive a password reset link.', 'info');
+    showAuthBanner('Enter your registered email address to receive a password reset link.', 'info');
   } else if (mode === 'otp') {
     cardTitle.textContent       = state.otpType === 'recovery' ? 'Check your email to reset' : 'Verify your email';
     googleBtn.style.display     = 'none';
@@ -303,12 +361,11 @@ function switchAuthMode(mode) {
   }
 }
 
-//  SUPABASE SESSION & AUTH STATE LISTENERS
+//  SESSION & AUTH STATE LISTENERS
 if (supabaseClient) {
   supabaseClient.auth.getSession().then(({ data: { session } }) => {
     if (session) {
       setUserFromSession(session);
-      // Do NOT skip to menu if user clicked a password recovery link
       if (state.isPasswordRecovery || state.authMode === 'update-password' || INITIAL_URL_HASH.includes('type=recovery')) {
         showScreen('screen-login');
         switchAuthMode('update-password');
@@ -346,7 +403,7 @@ if (supabaseClient) {
 //  MAIN EMAIL AUTH HANDLER (Sign In, Sign Up, Password Reset)
 async function loginEmail() {
   if (!supabaseClient || typeof SUPABASE_URL === 'undefined' || SUPABASE_URL === 'YOUR_SUPABASE_URL') {
-    toast("Please add your Supabase keys to config.js first!", "error");
+    toast("Service configuration missing. Please check config.js.", "error");
     return;
   }
 
@@ -374,15 +431,16 @@ async function loginEmail() {
     submitBtn.textContent = origText;
 
     if (error) {
-      showAuthBanner(error.message, 'error');
-      toast(error.message, 'error');
+      const friendly = formatAuthError(error, 'reset');
+      showAuthBanner(friendly, 'error');
+      toast(friendly, 'error');
       return;
     }
 
     state.pendingEmail = email;
     state.otpType = 'recovery';
     switchAuthMode('otp');
-    showAuthBanner('Password reset email sent to ' + email + '! Click the "Reset Password" link in the email—or copy & paste that link below if you opened the email on your phone.', 'success');
+    showAuthBanner('Password reset link sent to ' + email + '. Click the "Reset Password" link in the email, or copy & paste that link below if opened on another device.', 'success');
     toast('Reset link sent to your email!', 'success');
     return;
   }
@@ -417,8 +475,9 @@ async function loginEmail() {
     submitBtn.textContent = 'Create Account';
 
     if (error) {
-      showAuthBanner(error.message, 'error');
-      toast(error.message, 'error');
+      const friendly = formatAuthError(error, 'signup');
+      showAuthBanner(friendly, 'error');
+      toast(friendly, 'error');
       return;
     }
 
@@ -439,7 +498,7 @@ async function loginEmail() {
     state.pendingEmail = email;
     state.otpType = 'signup';
     switchAuthMode('otp');
-    showAuthBanner('Account created! Click the confirmation link sent to ' + email + ', or paste the confirmation link / 6-digit code below.', 'success');
+    showAuthBanner('Account created! Click the confirmation link sent to ' + email + ', or paste the link below.', 'success');
     toast('Check your email to confirm your account!', 'info');
     return;
   }
@@ -458,22 +517,18 @@ async function loginEmail() {
   submitBtn.textContent = 'Sign In';
 
   if (error) {
-    const msg = error.message || 'Sign in failed';
-    if (msg.toLowerCase().includes('email not confirmed')) {
+    const rawMsg = (error.message || '').toLowerCase();
+    if (rawMsg.includes('email not confirmed')) {
       state.pendingEmail = email;
       state.otpType = 'signup';
       switchAuthMode('otp');
-      showAuthBanner('Your email is not confirmed yet. Click the link in your email, paste the link below, or click "Resend Email".', 'error');
-      toast('Please confirm your email first', 'error');
+      showAuthBanner('Your email is not verified yet. Click the link in your email, paste the link below, or click "Resend Email".', 'error');
+      toast('Please verify your email first', 'error');
       return;
     }
-    if (msg.toLowerCase().includes('invalid login credentials')) {
-      showAuthBanner('Invalid email or password. If you are new, switch to the "Sign Up" tab above to create an account.', 'error');
-      toast('Invalid email or password', 'error');
-      return;
-    }
-    showAuthBanner(msg, 'error');
-    toast(msg, 'error');
+    const friendly = formatAuthError(error, 'signin');
+    showAuthBanner(friendly, 'error');
+    toast(friendly, 'error');
     return;
   }
 
@@ -484,14 +539,14 @@ async function loginEmail() {
   }
 }
 
-//  UNIVERSAL VERIFY HANDLER: Accepts Pasted Email Link, Redirected URL (#access_token=...), Token Hash, or 6-Digit OTP
+//  UNIVERSAL VERIFY HANDLER: Accepts Pasted Email Link, Redirected URL (#access_token=...), Token Hash, or OTP Code
 async function verifyEmailOtp() {
   if (!supabaseClient) return;
   const rawInput = document.getElementById('otp-code').value.trim();
   const email = state.pendingEmail || document.getElementById('login-email').value.trim();
 
   if (!rawInput) {
-    toast('Paste the link from your email or enter the 6-digit code', 'error');
+    toast('Paste the link from your email or enter the verification code', 'error');
     return;
   }
 
@@ -523,8 +578,9 @@ async function verifyEmailOtp() {
         btn.textContent = 'Verify Code & Continue';
 
         if (error) {
-          showAuthBanner(error.message, 'error');
-          toast(error.message, 'error');
+          const friendly = formatAuthError(error, verifyType);
+          showAuthBanner(friendly, 'error');
+          toast(friendly, 'error');
           return;
         }
         if (urlType === 'recovery' || verifyType === 'recovery') {
@@ -542,7 +598,7 @@ async function verifyEmailOtp() {
       }
     }
 
-    // Case 2: User copied & pasted the raw Supabase Email Link (https://<project>.supabase.co/auth/v1/verify?token=...&type=...)
+    // Case 2: User copied & pasted the raw Email Link (?token=...&type=...)
     if (rawInput.startsWith('http://') || rawInput.startsWith('https://') || rawInput.includes('token=')) {
       const queryPart = rawInput.includes('?') ? rawInput.split('?')[1].split('#')[0] : rawInput;
       const params = new URLSearchParams(queryPart);
@@ -561,8 +617,9 @@ async function verifyEmailOtp() {
         btn.textContent = 'Verify Code & Continue';
 
         if (error) {
-          showAuthBanner(error.message, 'error');
-          toast(error.message, 'error');
+          const friendly = formatAuthError(error, verifyType);
+          showAuthBanner(friendly, 'error');
+          toast(friendly, 'error');
           return;
         }
         if (urlType === 'recovery' || verifyType === 'recovery') {
@@ -580,7 +637,7 @@ async function verifyEmailOtp() {
       }
     }
 
-    // Case 3: Standard 6-digit OTP code (or raw token string)
+    // Case 3: Standard OTP code
     if (!email) {
       btn.disabled = false;
       btn.textContent = 'Verify Code & Continue';
@@ -603,8 +660,9 @@ async function verifyEmailOtp() {
     btn.textContent = 'Verify Code & Continue';
 
     if (error) {
-      showAuthBanner(error.message + ' — Tip: Since Supabase sent a "Reset Password" link to your email, either click that link directly or right-click / long-press "Reset Password" in the email, copy the link URL, and paste it in the box above.', 'error');
-      toast(error.message, 'error');
+      const friendly = formatAuthError(error, verifyType);
+      showAuthBanner(friendly, 'error');
+      toast(friendly, 'error');
       return;
     }
 
@@ -627,7 +685,8 @@ async function verifyEmailOtp() {
   } catch (err) {
     btn.disabled = false;
     btn.textContent = 'Verify Code & Continue';
-    showAuthBanner('Verification failed: ' + (err.message || err), 'error');
+    const friendly = formatAuthError(err, verifyType);
+    showAuthBanner(friendly, 'error');
   }
 }
 
@@ -663,10 +722,11 @@ async function resendVerificationEmail() {
   btn.textContent = 'Resend Email';
 
   if (error) {
-    showAuthBanner(error.message, 'error');
-    toast(error.message, 'error');
+    const friendly = formatAuthError(error, state.otpType === 'recovery' ? 'reset' : 'resend');
+    showAuthBanner(friendly, 'error');
+    toast(friendly, 'error');
   } else {
-    showAuthBanner('A fresh email has been sent to ' + email + '. Click the link inside the email or copy & paste the link URL above.', 'success');
+    showAuthBanner('A new verification email has been sent to ' + email + '. Please check your inbox.', 'success');
     toast('Email resent!', 'success');
   }
 }
@@ -694,12 +754,9 @@ async function submitNewPassword() {
   btn.textContent = 'Update Password';
 
   if (error) {
-    let errMsg = error.message;
-    if (errMsg.toLowerCase().includes('current password')) {
-      errMsg += ' (In Supabase Dashboard → Authentication → Providers → Email, toggle OFF "Require current password when updating" so users can reset forgotten passwords.)';
-    }
-    showAuthBanner(errMsg, 'error');
-    toast(error.message, 'error');
+    const friendly = formatAuthError(error, 'update-password');
+    showAuthBanner(friendly, 'error');
+    toast(friendly, 'error');
     return;
   }
 
@@ -717,7 +774,7 @@ async function submitNewPassword() {
 }
 
 function loginGoogle() {
-  if (!supabaseClient || SUPABASE_URL === 'YOUR_SUPABASE_URL') return toast("Add Supabase keys first!", "error");
+  if (!supabaseClient || SUPABASE_URL === 'YOUR_SUPABASE_URL') return toast("Service configuration missing.", "error");
   const redirectUrl = getRedirectUrl();
   supabaseClient.auth.signInWithOAuth({
     provider: 'google',
@@ -787,7 +844,7 @@ async function createNewEvent() {
 
   const { data, error } = await supabaseClient.from('events').insert([newEvent]).select().single();
   
-  if (error) { toast('Error creating event: ' + error.message, 'error'); return; }
+  if (error) { toast('Unable to create event right now. Please try again.', 'error'); return; }
 
   state.currentEvent = data;
   state.events.unshift(data);
@@ -948,7 +1005,7 @@ async function addEntry() {
     if (error.code === '23505') { 
       toast('Already marked: ' + fullRoll, 'error');
     } else {
-      toast('Error: ' + error.message, 'error');
+      toast('Unable to mark attendance. Please try again.', 'error');
     }
     return;
   }
@@ -1125,10 +1182,10 @@ async function executeDeleteEvent() {
   const eventId = state.currentEvent.id;
 
   const { error: attErr } = await supabaseClient.from('attendance').delete().eq('event_id', eventId);
-  if (attErr) { toast('Failed to delete attendance records: ' + attErr.message, 'error'); return; }
+  if (attErr) { toast('Unable to delete attendance records. Please try again.', 'error'); return; }
 
   const { error: evErr } = await supabaseClient.from('events').delete().eq('id', eventId);
-  if (evErr) { toast('Failed to delete event: ' + evErr.message, 'error'); return; }
+  if (evErr) { toast('Unable to delete event. Please try again.', 'error'); return; }
 
   if (realtimeSubscription) supabaseClient.removeChannel(realtimeSubscription);
   state.currentEvent = null;
@@ -1153,10 +1210,10 @@ function renderBranchSummary() {
   c.innerHTML = Object.entries(branches).map(([branch, students]) => `
     <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
       <div>
-        <div style="font-weight:600">${branch}</div>
+        <div style="font-weight:500">${branch}</div>
         <div style="font-size:.72rem;color:var(--muted)">${Object.keys(groupByYear(students)).join(', ')} Year</div>
       </div>
-      <div style="font-family:'Space Mono',monospace;font-size:1.1rem;color:var(--accent);font-weight:700">${students.length}</div>
+      <div style="font-family:var(--font-mono);font-size:1.1rem;color:var(--accent);font-weight:500">${students.length}</div>
     </div>
   `).join('');
 }

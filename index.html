@@ -10,7 +10,7 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400;500;700&family=Google+Sans+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="styl.css">
 </head>
@@ -21,7 +21,6 @@
     <div class="brand-wrap">
       <div class="brand-mark">AX</div>
       <span class="logo">AttendX</span>
-      <span class="brand-badge">Event Attendance</span>
     </div>
     <div class="nav-actions">
       <button type="button" class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="Switch Dark / Light Theme">
@@ -41,19 +40,14 @@
     </div>
   </header>
 
-  <div class="info-strip">
-    <span><strong>AttendX Cloud Sync</strong> · Real-time college event attendance verification &amp; branch-wise Excel reporting</span>
-  </div>
-
   <div id="app">
 
     <!-- LOGIN -->
     <div id="screen-login" class="screen active">
       <div class="container">
         <div class="login-hero">
-          <div class="hero-pill">✦ Powered by Supabase Auth</div>
-          <span class="logo-big">AttendX Portal</span>
-          <p>Streamlined coordinator sign-in and real-time student attendance tracking.</p>
+          <span class="logo-big">AttendX</span>
+          <p>College Event Attendance Management</p>
         </div>
 
         <div class="card">
@@ -105,15 +99,15 @@
             </div>
           </div>
 
-          <!-- Email Link / OTP Verification View (Handles Link Redirects, Pasted Email Links, and 6-Digit OTP) -->
+          <!-- Email Link / OTP Verification View -->
           <div id="auth-view-otp" style="display:none">
             <div class="step-box" id="otp-instructions-box">
               <strong>1. Click the link in your email:</strong> Open the email sent to <strong id="otp-email-display" style="color:var(--text)"></strong> and click the action link.<br>
-              <strong>2. Opened on phone or another tab?</strong> Copy the link from the email (or copy the redirected URL from your browser bar) and paste it below—or enter a 6-digit code if your template uses OTP:
+              <strong>2. Opened on phone or another tab?</strong> Copy the link from the email (or copy the redirected URL from your browser bar) and paste it below:
             </div>
             <div class="field">
-              <label for="otp-code" id="otp-input-label">Paste Email Link / Redirect URL or 6-Digit Code</label>
-              <input type="text" class="input otp-input" id="otp-code" placeholder="Paste Reset/Confirm link or 6-digit code..." onkeydown="if(event.key==='Enter') verifyEmailOtp()">
+              <label for="otp-code" id="otp-input-label">Paste Email Link or Verification Code</label>
+              <input type="text" class="input otp-input" id="otp-code" placeholder="Paste link from email or enter code..." onkeydown="if(event.key==='Enter') verifyEmailOtp()">
             </div>
             <div class="gap-10">
               <button type="button" class="btn btn-primary" id="btn-verify-otp" onclick="verifyEmailOtp()">Verify Code &amp; Continue</button>
@@ -122,7 +116,7 @@
             </div>
           </div>
 
-          <!-- Update Password View (after Password Reset Link or Recovery Token) -->
+          <!-- Update Password View -->
           <div id="auth-view-update-pwd" style="display:none">
             <div class="field">
               <label for="new-password">New Password</label>
@@ -146,9 +140,8 @@
 
     <!-- MENU -->
     <div id="screen-menu" class="screen">
-      <div class="container-wide" style="padding-top: 52px; padding-bottom: 40px;">
+      <div class="container-wide" style="padding-top: 56px; padding-bottom: 40px;">
         <div style="margin-bottom:36px;text-align:center">
-          <div class="hero-pill">Coordinator Workspace</div>
           <div class="screen-title" style="font-size:2rem;margin-bottom:8px">Welcome back, <span id="user-name" style="color:var(--accent)">Coordinator</span></div>
           <p style="color:var(--muted);font-size:.95rem">Create a new attendance session or join an active campus event.</p>
         </div>
@@ -254,7 +247,7 @@
           <div style="margin-bottom:20px">
             <div class="card" style="padding:18px; background:var(--surface2)">
               <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;">Event Name</div>
-              <div id="display-event-name" style="font-weight:600;font-size:1.05rem;"></div>
+              <div id="display-event-name" style="font-weight:500;font-size:1.05rem;"></div>
               <div style="font-size:.72rem;color:var(--muted);margin-top:12px;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;">Date &amp; Time</div>
               <div id="display-event-dt" style="font-size:.9rem;color:var(--accent)"></div>
             </div>
@@ -280,7 +273,7 @@
           <div class="card gap-10">
             <div class="field">
               <label>Event ID</label>
-              <input type="text" class="input" id="join-id" placeholder="e.g. EV2405" style="font-family:'Space Mono',monospace;letter-spacing:.1em;text-transform:uppercase">
+              <input type="text" class="input" id="join-id" placeholder="e.g. EV2405" style="font-family:var(--font-mono);letter-spacing:.1em;text-transform:uppercase">
             </div>
             <div class="field">
               <label>Event Password</label>
@@ -312,11 +305,10 @@
     <div id="screen-attendance" class="screen">
       <div class="app-header">
         <div style="display:flex;align-items:center;gap:10px">
-          <span class="brand-badge">Active Session</span>
-          <strong id="hdr-event-name" style="font-size:1rem">Event</strong>
+          <strong id="hdr-event-name" style="font-size:1.02rem;font-weight:500">Event</strong>
         </div>
         <div class="header-event">
-          <span id="hdr-event-id" style="font-family:'Space Mono',monospace;color:var(--accent);font-weight:700;font-size:.88rem"></span>
+          <span id="hdr-event-id" style="font-family:var(--font-mono);color:var(--accent);font-weight:500;font-size:.88rem"></span>
         </div>
       </div>
 
@@ -362,7 +354,7 @@
                 onkeydown="if(event.key==='Enter') addEntry()"
                 oninput="this.value=this.value.toUpperCase()">
             </div>
-            <p style="font-size:.74rem;color:var(--muted);margin-top:8px">
+            <p style="font-size:.75rem;color:var(--muted);margin-top:8px">
               Format: BRANCH + 3-digit number (e.g. CSE042, MECH007)
             </p>
             <button class="btn btn-primary" onclick="addEntry()" style="margin-top:20px; width:100%;">
@@ -380,7 +372,7 @@
             <div class="csv-hint">
                 <strong>Format requirement:</strong><br>
                 A single column list containing only the full roll numbers.<br>
-                <code style="display:block;margin-top:6px;background:var(--surface);padding:8px 10px;border-radius:6px;color:var(--accent);border:1px solid var(--border);font-family:'Space Mono',monospace;">Y25CSE001<br>Y25CSE002<br>Y24ECE045</code>
+                <code style="display:block;margin-top:6px;background:var(--surface);padding:8px 10px;border-radius:6px;color:var(--accent);border:1px solid var(--border);font-family:var(--font-mono);">Y25CSE001<br>Y25CSE002<br>Y24ECE045</code>
             </div>
 
             <input type="file" id="prereg-file" accept=".csv" style="display:none" onchange="loadPreregCSV(this)">
@@ -408,7 +400,7 @@
         <!-- EXPORT TAB -->
         <div id="panel-export" style="display:none">
           <div class="card" style="padding:22px; margin-bottom:16px;">
-            <div style="font-size:1.02rem;font-weight:700;margin-bottom:8px">Export Report</div>
+            <div style="font-size:1.02rem;font-weight:500;margin-bottom:8px">Export Report</div>
             <p style="font-size:.84rem;color:var(--muted);margin-bottom:16px;line-height:1.5;">
               Generates separate Excel files for each branch. Students are ordered by their registered year (Y25, Y24, etc.).
             </p>
@@ -428,7 +420,7 @@
               <button class="btn btn-secondary btn-sm" onclick="showScreen('screen-menu')" style="width:100%">Back to Menu</button>
               <button class="btn btn-danger btn-sm" onclick="confirmLogout()" style="width:100%">End Session</button>
               <div style="height:1px;background:var(--border);margin:4px 0"></div>
-              <button class="btn btn-danger btn-sm" onclick="openModal('modal-delete-event')" style="width:100%;border-color:rgba(239,68,68,0.5);opacity:0.9">
+              <button class="btn btn-danger btn-sm" onclick="openModal('modal-delete-event')" style="width:100%;border-color:rgba(234,67,53,0.5);opacity:0.9">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4h6v2"></path></svg>
                 Discard Event &amp; All Data
               </button>
