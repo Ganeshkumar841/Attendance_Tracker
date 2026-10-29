@@ -1,9 +1,22 @@
-//  SUPABASE Configration
-let supabaseClient;
+//  CAPTURE INITIAL URL HASH / QUERY BEFORE SUPABASE CONSUMES IT
+const INITIAL_URL_HASH = window.location.hash || '';
+const INITIAL_URL_SEARCH = window.location.search || '';
+const IS_INITIAL_RECOVERY = INITIAL_URL_HASH.includes('type=recovery') || INITIAL_URL_SEARCH.includes('type=recovery');
+
+//  SUPABASE Configuration
+let supabaseClient = null;
 try {
-  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  if (typeof window.supabase !== 'undefined' && typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    });
+  }
 } catch (e) {
-  console.warn("Supabase not initialized properly. Add your keys!");
+  console.warn("Supabase not initialized properly. Add your keys!", e);
 }
 
 //  STATE
@@ -14,16 +27,46 @@ const state = {
   currentFilter: 'all',
   editAuthorized: false,
   pendingDeleteId: null,
-  events: [], 
+  events: [],
+  authMode: IS_INITIAL_RECOVERY ? 'update-password' : 'signin',
+  pendingEmail: '',
+  otpType: 'signup',
+  isPasswordRecovery: IS_INITIAL_RECOVERY,
+  theme: 'dark'
 };
 
 let realtimeSubscription = null;
+
+//  THEME MANAGEMENT (DARK / LIGHT MODE)
+function applyTheme(theme) {
+  state.theme = theme === 'light' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', state.theme);
+  const label = document.getElementById('theme-label');
+  const icon = document.getElementById('theme-icon');
+  if (label) {
+    label.textContent = state.theme === 'dark' ? 'Light mode' : 'Dark mode';
+  }
+  if (icon) {
+    if (state.theme === 'dark') {
+      icon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+    } else {
+      icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+    }
+  }
+  try {
+    localStorage.setItem('attendx_theme', state.theme);
+  } catch (_e) {}
+}
+
+function toggleTheme() {
+  applyTheme(state.theme === 'dark' ? 'light' : 'dark');
+}
 
 // Dynamic Academic Year Logic (Starts in July)
 function computeYears() {
   const now = new Date();
   let startYear = now.getFullYear();
-  if (now.getMonth() < 6) { startYear -= 1; } // If before July, academic year started last year
+  if (now.getMonth() < 6) { startYear -= 1; }
   return {
     1: 'Y' + (startYear).toString().slice(-2),
     2: 'Y' + (startYear - 1).toString().slice(-2),
@@ -35,13 +78,65 @@ const YEAR_PREFIX = computeYears();
 const YEAR_LABELS = { 1: '1st', 2: '2nd', 3: '3rd', 4: '4th' };
 let selectedYear = null;
 
-// Initialize dynamic years in UI on load
-document.addEventListener("DOMContentLoaded", () => {
+// Initialize dynamic years, theme, and URL recovery params on load
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const savedTheme = localStorage.getItem('attendx_theme');
+    if (savedTheme === 'light' || savedTheme === 'dark') {
+      applyTheme(savedTheme);
+    } else {
+      applyTheme('dark');
+    }
+  } catch (_e) {
+    applyTheme('dark');
+  }
+
   document.getElementById('y1-prefix').textContent = YEAR_PREFIX[1];
   document.getElementById('y2-prefix').textContent = YEAR_PREFIX[2];
   document.getElementById('y3-prefix').textContent = YEAR_PREFIX[3];
   document.getElementById('y4-prefix').textContent = YEAR_PREFIX[4];
   document.getElementById('ev-date').valueAsDate = new Date();
+
+  // Check if URL contains an error from expired/invalid email link
+  if (INITIAL_URL_HASH.includes('error_description=') || INITIAL_URL_SEARCH.includes('error_description=')) {
+    const rawParams = new URLSearchParams(INITIAL_URL_HASH.replace(/^#/, '') || INITIAL_URL_SEARCH.replace(/^\?/, ''));
+    const errDesc = rawParams.get('error_description');
+    if (errDesc) {
+      showAuthBanner(decodeURIComponent(errDesc.replace(/\+/g, ' ')), 'error');
+    }
+  }
+
+  // Handle token_hash in URL query if present (e.g. ?token_hash=...&type=recovery)
+  if (supabaseClient && (INITIAL_URL_SEARCH.includes('token_hash=') || INITIAL_URL_SEARCH.includes('token='))) {
+    const searchParams = new URLSearchParams(INITIAL_URL_SEARCH);
+    const tokenHash = searchParams.get('token_hash') || searchParams.get('token');
+    const linkType = searchParams.get('type') || 'recovery';
+    if (tokenHash) {
+      if (linkType === 'recovery') {
+        state.isPasswordRecovery = true;
+      }
+      const { data, error } = await supabaseClient.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: linkType
+      });
+      if (!error && linkType === 'recovery') {
+        showScreen('screen-login');
+        switchAuthMode('update-password');
+        showAuthBanner('Reset link verified! Enter your new password below.', 'success');
+        return;
+      } else if (!error && data?.session) {
+        setUserFromSession(data.session);
+        afterLogin();
+        return;
+      }
+    }
+  }
+
+  if (IS_INITIAL_RECOVERY) {
+    showScreen('screen-login');
+    switchAuthMode('update-password');
+    showAuthBanner('Reset link verified! Enter your new password below.', 'success');
+  }
 });
 
 function mapDbToLocal(dbRow) {
@@ -64,7 +159,7 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (id === 'screen-attendance') updateAttendanceUI();
-  if (id === 'screen-join') fetchRecentEvents(); 
+  if (id === 'screen-join') fetchRecentEvents();
 }
 
 function switchTab(tab) {
@@ -88,70 +183,559 @@ function togglePwd(id, btn) {
   }
 }
 
-//  AUTH
-supabaseClient.auth.getSession().then(({ data: { session } }) => {
-  if (session) {
-    state.user = {
-      name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-      email: session.user.email,
-      id: session.user.id
-    };
-    afterLogin();
+//  AUTH HELPERS & UI MODES
+function showAuthBanner(msg, type = 'info') {
+  const banner = document.getElementById('auth-status-banner');
+  if (!banner) return;
+  if (!msg) {
+    banner.className = 'auth-banner';
+    banner.textContent = '';
+    return;
   }
-});
+  banner.textContent = msg;
+  banner.className = 'auth-banner show ' + type;
+}
 
-supabaseClient.auth.onAuthStateChange((_event, session) => {
-  if (session) {
-    state.user = {
-      name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-      email: session.user.email,
-      id: session.user.id
-    };
-    if (document.getElementById('screen-login').classList.contains('active')) {
-      afterLogin();
+function validatePasswordPolicy(pass) {
+  if (!pass || pass.length < 8) {
+    return 'Password must be at least 8 characters long.';
+  }
+  if (!/[a-zA-Z]/.test(pass) || !/\d/.test(pass)) {
+    return 'Password must contain both letters and digits.';
+  }
+  return null;
+}
+
+function getRedirectUrl() {
+  if (window.location.protocol.startsWith('http')) {
+    return window.location.origin + window.location.pathname;
+  }
+  return undefined;
+}
+
+function setUserFromSession(session) {
+  if (!session || !session.user) return;
+  state.user = {
+    name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+    email: session.user.email,
+    id: session.user.id
+  };
+}
+
+function switchAuthMode(mode) {
+  state.authMode = mode;
+  if (mode !== 'update-password') {
+    state.isPasswordRecovery = false;
+  }
+  showAuthBanner('');
+
+  const tabsWrap      = document.getElementById('auth-mode-tabs');
+  const tabSignin     = document.getElementById('tab-auth-signin');
+  const tabSignup     = document.getElementById('tab-auth-signup');
+  const credView      = document.getElementById('auth-view-credentials');
+  const otpView       = document.getElementById('auth-view-otp');
+  const updatePwdView = document.getElementById('auth-view-update-pwd');
+  const pwdField      = document.getElementById('field-login-password');
+  const pwdHint       = document.getElementById('pwd-policy-hint');
+  const forgotLink    = document.getElementById('forgot-pwd-link');
+  const submitBtn     = document.getElementById('auth-submit-btn');
+  const resetBackWrap = document.getElementById('reset-back-wrap');
+  const cardTitle     = document.getElementById('auth-card-title');
+  const googleBtn     = document.getElementById('btn-google-login');
+  const orDivider     = document.getElementById('auth-divider-or');
+
+  credView.style.display      = 'none';
+  otpView.style.display       = 'none';
+  updatePwdView.style.display = 'none';
+
+  if (mode === 'signin') {
+    cardTitle.textContent       = 'Sign in to continue';
+    googleBtn.style.display     = 'inline-flex';
+    orDivider.style.display     = 'flex';
+    tabsWrap.style.display      = 'flex';
+    tabSignin.classList.add('active');
+    tabSignup.classList.remove('active');
+    credView.style.display      = 'block';
+    pwdField.style.display      = 'block';
+    pwdHint.style.display       = 'none';
+    forgotLink.style.display    = 'inline';
+    resetBackWrap.style.display = 'none';
+    submitBtn.textContent       = 'Sign In';
+  } else if (mode === 'signup') {
+    cardTitle.textContent       = 'Create an account';
+    googleBtn.style.display     = 'inline-flex';
+    orDivider.style.display     = 'flex';
+    tabsWrap.style.display      = 'flex';
+    tabSignin.classList.remove('active');
+    tabSignup.classList.add('active');
+    credView.style.display      = 'block';
+    pwdField.style.display      = 'block';
+    pwdHint.style.display       = 'block';
+    forgotLink.style.display    = 'none';
+    resetBackWrap.style.display = 'none';
+    submitBtn.textContent       = 'Create Account';
+  } else if (mode === 'reset') {
+    cardTitle.textContent       = 'Reset your password';
+    googleBtn.style.display     = 'none';
+    orDivider.style.display     = 'none';
+    tabsWrap.style.display      = 'none';
+    credView.style.display      = 'block';
+    pwdField.style.display      = 'none';
+    resetBackWrap.style.display = 'block';
+    submitBtn.textContent       = 'Send Reset Email';
+    showAuthBanner('Enter your email address to receive a password reset link.', 'info');
+  } else if (mode === 'otp') {
+    cardTitle.textContent       = state.otpType === 'recovery' ? 'Check your email to reset' : 'Verify your email';
+    googleBtn.style.display     = 'none';
+    orDivider.style.display     = 'none';
+    tabsWrap.style.display      = 'none';
+    otpView.style.display       = 'block';
+    document.getElementById('otp-email-display').textContent = state.pendingEmail || 'your email';
+    document.getElementById('otp-code').value = '';
+    document.getElementById('otp-code').focus();
+  } else if (mode === 'update-password') {
+    cardTitle.textContent         = 'Set a new password';
+    googleBtn.style.display       = 'none';
+    orDivider.style.display       = 'none';
+    tabsWrap.style.display        = 'none';
+    updatePwdView.style.display   = 'block';
+    document.getElementById('new-password').value = '';
+  }
+}
+
+//  SUPABASE SESSION & AUTH STATE LISTENERS
+if (supabaseClient) {
+  supabaseClient.auth.getSession().then(({ data: { session } }) => {
+    if (session) {
+      setUserFromSession(session);
+      // Do NOT skip to menu if user clicked a password recovery link
+      if (state.isPasswordRecovery || state.authMode === 'update-password' || INITIAL_URL_HASH.includes('type=recovery')) {
+        showScreen('screen-login');
+        switchAuthMode('update-password');
+        showAuthBanner('Reset link verified! Enter your new password below.', 'success');
+      } else {
+        afterLogin();
+      }
     }
-  } else {
-    state.user = null;
-    showScreen('screen-login');
-  }
-});
+  }).catch(err => console.warn('Session check error:', err));
 
-async function loginEmail() {
-  if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
-      toast("Please add your Supabase keys to the script first!", "error");
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      state.isPasswordRecovery = true;
+      showScreen('screen-login');
+      switchAuthMode('update-password');
+      showAuthBanner('Password recovery link verified! Enter your new password below.', 'success');
       return;
+    }
+    if (session) {
+      setUserFromSession(session);
+      if (state.isPasswordRecovery || state.authMode === 'update-password') {
+        showScreen('screen-login');
+        return;
+      }
+      if (document.getElementById('screen-login').classList.contains('active')) {
+        afterLogin();
+      }
+    } else {
+      state.user = null;
+      showScreen('screen-login');
+    }
+  });
+}
+
+//  MAIN EMAIL AUTH HANDLER (Sign In, Sign Up, Password Reset)
+async function loginEmail() {
+  if (!supabaseClient || typeof SUPABASE_URL === 'undefined' || SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+    toast("Please add your Supabase keys to config.js first!", "error");
+    return;
   }
+
   const email = document.getElementById('login-email').value.trim();
   const pass  = document.getElementById('login-password').value;
-  if (!email || !pass) { toast('Enter email and password', 'error'); return; }
+  const submitBtn = document.getElementById('auth-submit-btn');
 
-  let { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
-  
-  if (error && error.message.includes('Invalid login credentials')) {
-      const res = await supabaseClient.auth.signUp({ email, password: pass });
-      data = res.data; error = res.error;
-      if (!error) toast('Account created & logged in!', 'success');
+  if (!email) {
+    toast('Please enter your email address', 'error');
+    return;
   }
-  if (error) { toast(error.message, 'error'); return; }
+
+  // 1. PASSWORD RESET FLOW
+  if (state.authMode === 'reset') {
+    submitBtn.disabled = true;
+    const origText = submitBtn.textContent;
+    submitBtn.textContent = 'Sending...';
+    showAuthBanner('');
+
+    const redirectUrl = getRedirectUrl();
+    const options = redirectUrl ? { redirectTo: redirectUrl } : {};
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, options);
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = origText;
+
+    if (error) {
+      showAuthBanner(error.message, 'error');
+      toast(error.message, 'error');
+      return;
+    }
+
+    state.pendingEmail = email;
+    state.otpType = 'recovery';
+    switchAuthMode('otp');
+    showAuthBanner('Password reset email sent to ' + email + '! Click the "Reset Password" link in the email—or copy & paste that link below if you opened the email on your phone.', 'success');
+    toast('Reset link sent to your email!', 'success');
+    return;
+  }
+
+  if (!pass) {
+    toast('Please enter your password', 'error');
+    return;
+  }
+
+  // 2. SIGN UP FLOW
+  if (state.authMode === 'signup') {
+    const pwdErr = validatePasswordPolicy(pass);
+    if (pwdErr) {
+      showAuthBanner(pwdErr, 'error');
+      toast(pwdErr, 'error');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating Account...';
+    showAuthBanner('');
+
+    const redirectUrl = getRedirectUrl();
+    const signUpOpts = redirectUrl ? { options: { emailRedirectTo: redirectUrl } } : {};
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password: pass,
+      ...signUpOpts
+    });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Create Account';
+
+    if (error) {
+      showAuthBanner(error.message, 'error');
+      toast(error.message, 'error');
+      return;
+    }
+
+    if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      switchAuthMode('signin');
+      showAuthBanner('An account with this email already exists. Please sign in with your password, or use "Forgot password?" to reset it.', 'error');
+      toast('Account already exists. Please Sign In.', 'error');
+      return;
+    }
+
+    if (data?.session) {
+      setUserFromSession(data.session);
+      toast('Account created & logged in!', 'success');
+      afterLogin();
+      return;
+    }
+
+    state.pendingEmail = email;
+    state.otpType = 'signup';
+    switchAuthMode('otp');
+    showAuthBanner('Account created! Click the confirmation link sent to ' + email + ', or paste the confirmation link / 6-digit code below.', 'success');
+    toast('Check your email to confirm your account!', 'info');
+    return;
+  }
+
+  // 3. SIGN IN FLOW (default)
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Signing In...';
+  showAuthBanner('');
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password: pass
+  });
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = 'Sign In';
+
+  if (error) {
+    const msg = error.message || 'Sign in failed';
+    if (msg.toLowerCase().includes('email not confirmed')) {
+      state.pendingEmail = email;
+      state.otpType = 'signup';
+      switchAuthMode('otp');
+      showAuthBanner('Your email is not confirmed yet. Click the link in your email, paste the link below, or click "Resend Email".', 'error');
+      toast('Please confirm your email first', 'error');
+      return;
+    }
+    if (msg.toLowerCase().includes('invalid login credentials')) {
+      showAuthBanner('Invalid email or password. If you are new, switch to the "Sign Up" tab above to create an account.', 'error');
+      toast('Invalid email or password', 'error');
+      return;
+    }
+    showAuthBanner(msg, 'error');
+    toast(msg, 'error');
+    return;
+  }
+
+  if (data?.session) {
+    setUserFromSession(data.session);
+    toast('Signed in!', 'success');
+    afterLogin();
+  }
+}
+
+//  UNIVERSAL VERIFY HANDLER: Accepts Pasted Email Link, Redirected URL (#access_token=...), Token Hash, or 6-Digit OTP
+async function verifyEmailOtp() {
+  if (!supabaseClient) return;
+  const rawInput = document.getElementById('otp-code').value.trim();
+  const email = state.pendingEmail || document.getElementById('login-email').value.trim();
+
+  if (!rawInput) {
+    toast('Paste the link from your email or enter the 6-digit code', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btn-verify-otp');
+  btn.disabled = true;
+  btn.textContent = 'Verifying...';
+  showAuthBanner('');
+
+  const verifyType = state.otpType === 'recovery' ? 'recovery' : 'signup';
+
+  try {
+    // Case 1: User pasted a redirected URL containing #access_token=...&refresh_token=...
+    if (rawInput.includes('access_token=')) {
+      const hashPart = rawInput.includes('#') ? rawInput.split('#')[1] : rawInput.split('?')[1] || rawInput;
+      const params = new URLSearchParams(hashPart);
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+      const urlType = params.get('type') || verifyType;
+
+      if (accessToken && refreshToken) {
+        if (urlType === 'recovery' || verifyType === 'recovery') {
+          state.isPasswordRecovery = true;
+        }
+        const { data, error } = await supabaseClient.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        });
+        btn.disabled = false;
+        btn.textContent = 'Verify Code & Continue';
+
+        if (error) {
+          showAuthBanner(error.message, 'error');
+          toast(error.message, 'error');
+          return;
+        }
+        if (urlType === 'recovery' || verifyType === 'recovery') {
+          switchAuthMode('update-password');
+          showAuthBanner('Reset link verified! Enter your new password below.', 'success');
+          toast('Link verified! Set your new password.', 'success');
+          return;
+        }
+        if (data?.session) {
+          setUserFromSession(data.session);
+          toast('Email verified & logged in!', 'success');
+          afterLogin();
+          return;
+        }
+      }
+    }
+
+    // Case 2: User copied & pasted the raw Supabase Email Link (https://<project>.supabase.co/auth/v1/verify?token=...&type=...)
+    if (rawInput.startsWith('http://') || rawInput.startsWith('https://') || rawInput.includes('token=')) {
+      const queryPart = rawInput.includes('?') ? rawInput.split('?')[1].split('#')[0] : rawInput;
+      const params = new URLSearchParams(queryPart);
+      const tokenHash = params.get('token_hash') || params.get('token');
+      const urlType = params.get('type') || verifyType;
+
+      if (tokenHash) {
+        if (urlType === 'recovery' || verifyType === 'recovery') {
+          state.isPasswordRecovery = true;
+        }
+        const { data, error } = await supabaseClient.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: urlType
+        });
+        btn.disabled = false;
+        btn.textContent = 'Verify Code & Continue';
+
+        if (error) {
+          showAuthBanner(error.message, 'error');
+          toast(error.message, 'error');
+          return;
+        }
+        if (urlType === 'recovery' || verifyType === 'recovery') {
+          switchAuthMode('update-password');
+          showAuthBanner('Reset link verified! Enter your new password below.', 'success');
+          toast('Reset link verified!', 'success');
+          return;
+        }
+        if (data?.session) {
+          setUserFromSession(data.session);
+          toast('Email verified & logged in!', 'success');
+          afterLogin();
+          return;
+        }
+      }
+    }
+
+    // Case 3: Standard 6-digit OTP code (or raw token string)
+    if (!email) {
+      btn.disabled = false;
+      btn.textContent = 'Verify Code & Continue';
+      switchAuthMode('signin');
+      toast('Enter your email address first', 'error');
+      return;
+    }
+
+    if (verifyType === 'recovery') {
+      state.isPasswordRecovery = true;
+    }
+
+    const { data, error } = await supabaseClient.auth.verifyOtp({
+      email,
+      token: rawInput,
+      type: verifyType
+    });
+
+    btn.disabled = false;
+    btn.textContent = 'Verify Code & Continue';
+
+    if (error) {
+      showAuthBanner(error.message + ' — Tip: Since Supabase sent a "Reset Password" link to your email, either click that link directly or right-click / long-press "Reset Password" in the email, copy the link URL, and paste it in the box above.', 'error');
+      toast(error.message, 'error');
+      return;
+    }
+
+    if (verifyType === 'recovery') {
+      switchAuthMode('update-password');
+      showAuthBanner('Verified! Set your new password below.', 'success');
+      toast('Verified! Enter new password.', 'success');
+      return;
+    }
+
+    if (data?.session) {
+      setUserFromSession(data.session);
+      toast('Email verified & logged in!', 'success');
+      afterLogin();
+    } else {
+      switchAuthMode('signin');
+      showAuthBanner('Email verified! You can now sign in with your password.', 'success');
+      toast('Email verified! Please sign in.', 'success');
+    }
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = 'Verify Code & Continue';
+    showAuthBanner('Verification failed: ' + (err.message || err), 'error');
+  }
+}
+
+//  RESEND CONFIRMATION / RECOVERY EMAIL
+async function resendVerificationEmail() {
+  if (!supabaseClient) return;
+  const email = state.pendingEmail || document.getElementById('login-email').value.trim();
+  if (!email) {
+    toast('Missing email address', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btn-resend-otp');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  let error = null;
+  if (state.otpType === 'recovery') {
+    const redirectUrl = getRedirectUrl();
+    const res = await supabaseClient.auth.resetPasswordForEmail(email, redirectUrl ? { redirectTo: redirectUrl } : {});
+    error = res.error;
+  } else {
+    const redirectUrl = getRedirectUrl();
+    const res = await supabaseClient.auth.resend({
+      type: 'signup',
+      email,
+      options: redirectUrl ? { emailRedirectTo: redirectUrl } : undefined
+    });
+    error = res.error;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Resend Email';
+
+  if (error) {
+    showAuthBanner(error.message, 'error');
+    toast(error.message, 'error');
+  } else {
+    showAuthBanner('A fresh email has been sent to ' + email + '. Click the link inside the email or copy & paste the link URL above.', 'success');
+    toast('Email resent!', 'success');
+  }
+}
+
+//  UPDATE PASSWORD (Step 2 of Reset Password flow)
+async function submitNewPassword() {
+  if (!supabaseClient) return;
+  const newPass = document.getElementById('new-password').value;
+  const pwdErr = validatePasswordPolicy(newPass);
+  if (pwdErr) {
+    showAuthBanner(pwdErr, 'error');
+    toast(pwdErr, 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btn-update-pwd');
+  btn.disabled = true;
+  btn.textContent = 'Updating...';
+
+  const { data, error } = await supabaseClient.auth.updateUser({
+    password: newPass
+  });
+
+  btn.disabled = false;
+  btn.textContent = 'Update Password';
+
+  if (error) {
+    let errMsg = error.message;
+    if (errMsg.toLowerCase().includes('current password')) {
+      errMsg += ' (In Supabase Dashboard → Authentication → Providers → Email, toggle OFF "Require current password when updating" so users can reset forgotten passwords.)';
+    }
+    showAuthBanner(errMsg, 'error');
+    toast(error.message, 'error');
+    return;
+  }
+
+  state.isPasswordRecovery = false;
+  if (data?.user) {
+    state.user = {
+      name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || 'User',
+      email: data.user.email,
+      id: data.user.id
+    };
+  }
+  switchAuthMode('signin');
+  toast('Password updated & logged in!', 'success');
+  afterLogin();
 }
 
 function loginGoogle() {
-  if (SUPABASE_URL === 'YOUR_SUPABASE_URL') return toast("Add Supabase keys first!", "error");
-  supabaseClient.auth.signInWithOAuth({ 
+  if (!supabaseClient || SUPABASE_URL === 'YOUR_SUPABASE_URL') return toast("Add Supabase keys first!", "error");
+  const redirectUrl = getRedirectUrl();
+  supabaseClient.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin }
+    options: redirectUrl ? { redirectTo: redirectUrl } : {}
   });
 }
 
 function afterLogin() {
+  if (!state.user) return;
   document.getElementById('user-name').textContent = state.user.name;
   showScreen('screen-menu');
 }
 
 async function logout() {
-  if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') await supabaseClient.auth.signOut();
+  if (supabaseClient && SUPABASE_URL !== 'YOUR_SUPABASE_URL') await supabaseClient.auth.signOut();
   state.user = null; state.currentEvent = null; state.attendance = [];
-  if (realtimeSubscription) supabaseClient.removeChannel(realtimeSubscription);
+  if (realtimeSubscription && supabaseClient) supabaseClient.removeChannel(realtimeSubscription);
+  switchAuthMode('signin');
   showScreen('screen-login');
 }
 function confirmLogout() { logout(); }
@@ -160,7 +744,7 @@ function confirmLogout() { logout(); }
 function generateEventId() { return 'EV' + Math.random().toString(36).substr(2, 4).toUpperCase(); }
 
 async function fetchRecentEvents() {
-  if (SUPABASE_URL === 'YOUR_SUPABASE_URL') return;
+  if (!supabaseClient || SUPABASE_URL === 'YOUR_SUPABASE_URL') return;
   const { data, error } = await supabaseClient.from('events').select('*').order('created_at', { ascending: false }).limit(5);
   if (!error && data) {
     state.events = data;
@@ -220,7 +804,10 @@ async function createNewEvent() {
 }
 
 function copyEventId() {
-  navigator.clipboard?.writeText(state.currentEvent?.id || '').catch(() => {});
+  const idText = state.currentEvent?.id || '';
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(idText).catch(() => {});
+  }
   toast('Event ID copied!', 'info');
 }
 
@@ -239,7 +826,6 @@ async function joinEvent() {
   toast('Joined ' + ev.name, 'success');
 }
 
-// Prompts user for password instead of joining directly
 function quickJoin(id) {
   const ev = state.events.find(e => e.id === id);
   if (!ev) return;
@@ -267,8 +853,9 @@ function enterAttendance() {
   switchTab('entry');
 }
 
-//  REAL-TIME SYNCRONIZATION
+//  REAL-TIME SYNCHRONIZATION
 function subscribeToAttendance(eventId) {
+  if (!supabaseClient) return;
   if (realtimeSubscription) supabaseClient.removeChannel(realtimeSubscription);
 
   realtimeSubscription = supabaseClient
@@ -330,7 +917,6 @@ async function addEntry() {
         .select().single();
         
       if (!error && data) {
-        // Explicitly update local state for immediate UI reflection
         const existingIdx = state.attendance.findIndex(a => a.id === existing.id);
         state.attendance[existingIdx] = mapDbToLocal(data);
         updateAttendanceUI();
@@ -367,7 +953,6 @@ async function addEntry() {
     return;
   }
 
-  // Explicitly update local state for immediate UI reflection
   state.attendance.push(mapDbToLocal(data));
   updateAttendanceUI();
 
@@ -452,7 +1037,6 @@ function updateAttendanceUI() {
 
   renderList();
 
-  // Keep branch summary in sync if export tab is open
   if (document.getElementById('panel-export')?.style.display !== 'none') {
     renderBranchSummary();
   }
@@ -540,15 +1124,12 @@ async function executeDeleteEvent() {
 
   const eventId = state.currentEvent.id;
 
-  // Delete all attendance records first
   const { error: attErr } = await supabaseClient.from('attendance').delete().eq('event_id', eventId);
   if (attErr) { toast('Failed to delete attendance records: ' + attErr.message, 'error'); return; }
 
-  // Delete the event itself
   const { error: evErr } = await supabaseClient.from('events').delete().eq('id', eventId);
   if (evErr) { toast('Failed to delete event: ' + evErr.message, 'error'); return; }
 
-  // Clean up local state
   if (realtimeSubscription) supabaseClient.removeChannel(realtimeSubscription);
   state.currentEvent = null;
   state.attendance = [];
@@ -575,7 +1156,7 @@ function renderBranchSummary() {
         <div style="font-weight:600">${branch}</div>
         <div style="font-size:.72rem;color:var(--muted)">${Object.keys(groupByYear(students)).join(', ')} Year</div>
       </div>
-      <div style="font-family:'Space Mono',monospace;font-size:1.1rem;color:var(--text)">${students.length}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:1.1rem;color:var(--accent);font-weight:700">${students.length}</div>
     </div>
   `).join('');
 }
@@ -595,29 +1176,20 @@ function exportExcel() {
   if (state.attendance.length === 0) { toast('No attendance data to export', 'error'); return; }
 
   const ev = state.currentEvent;
-
-  // Group all students (attended and pre-registered) by branch
   const byBranch = groupByBranch(state.attendance);
   let fileCount = 0;
 
-  // Loop through branches and download separate Excels
   Object.entries(byBranch).forEach(([branch, students], index) => {
-    
-    // Sort students: Descending by year prefix (Y25, Y24...), then ascending by full roll no
     students.sort((a, b) => {
       const yearPrefixA = a.rollNo.match(/^[A-Z]+\d+/)?.[0] || '';
       const yearPrefixB = b.rollNo.match(/^[A-Z]+\d+/)?.[0] || '';
-      
-      // Sort in descending order: e.g., Y25 comes before Y24
       if (yearPrefixA !== yearPrefixB) {
         return yearPrefixB.localeCompare(yearPrefixA);
       }
-      // Same prefix year, sort full rollNo ascending
       return a.rollNo.localeCompare(b.rollNo);
     });
 
     const wb = XLSX.utils.book_new();
-
     const rows = [
       ['Registered Number (Roll No)', 'Year', 'Branch', 'Status', 'Time', 'Recorded By'],
       ...students.map(s => [s.rollNo, s.yearLabel + ' Year', s.branch, s.status, formatTime(s.timestamp), s.recordedBy])
@@ -630,9 +1202,8 @@ function exportExcel() {
 
     const filename = `Attendance_${ev.name.replace(/\s+/g,'_')}_${branch}.xlsx`;
 
-    // Download multiple files sequentially using a slight timeout
     setTimeout(() => {
-        XLSX.writeFile(wb, filename);
+      XLSX.writeFile(wb, filename);
     }, index * 400);
 
     fileCount++;
