@@ -11,7 +11,7 @@
   function mapDbToLocal(dbRow) {
     if (!dbRow) return null;
     return {
-      id: dbRow.id,
+      id: dbRow.id !== undefined && dbRow.id !== null ? dbRow.id : dbRow.roll_no,
       eventId: dbRow.event_id,
       rollNo: String(dbRow.roll_no || '').toUpperCase(),
       year: Number(dbRow.year) || 1,
@@ -40,18 +40,22 @@
     };
   }
 
-  async function markPresentFromPrereg(recordId) {
+  async function markPresentFromPrereg(recordId, eventId, rollNo) {
     const client = AttendX.Backend.Supabase.getClient();
-    const { data, error } = await client
+    let query = client
       .from('attendance')
       .update({
         status: 'attended',
         timestamp: new Date().toISOString()
-      })
-      .eq('id', recordId)
-      .select()
-      .single();
+      });
 
+    if (recordId !== undefined && recordId !== null && String(recordId) !== String(rollNo)) {
+      query = query.eq('id', recordId);
+    } else if (eventId && rollNo) {
+      query = query.eq('event_id', eventId).eq('roll_no', rollNo);
+    }
+
+    const { data, error } = await query.select().single();
     return { data: data ? mapDbToLocal(data) : null, error };
   }
 
@@ -83,7 +87,6 @@
       return { data: [], error: null };
     }
 
-    // Upsert with ignoreDuplicates so already existing roll numbers in DB never crash the batch
     const { data, error } = await client
       .from('attendance')
       .upsert(records, { onConflict: 'event_id,roll_no', ignoreDuplicates: true })
@@ -96,30 +99,42 @@
   }
 
   /**
-   * Delete a participant attendance record by ID and return immediately so the UI
-   * can reactively remove the entry without waiting for a manual page reload.
+   * Delete a participant attendance record by primary key `id` and/or `(event_id, roll_no)`.
    */
-  async function deleteEntry(recordId, eventId) {
+  async function deleteEntry({ id, rollNo, eventId }) {
     const client = AttendX.Backend.Supabase.getClient();
     if (!client) return { error: new Error('Database not configured') };
 
-    let query = client.from('attendance').delete().eq('id', recordId);
-    if (eventId) {
-      query = query.eq('event_id', eventId);
+    let error = null;
+
+    // 1. Delete by primary key `id` (exact match as in original table schema)
+    if (id !== undefined && id !== null && String(id) !== String(rollNo)) {
+      const resById = await client.from('attendance').delete().eq('id', id);
+      error = resById.error;
     }
 
-    const { error } = await query;
+    // 2. Also delete by (event_id, roll_no) to guarantee removal even if `id` was string/UUID/composite
+    if (eventId && rollNo) {
+      const resByRoll = await client
+        .from('attendance')
+        .delete()
+        .eq('event_id', eventId)
+        .eq('roll_no', rollNo);
+      if (error && !resByRoll.error) {
+        error = null;
+      } else if (!error && resByRoll.error && (id === undefined || id === null)) {
+        error = resByRoll.error;
+      }
+    }
+
     if (!error) {
-      AttendX.Backend.AuditService.logAction('ATTENDANCE_DELETED', { recordId, eventId });
+      AttendX.Backend.AuditService.logAction('ATTENDANCE_DELETED', { id, rollNo, eventId });
     }
     return { error };
   }
 
   /**
    * Subscribe to real-time INSERT, UPDATE, and DELETE events for an event.
-   * Note: In Supabase Postgres Changes, DELETE events only send the primary key `id` in `payload.old`
-   * unless REPLICA IDENTITY FULL is enabled on the table. Listening to DELETE on the table
-   * and matching `payload.old.id` against local state guarantees real-time deletion across devices.
    */
   function subscribeToEventAttendance(eventId, callbacks) {
     const client = AttendX.Backend.Supabase.getClient();
@@ -165,8 +180,8 @@
           table: 'attendance'
         },
         payload => {
-          if (payload?.old && payload.old.id !== undefined && typeof callbacks?.onDelete === 'function') {
-            callbacks.onDelete(payload.old.id);
+          if (payload?.old && typeof callbacks?.onDelete === 'function') {
+            callbacks.onDelete(payload.old.id, payload.old.roll_no);
           }
         }
       )

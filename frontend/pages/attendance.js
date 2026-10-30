@@ -175,7 +175,6 @@
       </section>
     `;
 
-    // Render child tab sub-pages into their respective mounts
     AttendX.Pages.ViewList.renderViewListTab();
     AttendX.Pages.ExportPage.renderExportTab();
   }
@@ -191,7 +190,13 @@
         tabBtn.className = t === tab ? activeTabClass : inactiveTabClass;
       }
       if (panel) {
-        panel.style.display = t === tab ? 'block' : 'none';
+        if (t === tab) {
+          panel.classList.remove('hidden');
+          panel.style.display = 'block';
+        } else {
+          panel.classList.add('hidden');
+          panel.style.display = 'none';
+        }
       }
     });
 
@@ -251,15 +256,21 @@
       },
       onUpdate(record) {
         if (!record) return;
-        const idx = state.attendance.findIndex(a => String(a.id) === String(record.id));
+        const idx = state.attendance.findIndex(
+          a => String(a.id) === String(record.id) || a.rollNo === record.rollNo
+        );
         if (idx !== -1) {
           state.attendance[idx] = record;
           updateAttendanceUI();
         }
       },
-      onDelete(deletedId) {
+      onDelete(deletedId, deletedRollNo) {
         const beforeLen = state.attendance.length;
-        state.attendance = state.attendance.filter(a => String(a.id) !== String(deletedId));
+        state.attendance = state.attendance.filter(a => {
+          if (deletedRollNo && a.rollNo === String(deletedRollNo).toUpperCase()) return false;
+          if (deletedId !== undefined && deletedId !== null && String(a.id) === String(deletedId)) return false;
+          return true;
+        });
         if (state.attendance.length !== beforeLen) {
           updateAttendanceUI();
         }
@@ -299,9 +310,15 @@
     try {
       if (existing) {
         if (existing.status === 'preregistered') {
-          const { data, error } = await AttendanceService.markPresentFromPrereg(existing.id);
+          const { data, error } = await AttendanceService.markPresentFromPrereg(
+            existing.id,
+            state.currentEvent.id,
+            fullRoll
+          );
           if (!error && data) {
-            const idx = state.attendance.findIndex(a => String(a.id) === String(existing.id));
+            const idx = state.attendance.findIndex(
+              a => String(a.id) === String(existing.id) || a.rollNo === fullRoll
+            );
             if (idx !== -1) state.attendance[idx] = data;
             updateAttendanceUI();
             toast('✓ Pre-reg verified: ' + fullRoll, 'success');
@@ -361,7 +378,6 @@
     const { parseFullRollRow } = AttendX.Utils.Sanitizer;
     const state = AttendX.State;
 
-    // Validate file extension and size (max 5 MB)
     if (!file.name.toLowerCase().endsWith('.csv') && file.type !== 'text/csv') {
       toast('Only .csv files are supported', 'error');
       input.value = '';
@@ -463,16 +479,12 @@
     const attEl   = document.getElementById('stat-attended');
     const preEl   = document.getElementById('stat-prereg');
 
-    if (totalEl) totalEl.textContent = all.length;
-    if (attEl)   attEl.textContent   = attended.length;
-    if (preEl)   preEl.textContent   = prereg.length;
+    if (totalEl) totalEl.textContent = String(all.length);
+    if (attEl)   attEl.textContent   = String(attended.length);
+    if (preEl)   preEl.textContent   = String(prereg.length);
 
     AttendX.Pages.ViewList.renderList();
-
-    const exportPanel = document.getElementById('panel-export');
-    if (exportPanel && exportPanel.style.display !== 'none') {
-      AttendX.Pages.ExportPage.renderBranchSummary();
-    }
+    AttendX.Pages.ExportPage.renderBranchSummary();
   }
 
   global.switchTab = switchTab;

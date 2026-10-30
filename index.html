@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>AttendX — Event Attendance System</title>
 
   <!-- External Libraries: SheetJS & Supabase Client -->
@@ -16,8 +19,8 @@
 
   <!-- Tailwind CSS CDN & Custom Theme Configuration -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="frontend/styles/tailwind.config.js"></script>
-  <link rel="stylesheet" href="frontend/styles/theme.css">
+  <script src="frontend/styles/tailwind.config.js?v=2.1"></script>
+  <link rel="stylesheet" href="frontend/styles/theme.css?v=2.1">
 </head>
 <body class="font-sans bg-app text-main min-h-screen overflow-x-hidden flex flex-col transition-colors duration-200 select-none">
 
@@ -45,32 +48,32 @@
   ></div>
 
   <!-- Environment Configuration -->
-  <script src="config.js"></script>
+  <script src="config.js?v=2.1"></script>
 
   <!-- Backend Layer (Config, Middleware & Services) -->
-  <script src="backend/config/securityConfig.js"></script>
-  <script src="backend/config/supabaseClient.js"></script>
-  <script src="backend/middleware/rateLimiter.js"></script>
-  <script src="backend/middleware/sessionManager.js"></script>
-  <script src="backend/services/auditService.js"></script>
-  <script src="backend/services/authService.js"></script>
-  <script src="backend/services/eventService.js"></script>
-  <script src="backend/services/attendanceService.js"></script>
+  <script src="backend/config/securityConfig.js?v=2.1"></script>
+  <script src="backend/config/supabaseClient.js?v=2.1"></script>
+  <script src="backend/middleware/rateLimiter.js?v=2.1"></script>
+  <script src="backend/middleware/sessionManager.js?v=2.1"></script>
+  <script src="backend/services/auditService.js?v=2.1"></script>
+  <script src="backend/services/authService.js?v=2.1"></script>
+  <script src="backend/services/eventService.js?v=2.1"></script>
+  <script src="backend/services/attendanceService.js?v=2.1"></script>
 
   <!-- Frontend Layer (Utilities, Components, Pages & App Router) -->
-  <script src="frontend/utils/sanitizer.js"></script>
-  <script src="frontend/utils/theme.js"></script>
-  <script src="frontend/utils/exporter.js"></script>
-  <script src="frontend/components/header.js"></script>
-  <script src="frontend/components/footer.js"></script>
-  <script src="frontend/components/modals.js"></script>
-  <script src="frontend/components/toast.js"></script>
-  <script src="frontend/pages/signin.js"></script>
-  <script src="frontend/pages/menu.js"></script>
-  <script src="frontend/pages/events.js"></script>
-  <script src="frontend/pages/viewList.js"></script>
-  <script src="frontend/pages/exportPage.js"></script>
-  <script src="frontend/pages/attendance.js"></script>
-  <script src="frontend/app.js"></script>
+  <script src="frontend/utils/sanitizer.js?v=2.1"></script>
+  <script src="frontend/utils/theme.js?v=2.1"></script>
+  <script src="frontend/utils/exporter.js?v=2.1"></script>
+  <script src="frontend/components/header.js?v=2.1"></script>
+  <script src="frontend/components/footer.js?v=2.1"></script>
+  <script src="frontend/components/modals.js?v=2.1"></script>
+  <script src="frontend/components/toast.js?v=2.1"></script>
+  <script src="frontend/pages/signin.js?v=2.1"></script>
+  <script src="frontend/pages/menu.js?v=2.1"></script>
+  <script src="frontend/pages/events.js?v=2.1"></script>
+  <script src="frontend/pages/viewList.js?v=2.1"></script>
+  <script src="frontend/pages/exportPage.js?v=2.1"></script>
+  <script src="frontend/pages/attendance.js?v=2.1"></script>
+  <script src="frontend/app.js?v=2.1"></script>
 </body>
 </html>

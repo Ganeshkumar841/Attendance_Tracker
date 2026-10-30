@@ -1,7 +1,6 @@
 /**
- * Frontend Page — View List & Reactive Participant Deletion Page
- * Fixes the manual reload bug on participant deletion by immediately updating local state
- * and re-rendering the filtered participant list, stats counters, and branch summary.
+ * Frontend Page — View List & Instant Reactive Participant Deletion Page
+ * Immediately removes deleted participants from DOM and state without requiring a page reload.
  */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
@@ -14,40 +13,31 @@
     if (!mount) return;
 
     mount.innerHTML = `
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-        <div id="filter-bar" class="flex gap-2 flex-wrap select-none">
-          <button
-            type="button"
-            onclick="setFilter('all', this)"
-            class="filter-chip py-[7px] px-4 rounded-full text-[0.78rem] font-medium cursor-pointer border transition-all bg-primary border-primary text-white focus:outline-none select-none"
-          >
-            All
-          </button>
-          <button
-            type="button"
-            onclick="setFilter('attended', this)"
-            class="filter-chip py-[7px] px-4 rounded-full text-[0.78rem] font-medium cursor-pointer border transition-all border-theme bg-surface text-muted hover:text-main focus:outline-none select-none"
-          >
-            Attended
-          </button>
-          <button
-            type="button"
-            onclick="setFilter('preregistered', this)"
-            class="filter-chip py-[7px] px-4 rounded-full text-[0.78rem] font-medium cursor-pointer border transition-all border-theme bg-surface text-muted hover:text-main focus:outline-none select-none"
-          >
-            Pre-reg
-          </button>
-        </div>
-
-        <div class="relative flex-1 sm:max-w-[230px]">
-          <input
-            type="text"
-            id="list-search-input"
-            placeholder="Search roll no or branch..."
-            oninput="renderList()"
-            class="w-full py-1.5 px-3.5 bg-input border border-theme rounded-full text-[0.8rem] text-main font-mono uppercase placeholder:font-sans placeholder:normal-case placeholder:text-muted/65 focus:border-primary focus:outline-none transition-all"
-          >
-        </div>
+      <div id="filter-bar" class="flex gap-2 mb-4 flex-wrap select-none">
+        <button
+          type="button"
+          data-filter="all"
+          onclick="setFilter('all', this)"
+          class="filter-chip py-[7px] px-4 rounded-full text-[0.78rem] font-medium cursor-pointer border transition-all bg-primary border-primary text-white focus:outline-none select-none"
+        >
+          All
+        </button>
+        <button
+          type="button"
+          data-filter="attended"
+          onclick="setFilter('attended', this)"
+          class="filter-chip py-[7px] px-4 rounded-full text-[0.78rem] font-medium cursor-pointer border transition-all border-theme bg-surface text-muted hover:text-main focus:outline-none select-none"
+        >
+          Attended
+        </button>
+        <button
+          type="button"
+          data-filter="preregistered"
+          onclick="setFilter('preregistered', this)"
+          class="filter-chip py-[7px] px-4 rounded-full text-[0.78rem] font-medium cursor-pointer border transition-all border-theme bg-surface text-muted hover:text-main focus:outline-none select-none"
+        >
+          Pre-reg
+        </button>
       </div>
 
       <div id="att-list-container">
@@ -66,7 +56,8 @@
     const inactiveChipClass = 'filter-chip py-[7px] px-4 rounded-full text-[0.78rem] font-medium cursor-pointer border transition-all border-theme bg-surface text-muted hover:text-main focus:outline-none select-none';
 
     document.querySelectorAll('.filter-chip').forEach(chip => {
-      chip.className = chip === el ? activeChipClass : inactiveChipClass;
+      const isMatch = el ? chip === el : chip.getAttribute('data-filter') === filterKey;
+      chip.className = isMatch ? activeChipClass : inactiveChipClass;
     });
 
     renderList();
@@ -78,8 +69,6 @@
 
     const state = AttendX.State;
     const { escapeHtml, formatTime } = AttendX.Utils.Sanitizer;
-    const searchInput = document.getElementById('list-search-input');
-    const searchQuery = searchInput ? searchInput.value.trim().toUpperCase() : '';
 
     let items = Array.isArray(state.attendance) ? [...state.attendance] : [];
 
@@ -87,22 +76,11 @@
       items = items.filter(a => a.status === state.currentFilter);
     }
 
-    if (searchQuery) {
-      items = items.filter(
-        a =>
-          String(a.rollNo || '').toUpperCase().includes(searchQuery) ||
-          String(a.branch || '').toUpperCase().includes(searchQuery) ||
-          String(a.yearLabel || '').toUpperCase().includes(searchQuery)
-      );
-    }
-
     items.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
     if (items.length === 0) {
       const subText =
-        searchQuery
-          ? 'No matching roll numbers found.'
-          : state.currentFilter !== 'all'
+        state.currentFilter !== 'all'
           ? 'Try a different filter.'
           : 'Start marking attendance.';
       container.innerHTML = `
@@ -118,7 +96,7 @@
       '<div class="flex flex-col gap-2.5">' +
       items
         .map(a => {
-          const safeId = escapeHtml(String(a.id));
+          const safeId = escapeHtml(String(a.id ?? a.rollNo));
           const safeRoll = escapeHtml(a.rollNo);
           const safeYear = escapeHtml(a.yearLabel);
           const safeBranch = escapeHtml(a.branch);
@@ -131,8 +109,10 @@
 
           return `
             <div
-              id="entry-${safeId}"
-              class="att-item flex items-center justify-between py-3.5 px-[18px] bg-surface border border-theme hover:border-strong rounded-xl gap-3 transition-colors animate-slide-in"
+              id="entry-${safeRoll}"
+              data-entry-id="${safeId}"
+              data-entry-roll="${safeRoll}"
+              class="att-item flex items-center justify-between py-3.5 px-[18px] bg-surface border border-theme hover:border-strong rounded-xl gap-3 transition-colors"
             >
               <div class="flex-1 min-w-0">
                 <div class="font-mono text-[0.92rem] font-medium text-main truncate">${safeRoll}</div>
@@ -143,11 +123,12 @@
                 <button
                   type="button"
                   data-delete-id="${safeId}"
+                  data-delete-roll="${safeRoll}"
                   title="Delete Entry"
                   aria-label="Delete ${safeRoll}"
-                  class="delete-participant-btn inline-flex items-center justify-center py-2 px-3 rounded-full text-[0.8rem] font-medium bg-danger-bg text-danger border border-danger/30 hover:bg-danger/20 hover:border-danger transition-all cursor-pointer focus:outline-none select-none active:scale-95"
+                  class="delete-participant-btn inline-flex items-center justify-center py-2 px-4 rounded-full text-[0.8rem] font-medium bg-danger-bg text-danger border border-danger/30 hover:bg-danger/20 hover:border-danger transition-all cursor-pointer focus:outline-none select-none active:scale-95"
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                   </svg>
@@ -159,26 +140,33 @@
         .join('') +
       '</div>';
 
-    // Bind delete listeners safely without inline string injection issues
+    // Attach click listeners directly to each delete button
     container.querySelectorAll('.delete-participant-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
         const targetId = btn.getAttribute('data-delete-id');
-        if (targetId !== null) {
-          requestDelete(targetId);
-        }
+        const targetRoll = btn.getAttribute('data-delete-roll');
+        requestDelete(targetId, targetRoll);
       });
     });
   }
 
-  function requestDelete(id) {
+  function requestDelete(id, rollNo) {
     const state = AttendX.State;
-    state.pendingDeleteId = id;
+    const entry = (state.attendance || []).find(
+      a =>
+        (rollNo && String(a.rollNo).toUpperCase() === String(rollNo).toUpperCase()) ||
+        (id !== undefined && id !== null && String(a.id) === String(id)) ||
+        String(a.rollNo).toUpperCase() === String(id).toUpperCase()
+    );
 
-    // Compare normalized string IDs so BIGSERIAL numbers and string attributes always match
-    const entry = (state.attendance || []).find(a => String(a.id) === String(id));
+    state.pendingDeleteId = entry ? entry.id : id;
+    state.pendingDeleteRoll = entry ? entry.rollNo : rollNo || String(id);
+
     const targetLabel = document.getElementById('delete-target-roll');
     if (targetLabel) {
-      targetLabel.textContent = entry?.rollNo || String(id);
+      targetLabel.textContent = state.pendingDeleteRoll;
     }
 
     if (state.editAuthorized) {
@@ -209,17 +197,21 @@
   }
 
   /**
-   * Execute participant deletion and immediately synchronize local state + UI
-   * so no manual page reload is ever required.
+   * Execute participant deletion with immediate synchronous state + DOM update.
+   * No manual page reload is needed.
    */
   async function executeDelete() {
     if (isDeletingParticipant) return;
     const state = AttendX.State;
     const { toast } = AttendX.Components.Toast;
-    const { AttendanceService } = AttendX.Backend;
+    const { AttendanceService, Supabase } = AttendX.Backend;
 
-    const id = state.pendingDeleteId;
-    if (id === null || id === undefined) {
+    const targetId = state.pendingDeleteId;
+    const targetRoll =
+      state.pendingDeleteRoll ||
+      document.getElementById('delete-target-roll')?.textContent?.trim();
+
+    if ((targetId === null || targetId === undefined) && !targetRoll) {
       AttendX.Components.Modals.closeModal('modal-delete-confirm');
       return;
     }
@@ -231,22 +223,45 @@
       delBtn.textContent = 'Deleting...';
     }
 
-    try {
-      const { error } = await AttendanceService.deleteEntry(id, state.currentEvent?.id);
+    // Snapshot for rollback only if DB throws an error
+    const previousAttendance = [...(state.attendance || [])];
 
-      if (error) {
-        toast('Failed to delete entry. Please try again.', 'error');
-      } else {
-        // Immediately remove from local state and re-render View List + Stats + Branch Summary
-        state.attendance = (state.attendance || []).filter(
-          a => String(a.id) !== String(id)
-        );
-        AttendX.Pages.Attendance.updateAttendanceUI();
-        toast('Participant deleted', 'info');
+    // 1. IMMEDIATELY remove from local state & re-render UI (0ms delay, no reload needed)
+    state.attendance = previousAttendance.filter(a => {
+      if (targetRoll && String(a.rollNo).toUpperCase() === String(targetRoll).toUpperCase()) {
+        return false;
+      }
+      if (targetId !== null && targetId !== undefined && String(a.id) === String(targetId)) {
+        return false;
+      }
+      return true;
+    });
+
+    AttendX.Components.Modals.closeModal('modal-delete-confirm');
+    state.pendingDeleteId = null;
+    state.pendingDeleteRoll = null;
+
+    // Immediately update Total / Attended / Pre-reg counters, View List DOM, and Branch Summary
+    AttendX.Pages.Attendance.updateAttendanceUI();
+
+    try {
+      if (Supabase.isConfigured() && state.currentEvent?.id) {
+        const { error } = await AttendanceService.deleteEntry({
+          id: targetId,
+          rollNo: targetRoll,
+          eventId: state.currentEvent.id
+        });
+
+        if (error) {
+          // Rollback local state if database rejected the delete
+          state.attendance = previousAttendance;
+          AttendX.Pages.Attendance.updateAttendanceUI();
+          toast('Failed to delete entry', 'error');
+          return;
+        }
       }
 
-      AttendX.Components.Modals.closeModal('modal-delete-confirm');
-      state.pendingDeleteId = null;
+      toast('Entry deleted', 'info');
     } finally {
       isDeletingParticipant = false;
       if (delBtn) {
