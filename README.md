@@ -1,246 +1,83 @@
-# AttendX — Event Attendance System
+# AttendX — Event Attendance System (Tailwind CSS + Modular Architecture)
 
-AttendX is a streamlined, real-time college event attendance management web application built for event coordinators. It features a modern "Luminous Void" dark user interface, instant database synchronization, dynamic academic year handling, and multi-file branch-wise Excel exporting capabilities.
-
----
-
-##  Features
-
-* **Real-time Synchronization:** Powered by Supabase Postgres Changes, allowing multiple coordinators to log attendance concurrently on different devices without conflicts.
-* **Intelligent Academic Year Mapping:** Dynamically calculates current student batches (`Y26`, `Y25`, etc.) based on an academic cycle starting every July.
-* **Dual-State Registration Processing:** * **Manual Entry:** Quick suffix matching (e.g., typing `CSE042` after choosing a year).
-    * **Pre-registration:** Upload a standalone list via CSV to allow rapid verification during manual check-in.
-* **Automated Multi-File Export:** Automatically chunks, matches, and triggers separate Excel file downloads parsed by branch, pre-sorted down by seniority and registration sequence.
-* **Session Security Modals:** Secure entry overrides requiring event-specific authorization passwords before data updates or event deletions can occur.
+AttendX is a real-time college event attendance management web application built for event coordinators. It features a "Luminous Void" dark and Google Workspace light user interface powered by **Tailwind CSS**, instant reactive UI updates, Supabase real-time synchronization, dynamic academic year calculation, and branch-wise Excel exporting.
 
 ---
 
-##  Security Features
+## Project Folder Structure
 
-### Implemented
--  **Input Validation & Sanitization** - All user inputs validated and sanitized to prevent XSS
--  **Rate Limiting** - Brute-force protection on login (5 attempts per 15 min) and password verification (3 attempts per 10 min)
--  **Audit Logging** - All significant actions logged with timestamp, user, and action type
--  **Session Management** - Automatic session timeout after 30 minutes of inactivity
--  **CSRF Protection** - Token-based CSRF protection for state-changing operations
--  **Secure Password Handling** - Passwords never displayed in UI or stored in plain text
--  **File Upload Security** - File size limits (default 5MB) and format validation
--  **Environment Configuration** - Sensitive keys loaded from environment, not hardcoded
--  **Error Recovery** - Retry logic with exponential backoff for failed operations
+```text
+Attendance_Tracker/
+├── index.html                        # Application entry point
+├── config.example.js                 # Supabase environment configuration template
+├── README.md                         # Project documentation
+│
+├── frontend/                         # Frontend UI Layer (Tailwind CSS + Modular JS)
+│   ├── app.js                        # Main frontend bootstrapper, router & state store
+│   ├── components/
+│   │   ├── header.js                 # Top navbar with brand & symbol-only theme toggle
+│   │   ├── footer.js                 # Global application footer
+│   │   ├── modals.js                 # Auth verification & delete confirmation modals
+│   │   └── toast.js                  # Toast notification & password eye toggle
+│   ├── pages/
+│   │   ├── signin.js                 # Sign In, Sign Up, Forgot Password & OTP page
+│   │   ├── menu.js                   # Coordinator welcome & action cards menu
+│   │   ├── events.js                 # Create Event, Event Summary & Join Event page
+│   │   ├── attendance.js             # Attendance Entry, Year Selector & Pre-reg CSV
+│   │   ├── viewList.js               # Live View List, Search/Filter & Reactive Delete
+│   │   └── exportPage.js             # Branch Summary, Excel Export & Session Actions
+│   ├── styles/
+│   │   ├── tailwind.config.js        # Tailwind CSS theme mapping to custom palette
+│   │   └── theme.css                 # Dark/Light CSS variables & tap-outline reset
+│   └── utils/
+│       ├── sanitizer.js              # XSS escaping, roll parser & CSV validator
+│       ├── theme.js                  # Dark/Light theme switcher (icon-only toggle)
+│       └── exporter.js               # SheetJS multi-file branch-wise Excel exporter
+│
+└── backend/                          # Backend Services, Security & Database Layer
+    ├── config/
+    │   ├── supabaseClient.js         # Singleton Supabase client initializer
+    │   └── securityConfig.js         # Security thresholds & Web Crypto SHA-256 hashing
+    ├── middleware/
+    │   ├── rateLimiter.js            # Brute-force protection for login & event passwords
+    │   └── sessionManager.js         # 30-minute inactivity session timeout tracker
+    ├── services/
+    │   ├── authService.js            # Supabase Auth wrapper & friendly error sanitizer
+    │   ├── eventService.js           # Event CRUD & password verification service
+    │   ├── attendanceService.js      # Attendance CRUD & Realtime Postgres Changes channel
+    │   └── auditService.js           # Non-blocking security audit logger
+    └── database/
+        ├── schema.sql                # PostgreSQL schema with REPLICA IDENTITY FULL
+        └── rls_policies.sql          # Supabase Row-Level Security (RLS) policies
+```
 
-### Backend Requirements (Supabase)
-The following should be configured in your Supabase database:
+---
 
-1. **Password Hashing**
-   - Configure Supabase Auth to hash passwords using bcrypt
-   - Never store or compare plain-text passwords
+## Key Improvements & Fixes
 
-2. **Row-Level Security (RLS)**
-   ```sql
-   -- Users can only access their own events and attendance records
-   CREATE POLICY "Users can view own events"
-   ON events FOR SELECT USING (auth.uid() = user_id);
+1. **Migrated from CSS3 (`styl.css`) to Tailwind CSS**:
+   - Eliminated mobile and browser blue rectangular tap/focus outlines (`-webkit-tap-highlight-color: transparent`, `focus:outline-none`, `select-none`).
+   - Preserved the exact Dark ("Luminous Void") and Light color palettes via semantic Tailwind tokens (`bg-surface`, `text-main`, `text-accent`, `border-theme`, `bg-primary`, etc.).
+   - Simplified the theme toggle button to display **only the Sun/Moon symbol** without text labels.
+2. **Instant Reactive Participant Deletion in View List**:
+   - Fixed the bug where deleting a participant in the **View List** tab required a manual page reload.
+   - `executeDelete()` now immediately removes the participant from `AttendX.State.attendance` (using normalized string ID comparison) and invokes `updateAttendanceUI()` to refresh the participant list, `Total / Attended / Pre-reg` counters, and `Branch Summary` in real time.
+   - Updated the Supabase Realtime `DELETE` subscription and added `ALTER TABLE attendance REPLICA IDENTITY FULL` in `backend/database/schema.sql` so multi-device deletions sync seamlessly.
+3. **Security & Edge-Case Hardening**:
+   - **DOM XSS Prevention**: Escaped all untrusted strings (`ev.name`, `ev.organization`, `a.rollNo`, `a.branch`) via `escapeHtml()` and replaced inline `onclick` string interpolations with `data-*` event listeners.
+   - **Password Exposure Prevention**: `fetchRecentEvents()` no longer selects the `password` column into browser memory, and new event passwords are hashed with SHA-256 (`Web Crypto API`) while maintaining backward compatibility.
+   - **Authorization Scope Reset**: Switching or joining a different event automatically resets `state.editAuthorized = false` and `state.pendingDeleteId = null`.
+   - **Rate Limiting & Session Timeout**: Added brute-force protection on sign-in and event password checks plus a 30-minute inactivity auto-logout.
+   - **CSV Upload Validation**: Added 5 MB file size enforcement, `.csv` extension checking, automatic header row skipping (`Roll No`, `Registration Number`), and intra-file deduplication with `upsert` conflict handling.
+
+---
+
+## Quick Start
+
+1. Copy `config.example.js` to `config.js` and fill in your `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
+2. Run the SQL scripts in `backend/database/schema.sql` and `backend/database/rls_policies.sql` in your Supabase SQL Editor.
+3. Start any local static server in the project root:
+   ```bash
+   python3 -m http.server 8000
    ```
-
-3. **Audit Log Table**
-   ```sql
-   CREATE TABLE audit_logs (
-     id BIGSERIAL PRIMARY KEY,
-     log_type TEXT NOT NULL,
-     user_email TEXT,
-     details JSONB,
-     timestamp TIMESTAMPTZ DEFAULT NOW(),
-     user_agent TEXT,
-     url TEXT
-   );
-   ```
-
----
-
-##  Tech Stack & Dependencies
-
-* **Frontend Architecture:** Vanilla JavaScript (ES6+), HTML5, CSS3 Variables & Custom Gradients.
-* **Database & Auth Provider:** [Supabase](https://supabase.com/) (Auth, Database, and Realtime Engine).
-* **External CDN Libraries:**
-    * `Supabase JS Client` (`@supabase/supabase-js@2`)
-    * `SheetJS` (`xlsx.full.min.js` v0.18.5)
-* **Typography:** Google Fonts (`Inter`).
-
----
-
-##  Installation & Setup
-
-### 1. Clone the Repository
-```bash
-git clone <repository-url>
-cd Attendance_Tracker
-```
-
-### 2. Configure Environment Variables
-
-Create a `.env` file from the template:
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and add your Supabase credentials:
-```env
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key-here
-
-# Security settings (optional - these are defaults)
-SESSION_TIMEOUT_MS=1800000
-MAX_LOGIN_ATTEMPTS=5
-MAX_FILE_SIZE_MB=5
-```
-
-### 3. Set Up Supabase
-
-1. Create a new Supabase project at [supabase.com](https://supabase.com)
-2. Create the required tables:
-   ```sql
-   -- Events table
-   CREATE TABLE events (
-     id TEXT PRIMARY KEY,
-     name TEXT NOT NULL,
-     date DATE NOT NULL,
-     time TIME,
-     venue TEXT,
-     password TEXT NOT NULL,
-     organization TEXT,
-     created_by TEXT,
-     created_at TIMESTAMPTZ DEFAULT NOW()
-   );
-
-   -- Attendance table
-   CREATE TABLE attendance (
-     id BIGSERIAL PRIMARY KEY,
-     event_id TEXT NOT NULL REFERENCES events(id),
-     roll_no TEXT NOT NULL,
-     year INTEGER,
-     year_label TEXT,
-     branch TEXT,
-     num TEXT,
-     status TEXT DEFAULT 'attended',
-     timestamp TIMESTAMPTZ DEFAULT NOW(),
-     recorded_by TEXT,
-     UNIQUE(event_id, roll_no)
-   );
-
-   -- Audit logs table
-   CREATE TABLE audit_logs (
-     id BIGSERIAL PRIMARY KEY,
-     log_type TEXT NOT NULL,
-     user_email TEXT,
-     details JSONB,
-     timestamp TIMESTAMPTZ DEFAULT NOW(),
-     user_agent TEXT,
-     url TEXT
-   );
-   ```
-
-3. Enable Supabase Auth (Google OAuth optional)
-4. Configure RLS policies (see Security section above)
-
-### 4. Run Locally
-
-```bash
-# Using Python
-python3 -m http.server 8000
-
-# Or using Node.js
-npx http-server
-
-# Or using any static server
-```
-
-Visit `http://localhost:8000` in your browser.
-
----
-
-##  Usage
-
-### As an Event Coordinator
-
-1. **Sign In**: Use email/password or Google OAuth
-2. **Create Event**: Set name, date, time, venue, and a secure password
-3. **Share Event ID**: Share with co-coordinators (password required to join)
-4. **Mark Attendance**: 
-   - Select student year
-   - Enter roll number suffix
-   - System validates against pre-registered students
-5. **Export Data**: Download branch-wise Excel reports
-6. **Delete Event**: Permanently removes all records (password required)
-
-### Pre-Registration (Optional)
-- Upload a CSV file with roll numbers (one per line)
-- Format: `Y25CSE001`, `Y24ECE045`, etc.
-- Students appear as "Pre-reg" until marked present
-
----
-
-##  Security Best Practices
-
-### For Deployment
-1. Use HTTPS in production (SSL/TLS certificate required)
-2. Configure Supabase RLS policies to restrict data access
-3. Set strong event passwords (minimum 6 characters, mix of letters/numbers)
-4. Monitor audit logs regularly
-5. Keep Supabase dependencies updated
-
-### For Users
-1. Never share event passwords in unsecured channels
-2. Use unique passwords for different events
-3. Log out when finished
-4. Report suspicious activity
-
-### File Uploads
-- Maximum file size: 5 MB (configurable)
-- Only CSV format accepted
-- Validated before processing
-- Not stored permanently
-
-
----
-
-##  Troubleshooting
-
-### "Configuration error" message
-- Check `.env` file has correct Supabase URL and API key
-- Verify Supabase project is active
-
-### CSV upload fails
-- Ensure file is in CSV format
-- Check file size is under 5MB
-- Verify roll numbers are in format: `Y25CSE001`
-
-### Realtime sync not working
-- Check browser console for connection errors
-- Ensure Supabase Realtime is enabled
-- Verify RLS policies allow real-time subscriptions
-
----
-
-##  Scalability Considerations
-
-- Real-time sync supports 100+ concurrent users
-- Pagination implemented for 1000+ attendance records
-- Database query optimization with indexing
-- Retry logic handles temporary failures
-- Offline queue for pending operations
-
----
-
-##  License
-
-This project is provided as-is for educational and institutional use.
-
----
-
-## 👥 Contributing
-
-Contributions are welcome! Please ensure:
-- All security best practices are followed
-- Input validation is comprehensive
-- Error messages are user-friendly
-- Audit logs are created for sensitive operations
+4. Open `http://localhost:8000` in your browser.

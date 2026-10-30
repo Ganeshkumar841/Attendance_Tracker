@@ -1,0 +1,108 @@
+/**
+ * Frontend Styles — Theme Variables & Tap/Outline Reset
+ * Preserves the exact Dark & Light color palettes while eliminating mobile/browser
+ * blue rectangular click outlines and tap highlights.
+ */
+:root,
+[data-theme="dark"] {
+  --bg: #0b0d11;
+  --bg-elevated: #11141c;
+  --surface: #131722;
+  --surface2: #1b202e;
+  --surface-hover: #21283a;
+  --surface-tint: rgba(138, 180, 248, 0.12);
+  --border: rgba(255, 255, 255, 0.11);
+  --border-strong: rgba(138, 180, 248, 0.5);
+
+  --primary: #1a73e8;
+  --primary-hover: #1967d2;
+  --primary-text: #ffffff;
+  --accent: #8ab4f8;
+  --accent2: #aecbfa;
+
+  --success: #34a853;
+  --success-bg: rgba(52, 168, 83, 0.14);
+  --danger: #ea4335;
+  --danger-bg: rgba(234, 67, 53, 0.14);
+
+  --text: #e8eaed;
+  --text-secondary: #bdc1c6;
+  --muted: #9aa0a6;
+
+  --card-shadow: 0 8px 28px -6px rgba(0, 0, 0, 0.5);
+  --glow-bg: radial-gradient(ellipse 65% 40% at 50% 0%, rgba(26, 115, 232, 0.16) 0%, transparent 72%);
+  --header-bg: rgba(11, 13, 17, 0.88);
+  --input-bg: #0e1118;
+}
+
+[data-theme="light"] {
+  --bg: #ffffff;
+  --bg-elevated: #f8f9fa;
+  --surface: #ffffff;
+  --surface2: #f1f3f4;
+  --surface-hover: #e8f0fe;
+  --surface-tint: #e8f0fe;
+  --border: #dadce0;
+  --border-strong: #1a73e8;
+
+  --primary: #1a73e8;
+  --primary-hover: #1557b0;
+  --primary-text: #ffffff;
+  --accent: #1a73e8;
+  --accent2: #174ea6;
+
+  --success: #1e8e3e;
+  --success-bg: #e6f4ea;
+  --danger: #d93025;
+  --danger-bg: #fce8e6;
+
+  --text: #202124;
+  --text-secondary: #3c4043;
+  --muted: #5f6368;
+
+  --card-shadow: 0 2px 12px rgba(60, 64, 67, 0.08);
+  --glow-bg: radial-gradient(ellipse 70% 35% at 50% 0%, rgba(26, 115, 232, 0.06) 0%, transparent 70%);
+  --header-bg: rgba(255, 255, 255, 0.92);
+  --input-bg: #f8f9fa;
+}
+
+/* Remove browser default blue rectangular tap highlight and click focus boxes */
+*,
+*::before,
+*::after {
+  -webkit-tap-highlight-color: transparent !important;
+  box-sizing: border-box;
+}
+
+button,
+[role="button"],
+a,
+summary,
+.no-tap-outline {
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none !important;
+}
+
+button:focus,
+button:focus-visible,
+button:active,
+[role="button"]:focus,
+[role="button"]:focus-visible,
+[role="button"]:active {
+  outline: none !important;
+  box-shadow: none;
+}
+
+body {
+  background-color: var(--bg);
+  background-image: var(--glow-bg);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
