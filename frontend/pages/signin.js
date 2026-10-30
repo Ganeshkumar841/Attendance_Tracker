@@ -239,11 +239,11 @@
     banner.textContent = msg;
     const base = 'block py-3 px-3.5 rounded-[10px] text-[0.82rem] leading-[1.45] mb-4 border ';
     if (type === 'error') {
-      banner.className = base + 'bg-danger-bg border-danger/35 text-danger';
+      banner.className = base + 'bg-danger-bg border-0 text-danger';
     } else if (type === 'success') {
-      banner.className = base + 'bg-success-bg border-success/35 text-success';
+      banner.className = base + 'bg-success-bg border-0 text-success';
     } else {
-      banner.className = base + 'bg-surface-tint border-primary/30 text-main';
+      banner.className = base + 'bg-surface-tint border-0 text-main';
     }
   }
 

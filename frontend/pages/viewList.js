@@ -126,7 +126,7 @@
                   data-delete-roll="${safeRoll}"
                   title="Delete Entry"
                   aria-label="Delete ${safeRoll}"
-                  class="delete-participant-btn inline-flex items-center justify-center py-2 px-4 rounded-full text-[0.8rem] font-medium bg-danger-bg text-danger border border-danger/30 hover:bg-danger/20 hover:border-danger transition-all cursor-pointer focus:outline-none select-none active:scale-95"
+                  class="delete-participant-btn inline-flex items-center justify-center py-2 px-4 rounded-full text-[0.8rem] font-medium bg-danger-bg text-danger border-0 transition-all cursor-pointer focus:outline-none select-none active:scale-95"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none">
                     <line x1="18" y1="6" x2="6" y2="18"></line>

@@ -44,7 +44,7 @@
           <button
             type="button"
             onclick="confirmLogout()"
-            class="w-full inline-flex items-center justify-center py-2 px-4 rounded-full font-sans text-[0.8rem] font-medium bg-danger-bg text-danger border border-danger/30 hover:bg-danger/20 hover:border-danger transition-all cursor-pointer focus:outline-none select-none"
+            class="w-full inline-flex items-center justify-center py-2 px-4 rounded-full font-sans text-[0.8rem] font-medium bg-danger-bg text-danger border-0 transition-all cursor-pointer focus:outline-none select-none"
           >
             End Session
           </button>
@@ -52,7 +52,7 @@
           <button
             type="button"
             onclick="openModal('modal-delete-event')"
-            class="w-full inline-flex items-center justify-center gap-2 py-2 px-4 rounded-full font-sans text-[0.8rem] font-medium bg-danger-bg text-danger border border-danger/50 opacity-90 hover:opacity-100 hover:bg-danger/20 hover:border-danger transition-all cursor-pointer focus:outline-none select-none"
+            class="w-full inline-flex items-center justify-center gap-2 py-2 px-4 rounded-full font-sans text-[0.8rem] font-medium bg-danger-bg text-danger border-0 transition-all cursor-pointer focus:outline-none select-none"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0">
               <polyline points="3 6 5 6 21 6"></polyline>

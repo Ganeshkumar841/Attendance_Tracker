@@ -87,7 +87,7 @@
               type="button"
               id="btn-execute-delete"
               onclick="executeDelete()"
-              class="flex-1 inline-flex items-center justify-center py-2.5 px-5 rounded-full font-sans text-[0.88rem] font-medium bg-danger-bg text-danger border border-danger/30 hover:bg-danger/20 hover:border-danger transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+              class="flex-1 inline-flex items-center justify-center py-2.5 px-5 rounded-full font-sans text-[0.88rem] font-medium bg-danger-bg text-danger border-0 transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
             >
               Delete
             </button>
