@@ -1,6 +1,6 @@
 /**
  * Frontend Component — Global Top Navigation Header
- * Renders the AttendX brand bar, active role indicator pill, and the clean icon-only Dark/Light mode toggle button.
+ * Renders the AttendX brand bar, matching role indicator pill, and the clean icon-only Dark/Light mode toggle button.
  */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
@@ -13,13 +13,13 @@
     mount.innerHTML = `
       <header class="sticky top-0 z-[200] flex items-center justify-between px-4 sm:px-8 py-3.5 border-b border-theme bg-header backdrop-blur-md">
         <div class="flex items-center gap-2.5 select-none">
-          <div class="w-[30px] h-[30px] rounded-lg bg-primary text-white flex items-center justify-center font-sans font-bold text-[0.88rem] tracking-tight">
+          <div class="w-[30px] h-[30px] rounded-lg bg-primary text-white flex items-center justify-center font-sans font-bold text-[0.86rem] tracking-tight shadow-btn-primary">
             AX
           </div>
-          <span class="font-sans text-[1.2rem] font-medium text-main tracking-tight">AttendX</span>
+          <span class="font-sans text-[1.16rem] font-semibold text-main tracking-[-0.015em]">AttendX</span>
           <span
             id="header-role-badge"
-            class="hidden ml-1.5 py-0.5 px-2.5 rounded-full text-[0.7rem] font-medium tracking-wide bg-surface-tint text-accent border border-theme select-none"
+            class="hidden ml-1.5 py-1 px-2.5 rounded-lg text-[0.72rem] font-medium tracking-wide bg-surface-tint text-accent border border-theme select-none"
           ></span>
         </div>
         <div class="flex items-center gap-2.5">
@@ -28,7 +28,7 @@
             id="header-switch-role-btn"
             onclick="switchRoleScreen()"
             title="Switch Login Role"
-            class="hidden py-1.5 px-3 rounded-full font-sans text-[0.75rem] font-medium text-muted hover:text-main bg-surface border border-theme hover:border-strong cursor-pointer focus:outline-none select-none"
+            class="hidden py-1.5 px-3.5 rounded-lg font-sans text-[0.76rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong cursor-pointer focus:outline-none select-none"
           >
             Switch Role
           </button>
@@ -38,7 +38,7 @@
             onclick="toggleTheme()"
             title="Switch Dark / Light Theme"
             aria-label="Switch Dark / Light Theme"
-            class="w-9 h-9 rounded-full inline-flex items-center justify-center bg-surface border border-theme hover:border-strong hover:bg-surface2 text-accent cursor-pointer focus:outline-none focus:ring-0 select-none"
+            class="w-9 h-9 rounded-lg inline-flex items-center justify-center bg-surface2 border border-theme hover:border-strong hover:bg-surface-hover text-accent cursor-pointer focus:outline-none focus:ring-0 select-none"
           >
             <svg
               id="theme-icon"
@@ -81,15 +81,10 @@
       return;
     }
 
-    if (role === 'student') {
-      badge.textContent = 'Student · View Only';
-      badge.className =
-        'inline-flex items-center ml-1.5 py-0.5 px-2.5 rounded-full text-[0.7rem] font-medium tracking-wide bg-surface-tint text-accent border border-strong/40 select-none';
-    } else {
-      badge.textContent = 'Coordinator / Staff';
-      badge.className =
-        'inline-flex items-center ml-1.5 py-0.5 px-2.5 rounded-full text-[0.7rem] font-medium tracking-wide bg-success-bg text-success border border-theme select-none';
-    }
+    // Both Coordinator / Staff and Student use the exact same harmonious matching badge style
+    badge.textContent = role === 'student' ? 'Student' : 'Coordinator / Staff';
+    badge.className =
+      'inline-flex items-center ml-1.5 py-1 px-2.5 rounded-lg text-[0.72rem] font-medium tracking-wide bg-surface-tint text-accent border border-theme select-none';
 
     if (switchBtn) {
       switchBtn.classList.remove('hidden');

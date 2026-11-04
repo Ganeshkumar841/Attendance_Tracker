@@ -11,32 +11,31 @@
 
   const SCRIPTS = [
     'https://cdn.tailwindcss.com',
-    'frontend/styles/tailwind.config.js?v=2.2',
-    'backend/config/securityConfig.js?v=2.2',
-    'backend/config/supabaseClient.js?v=2.2',
-    'backend/middleware/rateLimiter.js?v=2.2',
-    'backend/middleware/sessionManager.js?v=2.2',
-    'backend/services/auditService.js?v=2.2',
-    'backend/services/authService.js?v=2.2',
-    'backend/services/eventService.js?v=2.2',
-    'backend/services/attendanceService.js?v=2.2',
-    'frontend/utils/sanitizer.js?v=2.2',
-    'frontend/utils/theme.js?v=2.2',
-    'frontend/utils/exporter.js?v=2.2',
-    'frontend/components/header.js?v=2.2',
-    'frontend/components/footer.js?v=2.2',
-    'frontend/components/modals.js?v=2.2',
-    'frontend/components/toast.js?v=2.2',
-    'frontend/pages/signin.js?v=2.2',
-    'frontend/pages/menu.js?v=2.2',
-    'frontend/pages/events.js?v=2.2',
-    'frontend/pages/viewList.js?v=2.2',
-    'frontend/pages/exportPage.js?v=2.2',
-    'frontend/pages/attendance.js?v=2.2',
-    'frontend/app.js?v=2.2'
+    'frontend/styles/tailwind.config.js?v=2.3',
+    'backend/config/securityConfig.js?v=2.3',
+    'backend/config/supabaseClient.js?v=2.3',
+    'backend/middleware/rateLimiter.js?v=2.3',
+    'backend/middleware/sessionManager.js?v=2.3',
+    'backend/services/auditService.js?v=2.3',
+    'backend/services/authService.js?v=2.3',
+    'backend/services/eventService.js?v=2.3',
+    'backend/services/attendanceService.js?v=2.3',
+    'frontend/utils/sanitizer.js?v=2.3',
+    'frontend/utils/theme.js?v=2.3',
+    'frontend/utils/exporter.js?v=2.3',
+    'frontend/components/header.js?v=2.3',
+    'frontend/components/footer.js?v=2.3',
+    'frontend/components/modals.js?v=2.3',
+    'frontend/components/toast.js?v=2.3',
+    'frontend/pages/signin.js?v=2.3',
+    'frontend/pages/menu.js?v=2.3',
+    'frontend/pages/events.js?v=2.3',
+    'frontend/pages/viewList.js?v=2.3',
+    'frontend/pages/exportPage.js?v=2.3',
+    'frontend/pages/attendance.js?v=2.3',
+    'frontend/app.js?v=2.3'
   ];
 
-  // If legacy DOM is present without modular mounts, upgrade the body mount structure first
   function ensureModularMounts() {
     if (!document.getElementById('app-header-mount')) {
       document.body.className =
@@ -53,7 +52,7 @@
         <div id="app-modals-mount"></div>
         <div
           id="toast"
-          class="fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-[95px] bg-surface border border-strong text-main py-2.5 px-5 rounded-full text-[0.85rem] font-medium shadow-toast transition-transform duration-300 z-[1000] whitespace-nowrap pointer-events-none"
+          class="fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-[95px] bg-surface border border-strong text-main py-2.5 px-5 rounded-xl text-[0.85rem] font-medium shadow-toast transition-transform duration-300 z-[1000] whitespace-nowrap pointer-events-none"
         ></div>
       `;
     }

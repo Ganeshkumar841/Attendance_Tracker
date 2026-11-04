@@ -13,12 +13,12 @@
       <section id="screen-login" class="screen flex flex-1 flex-col items-center justify-center py-10 px-5 pb-14">
         <div class="max-w-[460px] mx-auto px-5 w-full">
           <div class="text-center mb-7 select-none">
-            <span class="font-sans text-[1.95rem] sm:text-[2.25rem] font-medium text-main block mb-2 tracking-[-0.025em]">AttendX</span>
+            <span class="font-sans text-[1.95rem] sm:text-[2.25rem] font-semibold text-main block mb-2 tracking-[-0.03em]">AttendX</span>
             <p class="text-muted text-[0.94rem] max-w-[360px] mx-auto leading-relaxed">College Event Attendance Management</p>
           </div>
 
           <div class="bg-surface border border-theme rounded-2xl p-[22px] sm:p-7 shadow-card transition-all">
-            <div id="auth-card-title" class="text-[0.75rem] font-medium tracking-[0.04em] uppercase text-muted mb-4">
+            <div id="auth-card-title" class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-4">
               Sign in to continue
             </div>
 
@@ -26,7 +26,7 @@
               type="button"
               id="btn-google-login"
               onclick="loginGoogle()"
-              class="w-full inline-flex items-center justify-center gap-2 py-[11px] px-[22px] rounded-full font-sans text-[0.88rem] font-medium bg-surface2 text-main border border-theme hover:border-strong hover:bg-surface-hover transition-all cursor-pointer focus:outline-none select-none"
+              class="w-full inline-flex items-center justify-center gap-2.5 py-2.5 px-5 rounded-xl font-sans text-[0.88rem] font-medium bg-surface2 text-main border border-theme hover:border-strong hover:bg-surface-hover transition-all cursor-pointer focus:outline-none select-none"
             >
               <svg class="w-[18px] h-[18px]" viewBox="0 0 48 48">
                 <path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.6-8 19.6-20 0-1.3-.1-2.7-.4-4z"/>
@@ -37,19 +37,19 @@
               Continue with Google
             </button>
 
-            <div id="auth-divider-or" class="flex items-center gap-3 my-[18px] text-muted text-[0.75rem] uppercase font-medium tracking-[0.05em] select-none">
+            <div id="auth-divider-or" class="flex items-center gap-3 my-[18px] text-muted text-[0.74rem] uppercase font-semibold tracking-[0.05em] select-none">
               <span class="flex-1 h-px bg-theme"></span>
               <span>or</span>
               <span class="flex-1 h-px bg-theme"></span>
             </div>
 
             <!-- Mode Tabs: Sign In vs Sign Up -->
-            <div id="auth-mode-tabs" class="flex bg-input rounded-full p-1 mb-[18px] border border-theme select-none">
+            <div id="auth-mode-tabs" class="flex bg-input rounded-xl p-1 mb-[18px] border border-theme select-none">
               <button
                 type="button"
                 id="tab-auth-signin"
                 onclick="switchAuthMode('signin')"
-                class="auth-tab flex-1 py-2 px-3 rounded-full text-[0.82rem] font-medium cursor-pointer text-center transition-all font-sans bg-primary text-white focus:outline-none select-none"
+                class="auth-tab flex-1 py-2 px-3 rounded-lg text-[0.82rem] font-semibold cursor-pointer text-center transition-all font-sans bg-primary text-white shadow-btn-primary focus:outline-none select-none"
               >
                 Sign In
               </button>
@@ -57,14 +57,14 @@
                 type="button"
                 id="tab-auth-signup"
                 onclick="switchAuthMode('signup')"
-                class="auth-tab flex-1 py-2 px-3 rounded-full text-[0.82rem] font-medium cursor-pointer text-center transition-all font-sans bg-transparent text-muted hover:text-main focus:outline-none select-none"
+                class="auth-tab flex-1 py-2 px-3 rounded-lg text-[0.82rem] font-medium cursor-pointer text-center transition-all font-sans bg-transparent text-muted hover:text-main focus:outline-none select-none"
               >
                 Sign Up
               </button>
             </div>
 
             <!-- Status / Error Banner -->
-            <div id="auth-status-banner" class="hidden py-3 px-3.5 rounded-[10px] text-[0.82rem] leading-[1.45] mb-4 border border-theme bg-surface2 text-main"></div>
+            <div id="auth-status-banner" class="hidden py-3 px-3.5 rounded-xl text-[0.82rem] leading-[1.45] mb-4 border border-theme bg-surface2 text-main"></div>
 
             <!-- Main Email / Password View -->
             <div id="auth-view-credentials">
@@ -73,10 +73,10 @@
                 <input
                   type="email"
                   id="login-email"
-                  placeholder="Email"
+                  placeholder="name@college.edu"
                   autocomplete="email"
                   onkeydown="if(event.key==='Enter') loginEmail()"
-                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-lg text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                 >
               </div>
 
@@ -96,16 +96,16 @@
                   <input
                     type="password"
                     id="login-password"
-                    placeholder="Password"
+                    placeholder="Enter your password"
                     autocomplete="current-password"
                     onkeydown="if(event.key==='Enter') loginEmail()"
-                    class="w-full py-3 pl-[15px] pr-11 bg-input border border-theme rounded-lg text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                    class="w-full py-3 pl-[15px] pr-11 bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                   >
                   <button
                     type="button"
                     onclick="togglePwd('login-password', this)"
                     aria-label="Toggle password visibility"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-muted hover:text-main hover:bg-surface2 transition-colors cursor-pointer focus:outline-none select-none"
+                    class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-muted hover:text-main hover:bg-surface2 transition-colors cursor-pointer focus:outline-none select-none"
                   >
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   </button>
@@ -119,7 +119,7 @@
                 type="button"
                 id="auth-submit-btn"
                 onclick="loginEmail()"
-                class="w-full inline-flex items-center justify-center gap-2 py-[11px] px-[22px] rounded-full font-sans text-[0.88rem] font-medium bg-primary hover:bg-primary-hover text-white hover:shadow-btn-primary transition-all cursor-pointer mb-2 focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer mb-2 focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
               >
                 Sign In
               </button>
@@ -137,7 +137,7 @@
 
             <!-- Email Link / OTP Verification View -->
             <div id="auth-view-otp" class="hidden">
-              <div id="otp-instructions-box" class="bg-input border border-theme rounded-[10px] py-3 px-3.5 mb-3.5 text-[0.8rem] leading-relaxed text-secondary">
+              <div id="otp-instructions-box" class="bg-input border border-theme rounded-xl py-3 px-3.5 mb-3.5 text-[0.8rem] leading-relaxed text-secondary">
                 <strong class="text-accent font-medium">1. Click the link in your email:</strong> Open the email sent to <strong id="otp-email-display" class="text-main font-medium"></strong> and click the action link.<br>
                 <strong class="text-accent font-medium">2. Opened on phone or another tab?</strong> Copy the link from the email (or copy the redirected URL from your browser bar) and paste it below:
               </div>
@@ -148,15 +148,15 @@
                   id="otp-code"
                   placeholder="Paste link from email or enter code..."
                   onkeydown="if(event.key==='Enter') verifyEmailOtp()"
-                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-lg text-main font-mono text-[0.9rem] font-medium placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-xl text-main font-mono text-[0.9rem] font-medium placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                 >
               </div>
-              <div class="flex flex-col gap-3">
+              <div class="flex flex-col gap-2.5">
                 <button
                   type="button"
                   id="btn-verify-otp"
                   onclick="verifyEmailOtp()"
-                  class="w-full inline-flex items-center justify-center gap-2 py-[11px] px-[22px] rounded-full font-sans text-[0.88rem] font-medium bg-primary hover:bg-primary-hover text-white hover:shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                  class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
                 >
                   Verify Code &amp; Continue
                 </button>
@@ -164,7 +164,7 @@
                   type="button"
                   id="btn-resend-otp"
                   onclick="resendVerificationEmail()"
-                  class="w-full inline-flex items-center justify-center py-2 px-4 rounded-full font-sans text-[0.8rem] font-medium text-accent bg-transparent border border-theme hover:border-strong hover:bg-surface-tint transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                  class="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-xl font-sans text-[0.83rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
                 >
                   Resend Email
                 </button>
@@ -188,13 +188,13 @@
                     id="new-password"
                     placeholder="Min. 8 chars (letters + digits)"
                     onkeydown="if(event.key==='Enter') submitNewPassword()"
-                    class="w-full py-3 pl-[15px] pr-11 bg-input border border-theme rounded-lg text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                    class="w-full py-3 pl-[15px] pr-11 bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                   >
                   <button
                     type="button"
                     onclick="togglePwd('new-password', this)"
                     aria-label="Toggle password visibility"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-muted hover:text-main hover:bg-surface2 transition-colors cursor-pointer focus:outline-none select-none"
+                    class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-muted hover:text-main hover:bg-surface2 transition-colors cursor-pointer focus:outline-none select-none"
                   >
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   </button>
@@ -203,12 +203,12 @@
                   Must be at least 8 characters and include both letters and digits.
                 </div>
               </div>
-              <div class="flex flex-col gap-3">
+              <div class="flex flex-col gap-2.5">
                 <button
                   type="button"
                   id="btn-update-pwd"
                   onclick="submitNewPassword()"
-                  class="w-full inline-flex items-center justify-center gap-2 py-[11px] px-[22px] rounded-full font-sans text-[0.88rem] font-medium bg-primary hover:bg-primary-hover text-white hover:shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                  class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
                 >
                   Update Password
                 </button>
@@ -237,13 +237,13 @@
       return;
     }
     banner.textContent = msg;
-    const base = 'block py-3 px-3.5 rounded-[10px] text-[0.82rem] leading-[1.45] mb-4 border ';
+    const base = 'block py-3 px-3.5 rounded-xl text-[0.82rem] leading-[1.45] mb-4 border ';
     if (type === 'error') {
-      banner.className = base + 'bg-danger-bg border-0 text-danger';
+      banner.className = base + 'bg-danger-bg border-theme text-danger';
     } else if (type === 'success') {
-      banner.className = base + 'bg-success-bg border-0 text-success';
+      banner.className = base + 'bg-success-bg border-theme text-success';
     } else {
-      banner.className = base + 'bg-surface-tint border-0 text-main';
+      banner.className = base + 'bg-surface-tint border-theme text-main';
     }
   }
 
@@ -276,8 +276,8 @@
     otpView.style.display       = 'none';
     updatePwdView.style.display = 'none';
 
-    const activeTabClass   = 'auth-tab flex-1 py-2 px-3 rounded-full text-[0.82rem] font-medium cursor-pointer text-center transition-all font-sans bg-primary text-white focus:outline-none select-none';
-    const inactiveTabClass = 'auth-tab flex-1 py-2 px-3 rounded-full text-[0.82rem] font-medium cursor-pointer text-center transition-all font-sans bg-transparent text-muted hover:text-main focus:outline-none select-none';
+    const activeTabClass   = 'auth-tab flex-1 py-2 px-3 rounded-lg text-[0.82rem] font-semibold cursor-pointer text-center transition-all font-sans bg-primary text-white shadow-btn-primary focus:outline-none select-none';
+    const inactiveTabClass = 'auth-tab flex-1 py-2 px-3 rounded-lg text-[0.82rem] font-medium cursor-pointer text-center transition-all font-sans bg-transparent text-muted hover:text-main focus:outline-none select-none';
 
     if (mode === 'signin') {
       cardTitle.textContent       = 'Sign in to continue';
@@ -490,7 +490,7 @@
       SecurityConfig.clearSessionRole();
       state.user = AuthService.extractUserFromSession(data.session);
       AuditService.logAction('USER_SIGNIN_SUCCESS', {}, email);
-      toast('Signed in! Select your login role.', 'success');
+      toast('Signed in!', 'success');
       AttendX.App.afterLogin();
     }
   }
@@ -517,7 +517,6 @@
     const verifyType = state.otpType === 'recovery' ? 'recovery' : 'signup';
 
     try {
-      // Case 1: Redirected URL containing #access_token=...&refresh_token=...
       if (rawInput.includes('access_token=')) {
         const hashPart = rawInput.includes('#')
           ? rawInput.split('#')[1]
@@ -557,7 +556,6 @@
         }
       }
 
-      // Case 2: Raw Email Link (?token=...&type=...)
       if (rawInput.startsWith('http://') || rawInput.startsWith('https://') || rawInput.includes('token=')) {
         const queryPart = rawInput.includes('?') ? rawInput.split('?')[1].split('#')[0] : rawInput;
         const params = new URLSearchParams(queryPart);
@@ -597,7 +595,6 @@
         }
       }
 
-      // Case 3: Standard OTP code
       if (!email) {
         btn.disabled = false;
         btn.textContent = 'Verify Code & Continue';
@@ -741,7 +738,6 @@
     AuthService.signInWithGoogle();
   }
 
-  // Expose global handlers
   global.switchAuthMode = switchAuthMode;
   global.loginEmail = loginEmail;
   global.verifyEmailOtp = verifyEmailOtp;

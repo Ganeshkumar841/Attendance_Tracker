@@ -21,13 +21,13 @@
         : 'border-l-4 border-l-primary';
 
     el.className =
-      'fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-0 bg-surface border border-strong text-main py-2.5 px-5 rounded-full text-[0.85rem] font-medium shadow-toast transition-transform duration-300 z-[1000] whitespace-nowrap max-w-[92vw] truncate ' +
+      'fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-0 bg-surface border border-strong text-main py-2.5 px-5 rounded-xl text-[0.85rem] font-medium shadow-toast transition-transform duration-300 z-[1000] whitespace-nowrap max-w-[92vw] truncate ' +
       borderClass;
 
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => {
       el.className =
-        'fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-[95px] bg-surface border border-strong text-main py-2.5 px-5 rounded-full text-[0.85rem] font-medium shadow-toast transition-transform duration-300 z-[1000] whitespace-nowrap pointer-events-none';
+        'fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-[95px] bg-surface border border-strong text-main py-2.5 px-5 rounded-xl text-[0.85rem] font-medium shadow-toast transition-transform duration-300 z-[1000] whitespace-nowrap pointer-events-none';
     }, 2800);
   }
 

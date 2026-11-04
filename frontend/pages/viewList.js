@@ -15,8 +15,8 @@
 
     mount.innerHTML = `
       <!-- Roll Number Search & Instant Attendance Status Verification -->
-      <div class="bg-surface border border-theme rounded-2xl p-4 mb-4 shadow-card">
-        <label for="att-search-input" class="block text-[0.75rem] font-medium tracking-[0.04em] uppercase text-muted mb-2 select-none">
+      <div class="bg-surface border border-theme rounded-2xl p-4 sm:p-5 mb-5 shadow-card">
+        <label for="att-search-input" class="block text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-2.5 select-none">
           Check Attendance Status by Roll Number
         </label>
         <div class="relative flex items-center">
@@ -26,7 +26,7 @@
             placeholder="Search roll number (e.g. Y25CSE001 or CSE001)..."
             maxlength="20"
             oninput="handleSearchRollInput(this.value)"
-            class="w-full py-2.5 pl-3.5 pr-9 bg-input border border-theme rounded-lg text-main font-mono text-[0.88rem] uppercase placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+            class="w-full py-2.5 pl-3.5 pr-9 bg-input border border-theme rounded-xl text-main font-mono text-[0.9rem] uppercase placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
           >
           <button
             type="button"
@@ -34,7 +34,7 @@
             onclick="clearSearchRollInput()"
             title="Clear search"
             aria-label="Clear search"
-            class="hidden absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-muted hover:text-main hover:bg-surface2 cursor-pointer focus:outline-none select-none"
+            class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-muted hover:text-main hover:bg-surface2 cursor-pointer focus:outline-none select-none"
           >
             ✕
           </button>
@@ -43,72 +43,64 @@
       </div>
 
       <!-- Status Filter Chips -->
-      <div id="filter-bar" class="flex items-center justify-between gap-2 mb-4 flex-wrap select-none">
-        <div class="flex gap-2 flex-wrap">
-          <button
-            type="button"
-            data-filter="all"
-            onclick="setFilter('all', this)"
-            class="filter-chip py-[7px] px-4 rounded-full text-[0.78rem] font-medium cursor-pointer border transition-all bg-primary border-primary text-white focus:outline-none select-none"
-          >
-            All
-          </button>
-          <button
-            type="button"
-            data-filter="attended"
-            onclick="setFilter('attended', this)"
-            class="filter-chip py-[7px] px-4 rounded-full text-[0.78rem] font-medium cursor-pointer border transition-all border-theme bg-surface text-muted hover:text-main focus:outline-none select-none"
-          >
-            Attended
-          </button>
-          <button
-            type="button"
-            data-filter="preregistered"
-            onclick="setFilter('preregistered', this)"
-            class="filter-chip py-[7px] px-4 rounded-full text-[0.78rem] font-medium cursor-pointer border transition-all border-theme bg-surface text-muted hover:text-main focus:outline-none select-none"
-          >
-            Pre-reg
-          </button>
-        </div>
-        <span
-          id="viewlist-readonly-notice"
-          class="hidden text-[0.74rem] text-muted font-medium"
+      <div id="filter-bar" class="flex items-center gap-2 mb-4 flex-wrap select-none">
+        <button
+          type="button"
+          data-filter="all"
+          onclick="setFilter('all', this)"
+          class="filter-chip py-1.5 px-4 rounded-lg text-[0.78rem] font-semibold cursor-pointer border transition-all bg-primary border-primary text-white shadow-btn-primary focus:outline-none select-none"
         >
-          Read-only view · Modifications disabled
-        </span>
+          All
+        </button>
+        <button
+          type="button"
+          data-filter="attended"
+          onclick="setFilter('attended', this)"
+          class="filter-chip py-1.5 px-4 rounded-lg text-[0.78rem] font-medium cursor-pointer border transition-all border-theme bg-surface text-secondary hover:text-main hover:border-strong focus:outline-none select-none"
+        >
+          Attended
+        </button>
+        <button
+          type="button"
+          data-filter="preregistered"
+          onclick="setFilter('preregistered', this)"
+          class="filter-chip py-1.5 px-4 rounded-lg text-[0.78rem] font-medium cursor-pointer border transition-all border-theme bg-surface text-secondary hover:text-main hover:border-strong focus:outline-none select-none"
+        >
+          Pre-reg
+        </button>
       </div>
 
       <div id="att-list-container">
         <div class="text-center py-12 px-5 text-muted">
-          <div class="text-[2.4rem] mb-3 opacity-35">📋</div>
+          <div class="text-[2.2rem] mb-3 opacity-35">📋</div>
           <p class="text-[0.88rem]">No entries present yet.</p>
         </div>
       </div>
 
-      <!-- Student Session Navigation Footer (Visible only in Student Mode since Export tab is hidden) -->
+      <!-- Student Session Navigation Footer (Visible only in Student Mode) -->
       <div id="student-session-actions" class="hidden mt-6 bg-surface border border-theme rounded-2xl p-5 shadow-card">
-        <div class="text-[0.75rem] font-medium tracking-[0.04em] uppercase text-muted mb-3 select-none">
-          Student Session Actions
+        <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 select-none">
+          Navigation
         </div>
         <div class="flex flex-col sm:flex-row gap-2.5">
           <button
             type="button"
             onclick="leaveAttendanceScreen()"
-            class="flex-1 inline-flex items-center justify-center py-2.5 px-4 rounded-full font-sans text-[0.82rem] font-medium text-accent bg-transparent border border-theme hover:border-strong hover:bg-surface-tint transition-all cursor-pointer focus:outline-none select-none"
+            class="flex-1 inline-flex items-center justify-center py-2.5 px-4 rounded-xl font-sans text-[0.83rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
           >
             ← Check Another Event
           </button>
           <button
             type="button"
             onclick="switchRoleScreen()"
-            class="flex-1 inline-flex items-center justify-center py-2.5 px-4 rounded-full font-sans text-[0.82rem] font-medium text-secondary hover:text-main bg-surface2 border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
+            class="flex-1 inline-flex items-center justify-center py-2.5 px-4 rounded-xl font-sans text-[0.83rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
           >
             Switch Role
           </button>
           <button
             type="button"
             onclick="confirmLogout()"
-            class="flex-1 inline-flex items-center justify-center py-2.5 px-4 rounded-full font-sans text-[0.82rem] font-medium bg-danger-bg text-danger border-0 transition-all cursor-pointer focus:outline-none select-none"
+            class="flex-1 inline-flex items-center justify-center py-2.5 px-4 rounded-xl font-sans text-[0.83rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
           >
             Sign Out
           </button>
@@ -149,8 +141,8 @@
   function setFilter(filterKey, el) {
     AttendX.State.currentFilter = filterKey;
 
-    const activeChipClass   = 'filter-chip py-[7px] px-4 rounded-full text-[0.78rem] font-medium cursor-pointer border transition-all bg-primary border-primary text-white focus:outline-none select-none';
-    const inactiveChipClass = 'filter-chip py-[7px] px-4 rounded-full text-[0.78rem] font-medium cursor-pointer border transition-all border-theme bg-surface text-muted hover:text-main focus:outline-none select-none';
+    const activeChipClass   = 'filter-chip py-1.5 px-4 rounded-lg text-[0.78rem] font-semibold cursor-pointer border transition-all bg-primary border-primary text-white shadow-btn-primary focus:outline-none select-none';
+    const inactiveChipClass = 'filter-chip py-1.5 px-4 rounded-lg text-[0.78rem] font-medium cursor-pointer border transition-all border-theme bg-surface text-secondary hover:text-main hover:border-strong focus:outline-none select-none';
 
     document.querySelectorAll('.filter-chip').forEach(chip => {
       const isMatch = el ? chip === el : chip.getAttribute('data-filter') === filterKey;
@@ -186,11 +178,11 @@
       if (exactMatch.status === 'attended') {
         banner.className =
           'mt-3 py-2.5 px-3.5 rounded-xl text-[0.82rem] leading-relaxed bg-success-bg text-success border border-theme';
-        banner.innerHTML = `<strong>✓ Marked Attended:</strong> <span class="font-mono font-medium">${safeRoll}</span> (${safeYear} Year · ${safeBranch}) is marked <strong>Present</strong> at ${safeTime}.`;
+        banner.innerHTML = `<strong>✓ Marked Attended:</strong> <span class="font-mono font-semibold">${safeRoll}</span> (${safeYear} Year · ${safeBranch}) is marked <strong>Present</strong> at ${safeTime}.`;
       } else {
         banner.className =
-          'mt-3 py-2.5 px-3.5 rounded-xl text-[0.82rem] leading-relaxed bg-surface-tint text-accent border border-strong/40';
-        banner.innerHTML = `<strong>○ Pre-Registered:</strong> <span class="font-mono font-medium">${safeRoll}</span> (${safeYear} Year · ${safeBranch}) is pre-registered but <strong>not yet marked attended</strong>.`;
+          'mt-3 py-2.5 px-3.5 rounded-xl text-[0.82rem] leading-relaxed bg-surface-tint text-accent border border-theme';
+        banner.innerHTML = `<strong>○ Pre-Registered:</strong> <span class="font-mono font-semibold">${safeRoll}</span> (${safeYear} Year · ${safeBranch}) is pre-registered but <strong>not yet marked attended</strong>.`;
       }
       return;
     }
@@ -199,7 +191,7 @@
       const safeQuery = escapeHtml(query);
       banner.className =
         'mt-3 py-2.5 px-3.5 rounded-xl text-[0.82rem] leading-relaxed bg-danger-bg text-danger border border-theme';
-      banner.innerHTML = `<strong>Not Marked Yet:</strong> No attendance record found matching <span class="font-mono font-medium">${safeQuery}</span> in this event.`;
+      banner.innerHTML = `<strong>Not Marked Yet:</strong> No attendance record found matching <span class="font-mono font-semibold">${safeQuery}</span> in this event.`;
     } else {
       banner.className = 'hidden';
       banner.innerHTML = '';
@@ -214,22 +206,13 @@
     const { SecurityConfig } = AttendX.Backend;
     const { escapeHtml, formatTime } = AttendX.Utils.Sanitizer;
 
-    // Determine if current user is an authenticated Coordinator for this event
     const canModify =
       SecurityConfig.isCoordinator() &&
       SecurityConfig.isEventCoordinatorVerified(state.currentEvent?.id);
 
-    const readonlyNotice = document.getElementById('viewlist-readonly-notice');
     const studentActions = document.getElementById('student-session-actions');
     const clearBtn = document.getElementById('att-search-clear-btn');
 
-    if (readonlyNotice) {
-      if (canModify) {
-        readonlyNotice.classList.add('hidden');
-      } else {
-        readonlyNotice.classList.remove('hidden');
-      }
-    }
     if (studentActions) {
       if (canModify) {
         studentActions.classList.add('hidden');
@@ -278,9 +261,10 @@
       }
 
       container.innerHTML = `
-        <div class="text-center py-12 px-5 text-muted select-none">
-          <div class="text-[2.4rem] mb-3 opacity-35">📋</div>
-          <p class="text-[0.88rem]">No entries present.<br><span class="text-[0.75rem]">${escapeHtml(subText)}</span></p>
+        <div class="bg-surface border border-theme rounded-2xl text-center py-12 px-5 text-muted shadow-card select-none">
+          <div class="text-[2.2rem] mb-3 opacity-35">📋</div>
+          <p class="text-[0.9rem] font-medium text-secondary mb-1">No entries present</p>
+          <p class="text-[0.78rem] text-muted">${escapeHtml(subText)}</p>
         </div>
       `;
       return;
@@ -297,8 +281,8 @@
           const safeTime = escapeHtml(formatTime(a.timestamp));
           const isAttended = a.status === 'attended';
           const badgeClass = isAttended
-            ? 'bg-success-bg text-success'
-            : 'bg-surface-tint text-accent';
+            ? 'bg-success-bg text-success border border-theme'
+            : 'bg-surface-tint text-accent border border-theme';
           const badgeText = isAttended ? '✓ Present' : '○ Pre-reg';
 
           // Strictly omit delete button for Students (canModify === false)
@@ -310,7 +294,7 @@
                   data-delete-roll="${safeRoll}"
                   title="Delete Entry"
                   aria-label="Delete ${safeRoll}"
-                  class="delete-participant-btn inline-flex items-center justify-center py-2 px-4 rounded-full text-[0.8rem] font-medium bg-danger-bg text-danger border-0 transition-all cursor-pointer focus:outline-none select-none active:scale-95"
+                  class="delete-participant-btn inline-flex items-center justify-center py-1.5 px-3 rounded-lg text-[0.78rem] font-medium bg-danger-bg text-danger hover:opacity-90 border border-theme transition-all cursor-pointer focus:outline-none select-none active:scale-95"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -325,14 +309,14 @@
               id="entry-${safeRoll}"
               data-entry-id="${safeId}"
               data-entry-roll="${safeRoll}"
-              class="att-item flex items-center justify-between py-3.5 px-[18px] bg-surface border border-theme hover:border-strong rounded-xl gap-3 transition-colors"
+              class="att-item flex items-center justify-between py-3.5 px-[18px] bg-surface border border-theme hover:border-strong rounded-xl gap-3 shadow-card transition-colors"
             >
               <div class="flex-1 min-w-0">
-                <div class="font-mono text-[0.92rem] font-medium text-main truncate">${safeRoll}</div>
+                <div class="font-mono text-[0.92rem] font-semibold text-main truncate">${safeRoll}</div>
                 <div class="text-[0.76rem] text-muted mt-[3px]">${safeYear} Year · ${safeBranch} · ${safeTime}</div>
               </div>
               <div class="flex items-center gap-2 shrink-0 select-none">
-                <span class="text-[0.7rem] py-1 px-2.5 rounded-full font-medium ${badgeClass}">${badgeText}</span>
+                <span class="text-[0.72rem] py-1 px-2.5 rounded-lg font-medium ${badgeClass}">${badgeText}</span>
                 ${deleteActionHtml}
               </div>
             </div>
@@ -458,10 +442,8 @@
       delBtn.textContent = 'Deleting...';
     }
 
-    // Snapshot for rollback only if DB throws an error
     const previousAttendance = [...(state.attendance || [])];
 
-    // 1. IMMEDIATELY remove from local state & re-render UI (0ms delay, no reload needed)
     state.attendance = previousAttendance.filter(a => {
       if (targetRoll && String(a.rollNo).toUpperCase() === String(targetRoll).toUpperCase()) {
         return false;
@@ -476,7 +458,6 @@
     state.pendingDeleteId = null;
     state.pendingDeleteRoll = null;
 
-    // Immediately update Total / Attended / Pre-reg counters, View List DOM, and Branch Summary
     AttendX.Pages.Attendance.updateAttendanceUI();
 
     try {
@@ -488,7 +469,6 @@
         });
 
         if (error) {
-          // Rollback local state if database rejected the delete
           state.attendance = previousAttendance;
           AttendX.Pages.Attendance.updateAttendanceUI();
           toast('Failed to delete entry', 'error');

@@ -12,47 +12,47 @@
     if (!mount) return;
 
     mount.innerHTML = `
-      <div class="bg-surface border border-theme rounded-2xl p-[22px] mb-4 shadow-card">
-        <div class="text-[1.02rem] font-medium mb-2 text-main">Export Report</div>
+      <div class="bg-surface border border-theme rounded-2xl p-6 mb-4 shadow-card">
+        <div class="text-[1.02rem] font-semibold mb-2 text-main">Export Report</div>
         <p class="text-[0.84rem] text-muted mb-4 leading-relaxed">
           Generates separate Excel files for each branch. Students are ordered by their registered year (Y25, Y24, etc.).
         </p>
         <button
           type="button"
           onclick="exportExcel()"
-          class="w-full inline-flex items-center justify-center gap-2 py-[11px] px-[22px] rounded-full font-sans text-[0.88rem] font-medium bg-primary hover:bg-primary-hover text-white hover:shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none"
+          class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none"
         >
           Download Excel Report(s)
         </button>
       </div>
 
-      <div class="bg-surface border border-theme rounded-2xl p-[22px] mb-4 shadow-card">
-        <div class="text-[0.75rem] font-medium tracking-[0.04em] uppercase text-muted mb-3 select-none">Branch Summary</div>
+      <div class="bg-surface border border-theme rounded-2xl p-6 mb-4 shadow-card">
+        <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 select-none">Branch Summary</div>
         <div id="branch-summary"></div>
       </div>
 
-      <div class="bg-surface border border-theme rounded-2xl p-[22px] shadow-card">
-        <div class="text-[0.75rem] font-medium tracking-[0.04em] uppercase text-muted mb-3 select-none">Session Actions</div>
-        <div class="flex flex-col gap-3">
+      <div class="bg-surface border border-theme rounded-2xl p-6 shadow-card">
+        <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 select-none">Session Actions</div>
+        <div class="flex flex-col gap-2.5">
           <button
             type="button"
             onclick="showScreen('screen-menu')"
-            class="w-full inline-flex items-center justify-center py-2 px-4 rounded-full font-sans text-[0.8rem] font-medium text-accent bg-transparent border border-theme hover:border-strong hover:bg-surface-tint transition-all cursor-pointer focus:outline-none select-none"
+            class="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-xl font-sans text-[0.84rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
           >
             Back to Menu
           </button>
           <button
             type="button"
             onclick="confirmLogout()"
-            class="w-full inline-flex items-center justify-center py-2 px-4 rounded-full font-sans text-[0.8rem] font-medium bg-danger-bg text-danger border-0 transition-all cursor-pointer focus:outline-none select-none"
+            class="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-xl font-sans text-[0.84rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
           >
-            End Session
+            Sign Out
           </button>
-          <div class="h-px bg-theme my-1"></div>
+          <div class="h-px bg-theme my-1.5"></div>
           <button
             type="button"
             onclick="openModal('modal-delete-event')"
-            class="w-full inline-flex items-center justify-center gap-2 py-2 px-4 rounded-full font-sans text-[0.8rem] font-medium bg-danger-bg text-danger border-0 transition-all cursor-pointer focus:outline-none select-none"
+            class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-sans text-[0.84rem] font-medium bg-danger-bg text-danger border border-theme hover:border-danger/40 transition-all cursor-pointer focus:outline-none select-none"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0">
               <polyline points="3 6 5 6 21 6"></polyline>
@@ -91,10 +91,10 @@
         return `
           <div class="flex justify-between items-center py-2.5 border-b border-theme last:border-b-0">
             <div>
-              <div class="font-medium text-main">${safeBranch}</div>
+              <div class="font-semibold text-main">${safeBranch}</div>
               <div class="text-[0.72rem] text-muted">${yearsStr}</div>
             </div>
-            <div class="font-mono text-[1.1rem] text-accent font-medium">${students.length}</div>
+            <div class="font-mono text-[1.1rem] text-accent font-semibold">${students.length}</div>
           </div>
         `;
       })

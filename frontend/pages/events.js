@@ -21,32 +21,32 @@
             <button
               type="button"
               onclick="showScreen('screen-menu')"
-              class="bg-transparent border-none text-accent cursor-pointer text-[0.85rem] font-medium inline-flex items-center py-2 px-0 font-sans mb-4 hover:opacity-80 transition-opacity focus:outline-none select-none"
+              class="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong text-secondary hover:text-main cursor-pointer text-[0.8rem] font-medium font-sans mb-5 transition-all focus:outline-none select-none"
             >
               ← Back to Menu
             </button>
-            <div class="text-[1.65rem] font-medium mb-1.5 tracking-[-0.02em] text-main">Create Event</div>
+            <div class="text-[1.65rem] font-semibold mb-1.5 tracking-[-0.025em] text-main">Create Event</div>
             <div class="text-[0.9rem] text-muted mb-7">Set up your attendance session details</div>
 
-            <div class="bg-surface border border-theme rounded-2xl p-[22px] sm:p-7 shadow-card flex flex-col gap-3">
-              <div class="mb-1">
+            <div class="bg-surface border border-theme rounded-2xl p-[22px] sm:p-7 shadow-card flex flex-col gap-3.5">
+              <div>
                 <label for="ev-name" class="block text-[0.8rem] font-medium text-secondary mb-[7px]">Event Name</label>
                 <input
                   type="text"
                   id="ev-name"
                   maxlength="120"
                   placeholder="Tech Symposium 2026"
-                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-lg text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                 >
               </div>
 
-              <div class="flex gap-3 mb-1">
+              <div class="flex gap-3">
                 <div class="flex-1">
                   <label for="ev-date" class="block text-[0.8rem] font-medium text-secondary mb-[7px]">Date</label>
                   <input
                     type="date"
                     id="ev-date"
-                    class="w-full py-3 px-[15px] bg-input border border-theme rounded-lg text-main font-sans text-[0.92rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                    class="w-full py-3 px-[15px] bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                   >
                 </div>
                 <div class="flex-1">
@@ -54,34 +54,34 @@
                   <input
                     type="time"
                     id="ev-time"
-                    class="w-full py-3 px-[15px] bg-input border border-theme rounded-lg text-main font-sans text-[0.92rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                    class="w-full py-3 px-[15px] bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                   >
                 </div>
               </div>
 
-              <div class="mb-1">
+              <div>
                 <label for="ev-venue" class="block text-[0.8rem] font-medium text-secondary mb-[7px]">Venue (optional)</label>
                 <input
                   type="text"
                   id="ev-venue"
                   maxlength="120"
                   placeholder="Auditorium B"
-                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-lg text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                 >
               </div>
 
-              <div class="mb-1">
+              <div>
                 <label for="ev-org" class="block text-[0.8rem] font-medium text-secondary mb-[7px]">Organization / Club (optional)</label>
                 <input
                   type="text"
                   id="ev-org"
                   maxlength="120"
                   placeholder="e.g. ACM Student Chapter"
-                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-lg text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                 >
               </div>
 
-              <div class="mb-2">
+              <div class="mb-1">
                 <label for="ev-pass" class="block text-[0.8rem] font-medium text-secondary mb-[7px]">Event Password</label>
                 <div class="relative w-full">
                   <input
@@ -89,13 +89,13 @@
                     id="ev-pass"
                     placeholder="Used by coordinators"
                     onkeydown="if(event.key==='Enter') createNewEvent()"
-                    class="w-full py-3 pl-[15px] pr-11 bg-input border border-theme rounded-lg text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                    class="w-full py-3 pl-[15px] pr-11 bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                   >
                   <button
                     type="button"
                     onclick="togglePwd('ev-pass', this)"
                     aria-label="Toggle password visibility"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-muted hover:text-main hover:bg-surface2 transition-colors cursor-pointer focus:outline-none select-none"
+                    class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-muted hover:text-main hover:bg-surface2 transition-colors cursor-pointer focus:outline-none select-none"
                   >
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   </button>
@@ -106,7 +106,7 @@
                 type="button"
                 id="btn-create-event"
                 onclick="createNewEvent()"
-                class="w-full inline-flex items-center justify-center gap-2 py-[11px] px-[22px] rounded-full font-sans text-[0.88rem] font-medium bg-primary hover:bg-primary-hover text-white hover:shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
               >
                 Create Event
               </button>
@@ -119,45 +119,45 @@
       <section id="screen-event-created" class="screen hidden flex-1 flex-col">
         <div class="flex-1 flex flex-col justify-center py-9 px-5">
           <div class="max-w-[460px] mx-auto px-5 w-full">
-            <div class="text-[1.65rem] font-medium mb-1.5 tracking-[-0.02em] text-main text-center">Event Created</div>
-            <div class="text-[0.9rem] text-muted mb-7 text-center">Share these details with other coordinators</div>
+            <div class="text-[1.65rem] font-semibold mb-1.5 tracking-[-0.025em] text-main text-center">Event Created</div>
+            <div class="text-[0.9rem] text-muted mb-7 text-center">Share these credentials with co-coordinators</div>
 
-            <div class="bg-surface-tint border border-dashed border-strong rounded-[14px] p-6 text-center my-6">
-              <div class="text-[0.72rem] text-accent uppercase tracking-[0.08em] mb-1.5 font-medium">Event ID</div>
-              <div id="display-event-id" class="font-mono text-[2rem] font-medium text-main tracking-[0.12em]">──────</div>
+            <div class="bg-surface-tint border border-dashed border-strong rounded-2xl p-6 text-center my-6">
+              <div class="text-[0.72rem] text-accent uppercase tracking-[0.08em] mb-1.5 font-semibold">Event ID</div>
+              <div id="display-event-id" class="font-mono text-[2rem] font-semibold text-main tracking-[0.12em]">──────</div>
               <div class="text-[0.82rem] text-muted mt-2">
                 Password: <span id="display-event-pass" class="text-main font-mono">••••••</span>
               </div>
             </div>
 
             <div class="mb-5">
-              <div class="bg-surface2 border border-theme rounded-2xl p-[18px] shadow-card">
-                <div class="text-[0.72rem] text-muted mb-1 uppercase tracking-[0.05em]">Event Name</div>
-                <div id="display-event-name" class="font-medium text-[1.05rem] text-main"></div>
-                <div class="text-[0.72rem] text-muted mt-3 mb-1 uppercase tracking-[0.05em]">Date &amp; Time</div>
-                <div id="display-event-dt" class="text-[0.9rem] text-accent"></div>
+              <div class="bg-surface border border-theme rounded-2xl p-5 shadow-card">
+                <div class="text-[0.72rem] text-muted mb-1 uppercase tracking-[0.05em] font-medium">Event Name</div>
+                <div id="display-event-name" class="font-semibold text-[1.05rem] text-main"></div>
+                <div class="text-[0.72rem] text-muted mt-3.5 mb-1 uppercase tracking-[0.05em] font-medium">Date &amp; Time</div>
+                <div id="display-event-dt" class="text-[0.9rem] text-accent font-medium"></div>
               </div>
             </div>
 
-            <div class="flex flex-col gap-3">
+            <div class="flex flex-col gap-2.5">
               <button
                 type="button"
                 onclick="enterAttendance()"
-                class="w-full inline-flex items-center justify-center gap-2 py-[11px] px-[22px] rounded-full font-sans text-[0.88rem] font-medium bg-primary hover:bg-primary-hover text-white hover:shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none"
+                class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none"
               >
                 Start Taking Attendance
               </button>
               <button
                 type="button"
                 onclick="copyEventId()"
-                class="w-full inline-flex items-center justify-center gap-2 py-[11px] px-[22px] rounded-full font-sans text-[0.88rem] font-medium text-accent bg-transparent border border-theme hover:border-strong hover:bg-surface-tint transition-all cursor-pointer focus:outline-none select-none"
+                class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-sans text-[0.86rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
               >
                 Copy Event ID
               </button>
               <button
                 type="button"
                 onclick="showScreen('screen-menu')"
-                class="w-full inline-flex items-center justify-center gap-2 py-[11px] px-[22px] rounded-full font-sans text-[0.88rem] font-medium text-accent bg-transparent border border-theme hover:border-strong hover:bg-surface-tint transition-all cursor-pointer focus:outline-none select-none"
+                class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-sans text-[0.86rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
               >
                 ← Back to Menu
               </button>
@@ -173,15 +173,15 @@
             <button
               type="button"
               onclick="showScreen('screen-menu')"
-              class="bg-transparent border-none text-accent cursor-pointer text-[0.85rem] font-medium inline-flex items-center py-2 px-0 font-sans mb-4 hover:opacity-80 transition-opacity focus:outline-none select-none"
+              class="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong text-secondary hover:text-main cursor-pointer text-[0.8rem] font-medium font-sans mb-5 transition-all focus:outline-none select-none"
             >
               ← Back to Menu
             </button>
-            <div class="text-[1.65rem] font-medium mb-1.5 tracking-[-0.02em] text-main">Join Event</div>
+            <div class="text-[1.65rem] font-semibold mb-1.5 tracking-[-0.025em] text-main">Join Event</div>
             <div class="text-[0.9rem] text-muted mb-7">Enter credentials from the event organizer</div>
 
-            <div class="bg-surface border border-theme rounded-2xl p-[22px] sm:p-7 shadow-card flex flex-col gap-3">
-              <div class="mb-1">
+            <div class="bg-surface border border-theme rounded-2xl p-[22px] sm:p-7 shadow-card flex flex-col gap-3.5">
+              <div>
                 <label for="join-id" class="block text-[0.8rem] font-medium text-secondary mb-[7px]">Event ID</label>
                 <input
                   type="text"
@@ -189,11 +189,11 @@
                   placeholder="e.g. EV2405"
                   oninput="this.value=this.value.toUpperCase()"
                   onkeydown="if(event.key==='Enter') joinEvent()"
-                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-lg text-main font-mono text-[0.92rem] tracking-[0.1em] uppercase placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-xl text-main font-mono text-[0.92rem] tracking-[0.08em] uppercase placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                 >
               </div>
 
-              <div class="mb-2">
+              <div class="mb-1">
                 <label for="join-pass" class="block text-[0.8rem] font-medium text-secondary mb-[7px]">Event Password</label>
                 <div class="relative w-full">
                   <input
@@ -201,13 +201,13 @@
                     id="join-pass"
                     placeholder="••••••••"
                     onkeydown="if(event.key==='Enter') joinEvent()"
-                    class="w-full py-3 pl-[15px] pr-11 bg-input border border-theme rounded-lg text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                    class="w-full py-3 pl-[15px] pr-11 bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                   >
                   <button
                     type="button"
                     onclick="togglePwd('join-pass', this)"
                     aria-label="Toggle password visibility"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-muted hover:text-main hover:bg-surface2 transition-colors cursor-pointer focus:outline-none select-none"
+                    class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-muted hover:text-main hover:bg-surface2 transition-colors cursor-pointer focus:outline-none select-none"
                   >
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   </button>
@@ -218,7 +218,7 @@
                 type="button"
                 id="btn-join-event"
                 onclick="joinEvent()"
-                class="w-full inline-flex items-center justify-center gap-2 py-[11px] px-[22px] rounded-full font-sans text-[0.88rem] font-medium bg-primary hover:bg-primary-hover text-white hover:shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
               >
                 Join Event
               </button>
@@ -226,9 +226,9 @@
 
             <!-- RECENT EVENTS -->
             <div class="mt-9">
-              <div class="text-[0.75rem] font-medium tracking-[0.04em] uppercase text-muted mb-3 flex items-center gap-2.5 select-none">
+              <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 flex items-center gap-2.5 select-none">
                 <span class="flex-1 h-px bg-theme"></span>
-                <span>Or select recent event to verify</span>
+                <span>Recent Events</span>
                 <span class="flex-1 h-px bg-theme"></span>
               </div>
               <div id="recent-events-list" class="flex flex-col gap-2"></div>
@@ -237,30 +237,27 @@
         </div>
       </section>
 
-      <!-- STUDENT EVENT SELECTION & ATTENDANCE LOOKUP (Student View-Only Portal) -->
+      <!-- STUDENT EVENT SELECTION & ATTENDANCE LOOKUP -->
       <section id="screen-student-events" class="screen hidden flex-1 flex-col">
         <div class="flex-1 flex flex-col justify-start py-9 px-5">
-          <div class="max-w-[520px] mx-auto px-5 w-full">
-            <div class="flex items-center justify-between mb-4">
+          <div class="max-w-[500px] mx-auto px-5 w-full">
+            <div class="mb-5">
               <button
                 type="button"
                 onclick="switchRoleScreen()"
-                class="bg-transparent border-none text-accent cursor-pointer text-[0.85rem] font-medium inline-flex items-center py-2 px-0 font-sans hover:opacity-80 transition-opacity focus:outline-none select-none"
+                class="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong text-secondary hover:text-main cursor-pointer text-[0.8rem] font-medium font-sans transition-all focus:outline-none select-none"
               >
                 ← Switch Role
               </button>
-              <span class="py-1 px-3 rounded-full text-[0.72rem] font-medium bg-surface-tint text-accent border border-theme select-none">
-                Student Portal · Read-Only
-              </span>
             </div>
 
-            <div class="text-[1.65rem] font-medium mb-1.5 tracking-[-0.02em] text-main">Check Event Attendance</div>
+            <div class="text-[1.65rem] font-semibold mb-1.5 tracking-[-0.025em] text-main">Check Event Attendance</div>
             <div class="text-[0.9rem] text-muted mb-7">
-              Select an active campus event or enter its Event ID to view the attendance list and verify your status.
+              Select an active campus event or enter its Event ID to view the attendance list.
             </div>
 
-            <div class="bg-surface border border-theme rounded-2xl p-[22px] sm:p-7 shadow-card flex flex-col gap-3">
-              <div class="mb-1">
+            <div class="bg-surface border border-theme rounded-2xl p-[22px] sm:p-7 shadow-card flex flex-col gap-3.5">
+              <div>
                 <label for="student-join-id" class="block text-[0.8rem] font-medium text-secondary mb-[7px]">Event ID</label>
                 <input
                   type="text"
@@ -269,13 +266,13 @@
                   maxlength="20"
                   oninput="this.value=this.value.toUpperCase()"
                   onkeydown="if(event.key==='Enter') joinEventAsStudent()"
-                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-lg text-main font-mono text-[0.92rem] tracking-[0.1em] uppercase placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-xl text-main font-mono text-[0.92rem] tracking-[0.08em] uppercase placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                 >
               </div>
 
-              <div class="mb-2">
+              <div class="mb-1">
                 <label for="student-roll-lookup" class="block text-[0.8rem] font-medium text-secondary mb-[7px]">
-                  Your Roll Number <span class="text-muted font-normal">(optional — auto-checks your status)</span>
+                  Roll Number <span class="text-muted font-normal">(optional)</span>
                 </label>
                 <input
                   type="text"
@@ -284,7 +281,7 @@
                   maxlength="16"
                   oninput="this.value=this.value.toUpperCase()"
                   onkeydown="if(event.key==='Enter') joinEventAsStudent()"
-                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-lg text-main font-mono text-[0.92rem] uppercase placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-xl text-main font-mono text-[0.92rem] uppercase placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                 >
               </div>
 
@@ -292,7 +289,7 @@
                 type="button"
                 id="btn-student-view-event"
                 onclick="joinEventAsStudent()"
-                class="w-full inline-flex items-center justify-center gap-2 py-[11px] px-[22px] rounded-full font-sans text-[0.88rem] font-medium bg-primary hover:bg-primary-hover text-white hover:shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
               >
                 View Attendance List
               </button>
@@ -300,9 +297,9 @@
 
             <!-- ACTIVE / RECENT CAMPUS EVENTS FOR STUDENTS -->
             <div class="mt-9">
-              <div class="text-[0.75rem] font-medium tracking-[0.04em] uppercase text-muted mb-3 flex items-center gap-2.5 select-none">
+              <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 flex items-center gap-2.5 select-none">
                 <span class="flex-1 h-px bg-theme"></span>
-                <span>Or select a recent campus event</span>
+                <span>Recent Campus Events</span>
                 <span class="flex-1 h-px bg-theme"></span>
               </div>
               <div id="student-recent-events-list" class="flex flex-col gap-2"></div>
@@ -312,7 +309,7 @@
               <button
                 type="button"
                 onclick="logout()"
-                class="inline-flex items-center justify-center py-2 px-5 rounded-full font-sans text-[0.8rem] font-medium text-accent bg-transparent border border-theme hover:border-strong hover:bg-surface-tint transition-all cursor-pointer focus:outline-none select-none"
+                class="inline-flex items-center justify-center py-2.5 px-5 rounded-xl font-sans text-[0.82rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
               >
                 Sign Out
               </button>
@@ -359,14 +356,14 @@
           <button
             type="button"
             data-event-id="${safeId}"
-            class="recent-event-item w-full text-left flex items-center justify-between py-3.5 px-[18px] bg-surface border border-theme hover:border-strong rounded-xl gap-3 transition-all cursor-pointer animate-slide-in focus:outline-none select-none active:scale-[0.99]"
+            class="recent-event-item w-full text-left flex items-center justify-between py-3.5 px-[18px] bg-surface border border-theme hover:border-strong hover:bg-surface2 rounded-xl gap-3 transition-all cursor-pointer animate-slide-in focus:outline-none select-none active:scale-[0.99]"
           >
             <div>
-              <div class="font-mono text-[0.92rem] font-medium text-main">${safeName}</div>
-              <div class="text-[0.76rem] text-muted mt-0.5">${safeId} · ${safeDate}${safeOrg}</div>
+              <div class="font-sans text-[0.92rem] font-semibold text-main">${safeName}</div>
+              <div class="text-[0.76rem] text-muted mt-0.5"><span class="font-mono text-secondary">${safeId}</span> · ${safeDate}${safeOrg}</div>
             </div>
-            <div class="text-[0.7rem] py-1 px-2.5 rounded-full font-medium bg-success-bg text-success shrink-0">
-              Select to verify
+            <div class="text-[0.72rem] py-1 px-2.5 rounded-lg font-medium bg-surface-tint text-accent border border-theme shrink-0">
+              Select →
             </div>
           </button>
         `;
@@ -405,13 +402,13 @@
           <button
             type="button"
             data-student-event-id="${safeId}"
-            class="student-recent-event-item w-full text-left flex items-center justify-between py-3.5 px-[18px] bg-surface border border-theme hover:border-strong rounded-xl gap-3 transition-all cursor-pointer animate-slide-in focus:outline-none select-none active:scale-[0.99]"
+            class="student-recent-event-item w-full text-left flex items-center justify-between py-3.5 px-[18px] bg-surface border border-theme hover:border-strong hover:bg-surface2 rounded-xl gap-3 transition-all cursor-pointer animate-slide-in focus:outline-none select-none active:scale-[0.99]"
           >
             <div>
-              <div class="font-mono text-[0.92rem] font-medium text-main">${safeName}</div>
-              <div class="text-[0.76rem] text-muted mt-0.5">${safeId} · ${safeDate}${safeOrg}${safeVenue}</div>
+              <div class="font-sans text-[0.92rem] font-semibold text-main">${safeName}</div>
+              <div class="text-[0.76rem] text-muted mt-0.5"><span class="font-mono text-secondary">${safeId}</span> · ${safeDate}${safeOrg}${safeVenue}</div>
             </div>
-            <div class="text-[0.7rem] py-1 px-2.5 rounded-full font-medium bg-surface-tint text-accent shrink-0">
+            <div class="text-[0.72rem] py-1 px-2.5 rounded-lg font-medium bg-surface-tint text-accent border border-theme shrink-0">
               View List →
             </div>
           </button>
@@ -492,7 +489,7 @@
       state.currentEvent = data;
       state.events.unshift(data);
       state.attendance = [];
-      state.editAuthorized = true; // Creator is authorized for the session they just created
+      state.editAuthorized = true;
       state.pendingDeleteId = null;
 
       document.getElementById('display-event-id').textContent = data.id;
@@ -500,7 +497,6 @@
       document.getElementById('display-event-name').textContent = data.name;
       document.getElementById('display-event-dt').textContent = formatEventDateTime(data.date, data.time);
 
-      // Clear sensitive password field
       document.getElementById('ev-pass').value = '';
 
       AttendX.App.showScreen('screen-event-created');
@@ -562,7 +558,6 @@
         return;
       }
 
-      // Reset event-scoped authorization state when switching events
       state.currentEvent = ev;
       state.editAuthorized = false;
       state.pendingDeleteId = null;
@@ -622,7 +617,6 @@
         return;
       }
 
-      // Strictly clear any edit/coordinator privileges for student sessions
       state.currentEvent = ev;
       state.editAuthorized = false;
       state.pendingDeleteId = null;
@@ -633,7 +627,7 @@
       state.attendance = attList;
 
       AttendX.Pages.Attendance.enterAttendance();
-      toast('Viewing ' + ev.name + ' (Read-Only)', 'info');
+      toast('Viewing ' + ev.name, 'info');
     } finally {
       isStudentLoadingEvent = false;
       if (btn) {

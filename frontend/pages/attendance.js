@@ -16,53 +16,47 @@
     mount.innerHTML = `
       <section id="screen-attendance" class="screen hidden flex-1 flex-col">
         <!-- Event Context Subheader -->
-        <div class="flex items-center justify-between py-4 px-4 sm:px-7 border-b border-theme bg-surface select-none gap-3">
+        <div class="flex items-center justify-between py-3.5 px-4 sm:px-8 border-b border-theme bg-surface select-none gap-3">
           <div class="flex items-center gap-3 min-w-0">
             <button
               type="button"
               id="hdr-back-btn"
               onclick="leaveAttendanceScreen()"
-              class="py-1.5 px-3 rounded-full text-[0.76rem] font-medium text-accent bg-surface-tint border border-theme hover:border-strong cursor-pointer focus:outline-none select-none shrink-0"
+              class="py-1.5 px-3.5 rounded-lg text-[0.78rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong cursor-pointer focus:outline-none select-none shrink-0 transition-all"
             >
               ← Back
             </button>
-            <strong id="hdr-event-name" class="text-[1.02rem] font-medium text-main truncate">Event</strong>
+            <strong id="hdr-event-name" class="text-[1.02rem] font-semibold text-main truncate tracking-[-0.01em]">Event</strong>
           </div>
-          <div class="flex items-center gap-2.5 shrink-0 text-right text-[0.78rem] text-muted">
-            <span
-              id="hdr-student-readonly-pill"
-              class="hidden py-1 px-2.5 rounded-full text-[0.7rem] font-medium bg-surface2 text-secondary border border-theme"
-            >
-              View Only
-            </span>
-            <span id="hdr-event-id" class="font-mono text-accent font-medium text-[0.88rem]"></span>
+          <div class="flex items-center gap-2.5 shrink-0 text-right">
+            <span id="hdr-event-id" class="py-1 px-2.5 rounded-lg bg-surface-tint border border-theme font-mono text-accent font-semibold text-[0.82rem] tracking-wider"></span>
           </div>
         </div>
 
         <div class="flex-1 overflow-y-auto py-6 px-4 max-w-[760px] mx-auto w-full">
           <!-- STATS ROW -->
-          <div class="grid grid-cols-3 gap-3 mb-6 select-none">
-            <div class="bg-surface border border-theme rounded-[14px] py-[18px] px-3.5 text-center">
-              <div id="stat-total" class="text-[1.55rem] font-medium font-sans text-main">0</div>
-              <div class="text-[0.7rem] text-muted uppercase tracking-[0.06em] mt-1 font-medium">Total</div>
+          <div class="grid grid-cols-3 gap-3.5 mb-6 select-none">
+            <div class="bg-surface border border-theme rounded-2xl py-4 px-3.5 text-center shadow-card">
+              <div id="stat-total" class="text-[1.6rem] font-semibold font-sans text-main leading-tight">0</div>
+              <div class="text-[0.68rem] text-muted uppercase tracking-[0.07em] mt-1 font-semibold">Total</div>
             </div>
-            <div class="bg-surface border border-theme rounded-[14px] py-[18px] px-3.5 text-center">
-              <div id="stat-attended" class="text-[1.55rem] font-medium font-sans text-success">0</div>
-              <div class="text-[0.7rem] text-muted uppercase tracking-[0.06em] mt-1 font-medium">Attended</div>
+            <div class="bg-surface border border-theme rounded-2xl py-4 px-3.5 text-center shadow-card">
+              <div id="stat-attended" class="text-[1.6rem] font-semibold font-sans text-success leading-tight">0</div>
+              <div class="text-[0.68rem] text-muted uppercase tracking-[0.07em] mt-1 font-semibold">Attended</div>
             </div>
-            <div class="bg-surface border border-theme rounded-[14px] py-[18px] px-3.5 text-center">
-              <div id="stat-prereg" class="text-[1.55rem] font-medium font-sans text-accent">0</div>
-              <div class="text-[0.7rem] text-muted uppercase tracking-[0.06em] mt-1 font-medium">Pre-reg</div>
+            <div class="bg-surface border border-theme rounded-2xl py-4 px-3.5 text-center shadow-card">
+              <div id="stat-prereg" class="text-[1.6rem] font-semibold font-sans text-accent leading-tight">0</div>
+              <div class="text-[0.68rem] text-muted uppercase tracking-[0.07em] mt-1 font-semibold">Pre-reg</div>
             </div>
           </div>
 
-          <!-- TABS -->
-          <div id="attendance-tabs-bar" class="flex bg-input rounded-full p-1 mb-6 border border-theme select-none">
+          <!-- TABS (Visible for Coordinator / Staff; hidden in Student single-view mode) -->
+          <div id="attendance-tabs-bar" class="flex bg-surface rounded-xl p-1 mb-6 border border-theme shadow-card select-none">
             <button
               type="button"
               id="tab-entry"
               onclick="switchTab('entry')"
-              class="nav-tab flex-1 py-[9px] px-3.5 rounded-full font-sans text-[0.82rem] font-medium cursor-pointer text-center transition-all border-none bg-primary text-white focus:outline-none select-none"
+              class="nav-tab flex-1 py-2.5 px-3.5 rounded-lg font-sans text-[0.83rem] font-semibold cursor-pointer text-center transition-all border-none bg-primary text-white shadow-btn-primary focus:outline-none select-none"
             >
               Entry
             </button>
@@ -70,7 +64,7 @@
               type="button"
               id="tab-list"
               onclick="switchTab('list')"
-              class="nav-tab flex-1 py-[9px] px-3.5 rounded-full font-sans text-[0.82rem] font-medium cursor-pointer text-center transition-all border-none bg-transparent text-muted hover:text-main focus:outline-none select-none"
+              class="nav-tab flex-1 py-2.5 px-3.5 rounded-lg font-sans text-[0.83rem] font-medium cursor-pointer text-center transition-all border-none bg-transparent text-muted hover:text-main focus:outline-none select-none"
             >
               View List
             </button>
@@ -78,7 +72,7 @@
               type="button"
               id="tab-export"
               onclick="switchTab('export')"
-              class="nav-tab flex-1 py-[9px] px-3.5 rounded-full font-sans text-[0.82rem] font-medium cursor-pointer text-center transition-all border-none bg-transparent text-muted hover:text-main focus:outline-none select-none"
+              class="nav-tab flex-1 py-2.5 px-3.5 rounded-lg font-sans text-[0.83rem] font-medium cursor-pointer text-center transition-all border-none bg-transparent text-muted hover:text-main focus:outline-none select-none"
             >
               Export
             </button>
@@ -86,54 +80,54 @@
 
           <!-- ENTRY TAB (Coordinator / Staff Only) -->
           <div id="panel-entry">
-            <div class="bg-surface border border-theme rounded-2xl p-6 mb-5">
-              <div class="text-[0.75rem] font-medium tracking-[0.04em] uppercase text-muted mb-3 select-none">Select Year</div>
+            <div class="bg-surface border border-theme rounded-2xl p-6 mb-5 shadow-card">
+              <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 select-none">Select Year</div>
               <div class="grid grid-cols-4 gap-2.5 mb-6 select-none">
                 <button
                   type="button"
                   onclick="selectYear(1)"
-                  class="year-btn py-3 px-2 rounded-[10px] font-sans text-[0.88rem] font-medium cursor-pointer border border-theme bg-input text-muted hover:border-strong hover:text-main transition-all text-center focus:outline-none select-none"
+                  class="year-btn py-3 px-2 rounded-xl font-sans text-[0.88rem] font-semibold cursor-pointer border border-theme bg-input text-secondary hover:border-strong hover:text-main transition-all text-center focus:outline-none select-none"
                 >
-                  1st <span id="y1-prefix" class="prefix font-mono text-[0.68rem] opacity-85 block mt-[3px] font-normal"></span>
+                  1st <span id="y1-prefix" class="prefix font-mono text-[0.68rem] text-muted block mt-[3px] font-normal"></span>
                 </button>
                 <button
                   type="button"
                   onclick="selectYear(2)"
-                  class="year-btn py-3 px-2 rounded-[10px] font-sans text-[0.88rem] font-medium cursor-pointer border border-theme bg-input text-muted hover:border-strong hover:text-main transition-all text-center focus:outline-none select-none"
+                  class="year-btn py-3 px-2 rounded-xl font-sans text-[0.88rem] font-semibold cursor-pointer border border-theme bg-input text-secondary hover:border-strong hover:text-main transition-all text-center focus:outline-none select-none"
                 >
-                  2nd <span id="y2-prefix" class="prefix font-mono text-[0.68rem] opacity-85 block mt-[3px] font-normal"></span>
+                  2nd <span id="y2-prefix" class="prefix font-mono text-[0.68rem] text-muted block mt-[3px] font-normal"></span>
                 </button>
                 <button
                   type="button"
                   onclick="selectYear(3)"
-                  class="year-btn py-3 px-2 rounded-[10px] font-sans text-[0.88rem] font-medium cursor-pointer border border-theme bg-input text-muted hover:border-strong hover:text-main transition-all text-center focus:outline-none select-none"
+                  class="year-btn py-3 px-2 rounded-xl font-sans text-[0.88rem] font-semibold cursor-pointer border border-theme bg-input text-secondary hover:border-strong hover:text-main transition-all text-center focus:outline-none select-none"
                 >
-                  3rd <span id="y3-prefix" class="prefix font-mono text-[0.68rem] opacity-85 block mt-[3px] font-normal"></span>
+                  3rd <span id="y3-prefix" class="prefix font-mono text-[0.68rem] text-muted block mt-[3px] font-normal"></span>
                 </button>
                 <button
                   type="button"
                   onclick="selectYear(4)"
-                  class="year-btn py-3 px-2 rounded-[10px] font-sans text-[0.88rem] font-medium cursor-pointer border border-theme bg-input text-muted hover:border-strong hover:text-main transition-all text-center focus:outline-none select-none"
+                  class="year-btn py-3 px-2 rounded-xl font-sans text-[0.88rem] font-semibold cursor-pointer border border-theme bg-input text-secondary hover:border-strong hover:text-main transition-all text-center focus:outline-none select-none"
                 >
-                  4th <span id="y4-prefix" class="prefix font-mono text-[0.68rem] opacity-85 block mt-[3px] font-normal"></span>
+                  4th <span id="y4-prefix" class="prefix font-mono text-[0.68rem] text-muted block mt-[3px] font-normal"></span>
                 </button>
               </div>
 
-              <div class="text-[0.75rem] font-medium tracking-[0.04em] uppercase text-muted mb-3 select-none">Roll Number</div>
+              <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 select-none">Roll Number</div>
               <div
                 id="roll-wrap"
-                class="flex items-center bg-input border border-theme rounded-lg overflow-hidden transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20"
+                class="flex items-center bg-input border border-theme rounded-xl overflow-hidden transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20"
               >
                 <div
                   id="roll-prefix"
-                  class="py-3 px-4 bg-surface-tint font-mono text-[0.92rem] text-accent whitespace-nowrap border-r border-theme font-medium select-none"
+                  class="py-3 px-4 bg-surface-tint font-mono text-[0.92rem] text-accent whitespace-nowrap border-r border-theme font-semibold select-none"
                 >
                   Y??
                 </div>
                 <input
                   type="text"
                   id="roll-input"
-                  placeholder="CSE001"
+                  placeholder="e.g. CSE001"
                   maxlength="10"
                   onkeydown="if(event.key==='Enter') addEntry()"
                   oninput="this.value=this.value.toUpperCase()"
@@ -141,29 +135,29 @@
                 >
               </div>
               <p class="text-[0.75rem] text-muted mt-2">
-                Format: BRANCH + 3-digit number (e.g. CSE042, MECH007)
+                Format: Branch + 3-digit number (e.g. CSE042, MECH007)
               </p>
               <button
                 type="button"
                 id="btn-mark-attendance"
                 onclick="addEntry()"
-                class="mt-5 w-full inline-flex items-center justify-center gap-2 py-[11px] px-[22px] rounded-full font-sans text-[0.88rem] font-medium bg-primary hover:bg-primary-hover text-white hover:shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                class="mt-5 w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
               >
                 Mark Attendance
               </button>
             </div>
 
             <!-- Pre-registration CSV Upload Card -->
-            <div class="bg-surface border border-theme rounded-2xl p-[22px] shadow-card">
-              <div class="text-[0.75rem] font-medium tracking-[0.04em] uppercase text-muted mb-1.5 select-none">Pre-registration</div>
-              <p class="text-[0.82rem] text-muted mb-3 leading-[1.45]">
+            <div class="bg-surface border border-theme rounded-2xl p-6 shadow-card">
+              <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-1.5 select-none">Pre-registration</div>
+              <p class="text-[0.83rem] text-muted mb-3.5 leading-[1.5]">
                 Upload a CSV of pre-registered roll numbers to automatically verify them during manual entry.
               </p>
 
-              <div class="bg-input border border-dashed border-theme rounded-lg p-3.5 text-[0.78rem] text-muted">
+              <div class="bg-input border border-dashed border-theme rounded-xl p-3.5 text-[0.78rem] text-muted">
                 <strong class="text-secondary font-medium">Format requirement:</strong><br>
                 A single column list containing only the full roll numbers.<br>
-                <code class="block mt-1.5 bg-surface py-2 px-2.5 rounded-md text-accent border border-theme font-mono">
+                <code class="block mt-2 bg-surface py-2 px-3 rounded-lg text-accent border border-theme font-mono">
                   Y25CSE001<br>Y25CSE002<br>Y24ECE045
                 </code>
               </div>
@@ -173,7 +167,7 @@
                 type="button"
                 id="btn-upload-prereg"
                 onclick="document.getElementById('prereg-file').click()"
-                class="mt-4 w-full inline-flex items-center justify-center gap-2 py-2 px-4 rounded-full font-sans text-[0.8rem] font-medium text-accent bg-transparent border border-theme hover:border-strong hover:bg-surface-tint transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                class="mt-4 w-full inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-sans text-[0.84rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
               >
                 Upload Pre-reg CSV
               </button>
@@ -196,8 +190,8 @@
   }
 
   /**
-   * Synchronize tab bar visibility and read-only badges based on whether the current session
-   * is an authorized Coordinator or a read-only Student.
+   * Synchronize tab bar visibility based on whether the current session
+   * is an authorized Coordinator or a Student.
    */
   function syncAttendanceRoleUI() {
     const { SecurityConfig } = AttendX.Backend;
@@ -206,16 +200,20 @@
       SecurityConfig.isCoordinator() &&
       SecurityConfig.isEventCoordinatorVerified(state.currentEvent?.id);
 
+    const tabsBar = document.getElementById('attendance-tabs-bar');
     const tabEntry = document.getElementById('tab-entry');
     const tabList = document.getElementById('tab-list');
     const tabExport = document.getElementById('tab-export');
     const panelEntry = document.getElementById('panel-entry');
     const panelExport = document.getElementById('panel-export');
-    const studentPill = document.getElementById('hdr-student-readonly-pill');
     const backBtn = document.getElementById('hdr-back-btn');
 
     if (!isCoord) {
-      // Student mode: hide Entry and Export tabs & panels completely
+      // Student mode: hide the 3-tab switcher bar and Entry/Export panels so the view flows cleanly into the list
+      if (tabsBar) {
+        tabsBar.classList.add('hidden');
+        tabsBar.style.display = 'none';
+      }
       if (tabEntry) {
         tabEntry.classList.add('hidden');
         tabEntry.style.display = 'none';
@@ -232,17 +230,15 @@
         panelExport.classList.add('hidden');
         panelExport.style.display = 'none';
       }
-      if (tabList) {
-        tabList.textContent = 'View List (Attendance Status)';
-      }
-      if (studentPill) {
-        studentPill.classList.remove('hidden');
-      }
       if (backBtn) {
         backBtn.textContent = '← Events';
       }
     } else {
-      // Coordinator mode: show all 3 tabs
+      // Coordinator mode: show the 3-tab switcher bar
+      if (tabsBar) {
+        tabsBar.classList.remove('hidden');
+        tabsBar.style.display = 'flex';
+      }
       if (tabEntry) {
         tabEntry.classList.remove('hidden');
         tabEntry.style.display = '';
@@ -253,9 +249,6 @@
       }
       if (tabList) {
         tabList.textContent = 'View List';
-      }
-      if (studentPill) {
-        studentPill.classList.add('hidden');
       }
       if (backBtn) {
         backBtn.textContent = '← Menu';
@@ -281,8 +274,8 @@
 
     syncAttendanceRoleUI();
 
-    const activeTabClass   = 'nav-tab flex-1 py-[9px] px-3.5 rounded-full font-sans text-[0.82rem] font-medium cursor-pointer text-center transition-all border-none bg-primary text-white focus:outline-none select-none';
-    const inactiveTabClass = 'nav-tab flex-1 py-[9px] px-3.5 rounded-full font-sans text-[0.82rem] font-medium cursor-pointer text-center transition-all border-none bg-transparent text-muted hover:text-main focus:outline-none select-none';
+    const activeTabClass   = 'nav-tab flex-1 py-2.5 px-3.5 rounded-lg font-sans text-[0.83rem] font-semibold cursor-pointer text-center transition-all border-none bg-primary text-white shadow-btn-primary focus:outline-none select-none';
+    const inactiveTabClass = 'nav-tab flex-1 py-2.5 px-3.5 rounded-lg font-sans text-[0.83rem] font-medium cursor-pointer text-center transition-all border-none bg-transparent text-muted hover:text-main focus:outline-none select-none';
 
     ['entry', 'list', 'export'].forEach(t => {
       const tabBtn = document.getElementById('tab-' + t);
@@ -343,13 +336,19 @@
     const selectedYear = AttendX.State.selectedYear;
     const yearPrefixes = AttendX.State.yearPrefixes;
 
-    const baseBtnClass   = 'year-btn py-3 px-2 rounded-[10px] font-sans text-[0.88rem] font-medium cursor-pointer border transition-all text-center focus:outline-none select-none ';
-    const activeClass    = 'bg-primary border-primary text-white';
-    const inactiveClass  = 'border-theme bg-input text-muted hover:border-strong hover:text-main';
+    const baseBtnClass   = 'year-btn py-3 px-2 rounded-xl font-sans text-[0.88rem] font-semibold cursor-pointer border transition-all text-center focus:outline-none select-none ';
+    const activeClass    = 'bg-primary border-primary text-white shadow-btn-primary';
+    const inactiveClass  = 'border-theme bg-input text-secondary hover:border-strong hover:text-main';
 
     document.querySelectorAll('.year-btn').forEach((btn, i) => {
       const isSelected = i + 1 === selectedYear;
       btn.className = baseBtnClass + (isSelected ? activeClass : inactiveClass);
+      const prefixSpan = btn.querySelector('.prefix');
+      if (prefixSpan) {
+        prefixSpan.className =
+          'prefix font-mono text-[0.68rem] block mt-[3px] font-normal ' +
+          (isSelected ? 'text-white/85' : 'text-muted');
+      }
     });
 
     const prefixEl = document.getElementById('roll-prefix');
@@ -370,7 +369,6 @@
     updateYearUI();
     syncAttendanceRoleUI();
 
-    // Sync student search input if student entered their roll number on the event lookup screen
     const searchInput = document.getElementById('att-search-input');
     if (searchInput) {
       searchInput.value = state.studentSearchQuery || '';
@@ -416,7 +414,6 @@
       SecurityConfig.isCoordinator() &&
       SecurityConfig.isEventCoordinatorVerified(state.currentEvent?.id);
 
-    // Students are strictly directed to the View List section; Coordinators default to Entry
     switchTab(isCoord ? 'entry' : 'list');
   }
 
