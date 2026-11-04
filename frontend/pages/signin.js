@@ -67,7 +67,7 @@
                 <input
                   type="email"
                   id="login-email"
-                  placeholder="name@college.edu"
+                  placeholder="Email"
                   autocomplete="email"
                   onkeydown="if(event.key==='Enter') loginEmail()"
                   class="w-full py-3 px-[15px] bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
@@ -90,7 +90,7 @@
                   <input
                     type="password"
                     id="login-password"
-                    placeholder="Enter your password"
+                    placeholder="Password"
                     autocomplete="current-password"
                     onkeydown="if(event.key==='Enter') loginEmail()"
                     class="w-full py-3 pl-[15px] pr-11 bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
