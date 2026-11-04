@@ -1,6 +1,7 @@
 /**
  * Frontend Utility — Theme Controller (Dark / Light Mode)
- * Updates the theme attribute and swaps ONLY the sun/moon icon symbol on the toggle button.
+ * Orchestrates a clean, synchronized color interpolation across the entire DOM
+ * when switching between Dark and Light modes, without adding extra effects to the toggle button.
  */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
@@ -20,12 +21,26 @@
   const MOON_SVG_PATHS =
     '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
 
-  function applyTheme(theme) {
+  let transitionCleanupTimer = null;
+
+  function applyTheme(theme, animate = false) {
     const normalized = theme === 'light' ? 'light' : 'dark';
+    const root = document.documentElement;
+
     if (AttendX.State) {
       AttendX.State.theme = normalized;
     }
-    document.documentElement.setAttribute('data-theme', normalized);
+
+    if (animate && root) {
+      clearTimeout(transitionCleanupTimer);
+      root.classList.add('theme-transitioning');
+      // Flush style calculation so all elements transition smoothly from their current computed colors
+      void root.offsetHeight;
+    }
+
+    if (root) {
+      root.setAttribute('data-theme', normalized);
+    }
 
     const icon = document.getElementById('theme-icon');
     const btn = document.getElementById('theme-toggle-btn');
@@ -39,22 +54,32 @@
       btn.setAttribute('aria-label', nextModeLabel);
     }
 
+    if (animate && root) {
+      transitionCleanupTimer = setTimeout(() => {
+        root.classList.remove('theme-transitioning');
+      }, 360);
+    }
+
     try {
       localStorage.setItem('attendx_theme', normalized);
     } catch (_e) {}
   }
 
   function toggleTheme() {
-    const current = AttendX.State?.theme || document.documentElement.getAttribute('data-theme') || 'dark';
-    applyTheme(current === 'dark' ? 'light' : 'dark');
+    const current =
+      AttendX.State?.theme ||
+      document.documentElement.getAttribute('data-theme') ||
+      'dark';
+    const nextTheme = current === 'dark' ? 'light' : 'dark';
+    applyTheme(nextTheme, true);
   }
 
   function initTheme() {
     try {
       const saved = localStorage.getItem('attendx_theme');
-      applyTheme(saved === 'light' ? 'light' : 'dark');
+      applyTheme(saved === 'light' ? 'light' : 'dark', false);
     } catch (_e) {
-      applyTheme('dark');
+      applyTheme('dark', false);
     }
   }
 

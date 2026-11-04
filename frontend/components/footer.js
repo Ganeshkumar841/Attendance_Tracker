@@ -14,7 +14,7 @@
       <footer class="w-full py-4 px-5 border-t border-theme bg-surface/60 text-center text-[0.76rem] text-muted select-none">
         <div class="max-w-[760px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <span><strong class="font-medium text-secondary">AttendX</strong> — College Event Attendance System</span>
-          <span>Real-time Sync · Secure Coordinator Workspace</span>
+          <span>Real-time Sync · Coordinator &amp; Student Portals</span>
         </div>
       </footer>
     `;

@@ -1,5 +1,5 @@
 /**
- * Frontend Page — Events Page (Create Event, Event Created Summary, Join Event & Recent Events)
+ * Frontend Page — Events Page (Coordinator Create/Join Event & Student Read-Only Event Lookup)
  */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
@@ -7,13 +7,14 @@
 
   let isCreatingEvent = false;
   let isJoiningEvent = false;
+  let isStudentLoadingEvent = false;
 
   function renderEventsPages() {
     const mount = document.getElementById('page-events-mount');
     if (!mount) return;
 
     mount.innerHTML = `
-      <!-- CREATE EVENT -->
+      <!-- CREATE EVENT (Coordinator / Staff Only) -->
       <section id="screen-create" class="screen hidden flex-1 flex-col">
         <div class="flex-1 flex flex-col justify-center py-9 px-5">
           <div class="max-w-[460px] mx-auto px-5 w-full">
@@ -114,7 +115,7 @@
         </div>
       </section>
 
-      <!-- EVENT CREATED SUMMARY -->
+      <!-- EVENT CREATED SUMMARY (Coordinator / Staff Only) -->
       <section id="screen-event-created" class="screen hidden flex-1 flex-col">
         <div class="flex-1 flex flex-col justify-center py-9 px-5">
           <div class="max-w-[460px] mx-auto px-5 w-full">
@@ -165,7 +166,7 @@
         </div>
       </section>
 
-      <!-- JOIN EVENT -->
+      <!-- JOIN EVENT (Coordinator / Staff Only) -->
       <section id="screen-join" class="screen hidden flex-1 flex-col">
         <div class="flex-1 flex flex-col justify-start py-9 px-5">
           <div class="max-w-[460px] mx-auto px-5 w-full">
@@ -235,6 +236,90 @@
           </div>
         </div>
       </section>
+
+      <!-- STUDENT EVENT SELECTION & ATTENDANCE LOOKUP (Student View-Only Portal) -->
+      <section id="screen-student-events" class="screen hidden flex-1 flex-col">
+        <div class="flex-1 flex flex-col justify-start py-9 px-5">
+          <div class="max-w-[520px] mx-auto px-5 w-full">
+            <div class="flex items-center justify-between mb-4">
+              <button
+                type="button"
+                onclick="switchRoleScreen()"
+                class="bg-transparent border-none text-accent cursor-pointer text-[0.85rem] font-medium inline-flex items-center py-2 px-0 font-sans hover:opacity-80 transition-opacity focus:outline-none select-none"
+              >
+                ← Switch Role
+              </button>
+              <span class="py-1 px-3 rounded-full text-[0.72rem] font-medium bg-surface-tint text-accent border border-theme select-none">
+                Student Portal · Read-Only
+              </span>
+            </div>
+
+            <div class="text-[1.65rem] font-medium mb-1.5 tracking-[-0.02em] text-main">Check Event Attendance</div>
+            <div class="text-[0.9rem] text-muted mb-7">
+              Select an active campus event or enter its Event ID to view the attendance list and verify your status.
+            </div>
+
+            <div class="bg-surface border border-theme rounded-2xl p-[22px] sm:p-7 shadow-card flex flex-col gap-3">
+              <div class="mb-1">
+                <label for="student-join-id" class="block text-[0.8rem] font-medium text-secondary mb-[7px]">Event ID</label>
+                <input
+                  type="text"
+                  id="student-join-id"
+                  placeholder="e.g. EV2405"
+                  maxlength="20"
+                  oninput="this.value=this.value.toUpperCase()"
+                  onkeydown="if(event.key==='Enter') joinEventAsStudent()"
+                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-lg text-main font-mono text-[0.92rem] tracking-[0.1em] uppercase placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                >
+              </div>
+
+              <div class="mb-2">
+                <label for="student-roll-lookup" class="block text-[0.8rem] font-medium text-secondary mb-[7px]">
+                  Your Roll Number <span class="text-muted font-normal">(optional — auto-checks your status)</span>
+                </label>
+                <input
+                  type="text"
+                  id="student-roll-lookup"
+                  placeholder="e.g. Y25CSE001"
+                  maxlength="16"
+                  oninput="this.value=this.value.toUpperCase()"
+                  onkeydown="if(event.key==='Enter') joinEventAsStudent()"
+                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-lg text-main font-mono text-[0.92rem] uppercase placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                >
+              </div>
+
+              <button
+                type="button"
+                id="btn-student-view-event"
+                onclick="joinEventAsStudent()"
+                class="w-full inline-flex items-center justify-center gap-2 py-[11px] px-[22px] rounded-full font-sans text-[0.88rem] font-medium bg-primary hover:bg-primary-hover text-white hover:shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+              >
+                View Attendance List
+              </button>
+            </div>
+
+            <!-- ACTIVE / RECENT CAMPUS EVENTS FOR STUDENTS -->
+            <div class="mt-9">
+              <div class="text-[0.75rem] font-medium tracking-[0.04em] uppercase text-muted mb-3 flex items-center gap-2.5 select-none">
+                <span class="flex-1 h-px bg-theme"></span>
+                <span>Or select a recent campus event</span>
+                <span class="flex-1 h-px bg-theme"></span>
+              </div>
+              <div id="student-recent-events-list" class="flex flex-col gap-2"></div>
+            </div>
+
+            <div class="mt-8 text-center">
+              <button
+                type="button"
+                onclick="logout()"
+                class="inline-flex items-center justify-center py-2 px-5 rounded-full font-sans text-[0.8rem] font-medium text-accent bg-transparent border border-theme hover:border-strong hover:bg-surface-tint transition-all cursor-pointer focus:outline-none select-none"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
     `;
   }
 
@@ -242,10 +327,11 @@
     const { Supabase, EventService } = AttendX.Backend;
     if (!Supabase.isConfigured()) return;
 
-    const { data, error } = await EventService.fetchRecentEvents(5);
+    const { data, error } = await EventService.fetchRecentEvents(8);
     if (!error && data) {
       AttendX.State.events = data;
       renderRecentEvents();
+      renderStudentRecentEvents();
     }
   }
 
@@ -263,6 +349,7 @@
     }
 
     container.innerHTML = events
+      .slice(0, 5)
       .map(ev => {
         const safeId = escapeHtml(ev.id);
         const safeName = escapeHtml(ev.name);
@@ -294,12 +381,67 @@
     });
   }
 
+  function renderStudentRecentEvents() {
+    const container = document.getElementById('student-recent-events-list');
+    if (!container) return;
+
+    const events = AttendX.State.events || [];
+    const { escapeHtml } = AttendX.Utils.Sanitizer;
+
+    if (events.length === 0) {
+      container.innerHTML =
+        '<p class="text-muted text-[0.85rem] text-center p-5">No recent events found. Enter an Event ID above.</p>';
+      return;
+    }
+
+    container.innerHTML = events
+      .map(ev => {
+        const safeId = escapeHtml(ev.id);
+        const safeName = escapeHtml(ev.name);
+        const safeDate = escapeHtml(ev.date);
+        const safeOrg = ev.organization ? ' · ' + escapeHtml(ev.organization) : '';
+        const safeVenue = ev.venue ? ' · ' + escapeHtml(ev.venue) : '';
+        return `
+          <button
+            type="button"
+            data-student-event-id="${safeId}"
+            class="student-recent-event-item w-full text-left flex items-center justify-between py-3.5 px-[18px] bg-surface border border-theme hover:border-strong rounded-xl gap-3 transition-all cursor-pointer animate-slide-in focus:outline-none select-none active:scale-[0.99]"
+          >
+            <div>
+              <div class="font-mono text-[0.92rem] font-medium text-main">${safeName}</div>
+              <div class="text-[0.76rem] text-muted mt-0.5">${safeId} · ${safeDate}${safeOrg}${safeVenue}</div>
+            </div>
+            <div class="text-[0.7rem] py-1 px-2.5 rounded-full font-medium bg-surface-tint text-accent shrink-0">
+              View List →
+            </div>
+          </button>
+        `;
+      })
+      .join('');
+
+    container.querySelectorAll('.student-recent-event-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const evId = btn.getAttribute('data-student-event-id');
+        if (evId) {
+          const idInput = document.getElementById('student-join-id');
+          if (idInput) idInput.value = evId;
+          joinEventAsStudent(evId);
+        }
+      });
+    });
+  }
+
   async function createNewEvent() {
     if (isCreatingEvent) return;
-    const { Supabase, EventService } = AttendX.Backend;
+    const { Supabase, EventService, SecurityConfig } = AttendX.Backend;
     const { toast } = AttendX.Components.Toast;
     const { formatEventDateTime } = AttendX.Utils.Sanitizer;
     const state = AttendX.State;
+
+    if (!SecurityConfig.isCoordinator()) {
+      toast('Access denied: Student accounts cannot create events.', 'error');
+      return;
+    }
 
     if (!Supabase.isConfigured()) {
       toast('Service configuration missing. Check config.js.', 'error');
@@ -384,9 +526,14 @@
 
   async function joinEvent() {
     if (isJoiningEvent) return;
-    const { Supabase, EventService, AttendanceService } = AttendX.Backend;
+    const { Supabase, EventService, AttendanceService, SecurityConfig } = AttendX.Backend;
     const { toast } = AttendX.Components.Toast;
     const state = AttendX.State;
+
+    if (!SecurityConfig.isCoordinator()) {
+      toast('Access denied: Please use Student Portal for view-only access.', 'error');
+      return;
+    }
 
     if (!Supabase.isConfigured()) {
       toast('Service configuration missing. Check config.js.', 'error');
@@ -419,6 +566,7 @@
       state.currentEvent = ev;
       state.editAuthorized = false;
       state.pendingDeleteId = null;
+      state.studentSearchQuery = '';
 
       const { data: attList } = await AttendanceService.fetchByEvent(ev.id);
       state.attendance = attList;
@@ -431,6 +579,66 @@
       if (btn) {
         btn.disabled = false;
         btn.textContent = 'Join Event';
+      }
+    }
+  }
+
+  /**
+   * Student read-only event entry: loads public event details and directs strictly to the View List section.
+   */
+  async function joinEventAsStudent(explicitId) {
+    if (isStudentLoadingEvent) return;
+    const { Supabase, EventService, AttendanceService } = AttendX.Backend;
+    const { toast } = AttendX.Components.Toast;
+    const state = AttendX.State;
+
+    if (!Supabase.isConfigured()) {
+      toast('Service configuration missing. Check config.js.', 'error');
+      return;
+    }
+
+    const idInput = document.getElementById('student-join-id');
+    const rollInput = document.getElementById('student-roll-lookup');
+    const rawId = explicitId || (idInput ? idInput.value : '');
+    const cleanId = String(rawId || '').trim().toUpperCase();
+    const optionalRoll = rollInput ? rollInput.value.trim().toUpperCase() : '';
+
+    if (!cleanId) {
+      toast('Enter an Event ID or select an event from the list below', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('btn-student-view-event');
+    isStudentLoadingEvent = true;
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Loading Attendance...';
+    }
+
+    try {
+      const { event: ev, error } = await EventService.getPublicEventById(cleanId);
+      if (error || !ev) {
+        toast(error || 'Event not found', 'error');
+        return;
+      }
+
+      // Strictly clear any edit/coordinator privileges for student sessions
+      state.currentEvent = ev;
+      state.editAuthorized = false;
+      state.pendingDeleteId = null;
+      state.pendingDeleteRoll = null;
+      state.studentSearchQuery = optionalRoll;
+
+      const { data: attList } = await AttendanceService.fetchByEvent(ev.id);
+      state.attendance = attList;
+
+      AttendX.Pages.Attendance.enterAttendance();
+      toast('Viewing ' + ev.name + ' (Read-Only)', 'info');
+    } finally {
+      isStudentLoadingEvent = false;
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'View Attendance List';
       }
     }
   }
@@ -448,15 +656,18 @@
   global.createNewEvent = createNewEvent;
   global.copyEventId = copyEventId;
   global.joinEvent = joinEvent;
+  global.joinEventAsStudent = joinEventAsStudent;
   global.quickJoin = quickJoin;
 
   AttendX.Pages.Events = {
     renderEventsPages,
     fetchRecentEvents,
     renderRecentEvents,
+    renderStudentRecentEvents,
     createNewEvent,
     copyEventId,
     joinEvent,
+    joinEventAsStudent,
     quickJoin
   };
 })(window);

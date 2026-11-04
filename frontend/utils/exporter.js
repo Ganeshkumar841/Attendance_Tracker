@@ -1,5 +1,5 @@
 /**
- * Frontend Utility — Excel Report Exporter
+ * Frontend Utility — Excel Report Exporter (Coordinator / Staff Only)
  * Groups attendance records by branch and triggers sorted Excel downloads via SheetJS.
  */
 (function (global) {
@@ -23,6 +23,18 @@
   }
 
   function exportBranchWiseExcel(attendanceList, currentEvent, toastFn) {
+    const { SecurityConfig, AuditService } = AttendX.Backend;
+    if (
+      !SecurityConfig.isCoordinator() ||
+      !SecurityConfig.isEventCoordinatorVerified(currentEvent?.id)
+    ) {
+      AuditService.logAction('UNAUTHORIZED_EXPORTER_CALL_BLOCKED', { eventId: currentEvent?.id });
+      if (typeof toastFn === 'function') {
+        toastFn('Access denied: Student accounts cannot export attendance reports.', 'error');
+      }
+      return;
+    }
+
     if (typeof global.XLSX === 'undefined') {
       toastFn('Excel export library failed to load. Check your internet connection.', 'error');
       return;
@@ -90,7 +102,7 @@
       }, index * 400);
     });
 
-    AttendX.Backend.AuditService.logAction('ATTENDANCE_EXPORTED', {
+    AuditService.logAction('ATTENDANCE_EXPORTED', {
       eventId: currentEvent?.id,
       branchesCount: branchEntries.length,
       recordsCount: attendanceList.length

@@ -1,5 +1,7 @@
 /**
  * Frontend Page — Attendance Workspace (Header, Stats Row, Tab Switcher, Manual Entry & Pre-reg CSV Upload)
+ * Enforces role-based access: Coordinators have Entry, View List, and Export;
+ * Students are restricted strictly to the View List section in read-only mode.
  */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
@@ -14,11 +16,25 @@
     mount.innerHTML = `
       <section id="screen-attendance" class="screen hidden flex-1 flex-col">
         <!-- Event Context Subheader -->
-        <div class="flex items-center justify-between py-4 px-7 border-b border-theme bg-surface select-none">
-          <div class="flex items-center gap-2.5">
-            <strong id="hdr-event-name" class="text-[1.02rem] font-medium text-main">Event</strong>
+        <div class="flex items-center justify-between py-4 px-4 sm:px-7 border-b border-theme bg-surface select-none gap-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <button
+              type="button"
+              id="hdr-back-btn"
+              onclick="leaveAttendanceScreen()"
+              class="py-1.5 px-3 rounded-full text-[0.76rem] font-medium text-accent bg-surface-tint border border-theme hover:border-strong cursor-pointer focus:outline-none select-none shrink-0"
+            >
+              ← Back
+            </button>
+            <strong id="hdr-event-name" class="text-[1.02rem] font-medium text-main truncate">Event</strong>
           </div>
-          <div class="text-right text-[0.78rem] text-muted">
+          <div class="flex items-center gap-2.5 shrink-0 text-right text-[0.78rem] text-muted">
+            <span
+              id="hdr-student-readonly-pill"
+              class="hidden py-1 px-2.5 rounded-full text-[0.7rem] font-medium bg-surface2 text-secondary border border-theme"
+            >
+              View Only
+            </span>
             <span id="hdr-event-id" class="font-mono text-accent font-medium text-[0.88rem]"></span>
           </div>
         </div>
@@ -41,7 +57,7 @@
           </div>
 
           <!-- TABS -->
-          <div class="flex bg-input rounded-full p-1 mb-6 border border-theme select-none">
+          <div id="attendance-tabs-bar" class="flex bg-input rounded-full p-1 mb-6 border border-theme select-none">
             <button
               type="button"
               id="tab-entry"
@@ -68,7 +84,7 @@
             </button>
           </div>
 
-          <!-- ENTRY TAB -->
+          <!-- ENTRY TAB (Coordinator / Staff Only) -->
           <div id="panel-entry">
             <div class="bg-surface border border-theme rounded-2xl p-6 mb-5">
               <div class="text-[0.75rem] font-medium tracking-[0.04em] uppercase text-muted mb-3 select-none">Select Year</div>
@@ -167,7 +183,7 @@
           <!-- VIEW LIST TAB MOUNT -->
           <div id="panel-list" class="hidden"></div>
 
-          <!-- EXPORT TAB MOUNT -->
+          <!-- EXPORT TAB MOUNT (Coordinator / Staff Only) -->
           <div id="panel-export" class="hidden"></div>
 
           <div class="h-8"></div>
@@ -179,13 +195,111 @@
     AttendX.Pages.ExportPage.renderExportTab();
   }
 
+  /**
+   * Synchronize tab bar visibility and read-only badges based on whether the current session
+   * is an authorized Coordinator or a read-only Student.
+   */
+  function syncAttendanceRoleUI() {
+    const { SecurityConfig } = AttendX.Backend;
+    const state = AttendX.State;
+    const isCoord =
+      SecurityConfig.isCoordinator() &&
+      SecurityConfig.isEventCoordinatorVerified(state.currentEvent?.id);
+
+    const tabEntry = document.getElementById('tab-entry');
+    const tabList = document.getElementById('tab-list');
+    const tabExport = document.getElementById('tab-export');
+    const panelEntry = document.getElementById('panel-entry');
+    const panelExport = document.getElementById('panel-export');
+    const studentPill = document.getElementById('hdr-student-readonly-pill');
+    const backBtn = document.getElementById('hdr-back-btn');
+
+    if (!isCoord) {
+      // Student mode: hide Entry and Export tabs & panels completely
+      if (tabEntry) {
+        tabEntry.classList.add('hidden');
+        tabEntry.style.display = 'none';
+      }
+      if (tabExport) {
+        tabExport.classList.add('hidden');
+        tabExport.style.display = 'none';
+      }
+      if (panelEntry) {
+        panelEntry.classList.add('hidden');
+        panelEntry.style.display = 'none';
+      }
+      if (panelExport) {
+        panelExport.classList.add('hidden');
+        panelExport.style.display = 'none';
+      }
+      if (tabList) {
+        tabList.textContent = 'View List (Attendance Status)';
+      }
+      if (studentPill) {
+        studentPill.classList.remove('hidden');
+      }
+      if (backBtn) {
+        backBtn.textContent = '← Events';
+      }
+    } else {
+      // Coordinator mode: show all 3 tabs
+      if (tabEntry) {
+        tabEntry.classList.remove('hidden');
+        tabEntry.style.display = '';
+      }
+      if (tabExport) {
+        tabExport.classList.remove('hidden');
+        tabExport.style.display = '';
+      }
+      if (tabList) {
+        tabList.textContent = 'View List';
+      }
+      if (studentPill) {
+        studentPill.classList.add('hidden');
+      }
+      if (backBtn) {
+        backBtn.textContent = '← Menu';
+      }
+    }
+  }
+
   function switchTab(tab) {
+    const { SecurityConfig, AuditService } = AttendX.Backend;
+    const { toast } = AttendX.Components.Toast;
+    const state = AttendX.State;
+
+    const isCoord =
+      SecurityConfig.isCoordinator() &&
+      SecurityConfig.isEventCoordinatorVerified(state.currentEvent?.id);
+
+    // Enforce Student restriction: Students can ONLY access the 'list' section
+    if (!isCoord && tab !== 'list') {
+      AuditService.logAction('STUDENT_RESTRICTED_TAB_BLOCKED', { attemptedTab: tab });
+      toast('Student login is restricted to the View List section only.', 'info');
+      tab = 'list';
+    }
+
+    syncAttendanceRoleUI();
+
     const activeTabClass   = 'nav-tab flex-1 py-[9px] px-3.5 rounded-full font-sans text-[0.82rem] font-medium cursor-pointer text-center transition-all border-none bg-primary text-white focus:outline-none select-none';
     const inactiveTabClass = 'nav-tab flex-1 py-[9px] px-3.5 rounded-full font-sans text-[0.82rem] font-medium cursor-pointer text-center transition-all border-none bg-transparent text-muted hover:text-main focus:outline-none select-none';
 
     ['entry', 'list', 'export'].forEach(t => {
       const tabBtn = document.getElementById('tab-' + t);
       const panel  = document.getElementById('panel-' + t);
+
+      if (!isCoord && (t === 'entry' || t === 'export')) {
+        if (tabBtn) {
+          tabBtn.classList.add('hidden');
+          tabBtn.style.display = 'none';
+        }
+        if (panel) {
+          panel.classList.add('hidden');
+          panel.style.display = 'none';
+        }
+        return;
+      }
+
       if (tabBtn) {
         tabBtn.className = t === tab ? activeTabClass : inactiveTabClass;
       }
@@ -202,12 +316,23 @@
 
     if (tab === 'list') {
       AttendX.Pages.ViewList.renderList();
-    } else if (tab === 'export') {
+    } else if (tab === 'export' && isCoord) {
       AttendX.Pages.ExportPage.renderBranchSummary();
     }
   }
 
+  function leaveAttendanceScreen() {
+    const { SecurityConfig, AttendanceService } = AttendX.Backend;
+    AttendanceService.unsubscribeRealtime();
+    if (SecurityConfig.isStudent()) {
+      AttendX.App.showScreen('screen-student-events');
+    } else {
+      AttendX.App.showScreen('screen-menu');
+    }
+  }
+
   function selectYear(y) {
+    if (!AttendX.Backend.SecurityConfig.isCoordinator()) return;
     AttendX.State.selectedYear = y;
     updateYearUI();
     const input = document.getElementById('roll-input');
@@ -235,6 +360,7 @@
 
   function enterAttendance() {
     const state = AttendX.State;
+    const { SecurityConfig } = AttendX.Backend;
     if (!state.currentEvent) return;
 
     document.getElementById('hdr-event-name').textContent = state.currentEvent.name;
@@ -242,6 +368,13 @@
 
     state.selectedYear = null;
     updateYearUI();
+    syncAttendanceRoleUI();
+
+    // Sync student search input if student entered their roll number on the event lookup screen
+    const searchInput = document.getElementById('att-search-input');
+    if (searchInput) {
+      searchInput.value = state.studentSearchQuery || '';
+    }
 
     AttendX.Backend.AttendanceService.subscribeToEventAttendance(state.currentEvent.id, {
       onInsert(record) {
@@ -278,7 +411,13 @@
     });
 
     AttendX.App.showScreen('screen-attendance');
-    switchTab('entry');
+
+    const isCoord =
+      SecurityConfig.isCoordinator() &&
+      SecurityConfig.isEventCoordinatorVerified(state.currentEvent?.id);
+
+    // Students are strictly directed to the View List section; Coordinators default to Entry
+    switchTab(isCoord ? 'entry' : 'list');
   }
 
   async function addEntry() {
@@ -286,7 +425,16 @@
     const state = AttendX.State;
     const { toast } = AttendX.Components.Toast;
     const { parseRollSuffix, YEAR_LABELS } = AttendX.Utils.Sanitizer;
-    const { AttendanceService } = AttendX.Backend;
+    const { AttendanceService, SecurityConfig, AuditService } = AttendX.Backend;
+
+    if (
+      !SecurityConfig.isCoordinator() ||
+      !SecurityConfig.isEventCoordinatorVerified(state.currentEvent?.id)
+    ) {
+      AuditService.logAction('UNAUTHORIZED_ADD_ENTRY_BLOCKED', { role: SecurityConfig.getSessionRole() });
+      toast('Access denied: Student accounts cannot mark attendance.', 'error');
+      return;
+    }
 
     if (!state.selectedYear) {
       toast('Select a year first', 'error');
@@ -374,9 +522,19 @@
     if (!file) return;
 
     const { toast } = AttendX.Components.Toast;
-    const { SecurityConfig, AttendanceService } = AttendX.Backend;
+    const { SecurityConfig, AttendanceService, AuditService } = AttendX.Backend;
     const { parseFullRollRow } = AttendX.Utils.Sanitizer;
     const state = AttendX.State;
+
+    if (
+      !SecurityConfig.isCoordinator() ||
+      !SecurityConfig.isEventCoordinatorVerified(state.currentEvent?.id)
+    ) {
+      AuditService.logAction('UNAUTHORIZED_CSV_UPLOAD_BLOCKED', { role: SecurityConfig.getSessionRole() });
+      toast('Access denied: Student accounts cannot upload CSV files.', 'error');
+      input.value = '';
+      return;
+    }
 
     if (!file.name.toLowerCase().endsWith('.csv') && file.type !== 'text/csv') {
       toast('Only .csv files are supported', 'error');
@@ -483,23 +641,30 @@
     if (attEl)   attEl.textContent   = String(attended.length);
     if (preEl)   preEl.textContent   = String(prereg.length);
 
+    syncAttendanceRoleUI();
     AttendX.Pages.ViewList.renderList();
-    AttendX.Pages.ExportPage.renderBranchSummary();
+
+    if (AttendX.Backend.SecurityConfig.isCoordinator()) {
+      AttendX.Pages.ExportPage.renderBranchSummary();
+    }
   }
 
   global.switchTab = switchTab;
   global.selectYear = selectYear;
   global.enterAttendance = enterAttendance;
+  global.leaveAttendanceScreen = leaveAttendanceScreen;
   global.addEntry = addEntry;
   global.loadPreregCSV = loadPreregCSV;
   global.updateAttendanceUI = updateAttendanceUI;
 
   AttendX.Pages.Attendance = {
     renderAttendancePage,
+    syncAttendanceRoleUI,
     switchTab,
     selectYear,
     updateYearUI,
     enterAttendance,
+    leaveAttendanceScreen,
     addEntry,
     loadPreregCSV,
     updateAttendanceUI

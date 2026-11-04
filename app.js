@@ -2,7 +2,7 @@
  * Root Compatibility Entry (`app.js`)
  * Ensures that even if the browser serves a cached legacy `index.html` that loads `<script src="app.js">`,
  * it automatically upgrades the DOM to the modular `frontend/` + `backend/` architecture and applies
- * instant reactive participant deletion without requiring a manual page reload.
+ * role-based Coordinator/Student portals and smooth dark/light mode transitions.
  */
 (function (global) {
   if (global.AttendX && global.AttendX.App) {
@@ -11,36 +11,36 @@
 
   const SCRIPTS = [
     'https://cdn.tailwindcss.com',
-    'frontend/styles/tailwind.config.js?v=2.1',
-    'backend/config/securityConfig.js?v=2.1',
-    'backend/config/supabaseClient.js?v=2.1',
-    'backend/middleware/rateLimiter.js?v=2.1',
-    'backend/middleware/sessionManager.js?v=2.1',
-    'backend/services/auditService.js?v=2.1',
-    'backend/services/authService.js?v=2.1',
-    'backend/services/eventService.js?v=2.1',
-    'backend/services/attendanceService.js?v=2.1',
-    'frontend/utils/sanitizer.js?v=2.1',
-    'frontend/utils/theme.js?v=2.1',
-    'frontend/utils/exporter.js?v=2.1',
-    'frontend/components/header.js?v=2.1',
-    'frontend/components/footer.js?v=2.1',
-    'frontend/components/modals.js?v=2.1',
-    'frontend/components/toast.js?v=2.1',
-    'frontend/pages/signin.js?v=2.1',
-    'frontend/pages/menu.js?v=2.1',
-    'frontend/pages/events.js?v=2.1',
-    'frontend/pages/viewList.js?v=2.1',
-    'frontend/pages/exportPage.js?v=2.1',
-    'frontend/pages/attendance.js?v=2.1',
-    'frontend/app.js?v=2.1'
+    'frontend/styles/tailwind.config.js?v=2.2',
+    'backend/config/securityConfig.js?v=2.2',
+    'backend/config/supabaseClient.js?v=2.2',
+    'backend/middleware/rateLimiter.js?v=2.2',
+    'backend/middleware/sessionManager.js?v=2.2',
+    'backend/services/auditService.js?v=2.2',
+    'backend/services/authService.js?v=2.2',
+    'backend/services/eventService.js?v=2.2',
+    'backend/services/attendanceService.js?v=2.2',
+    'frontend/utils/sanitizer.js?v=2.2',
+    'frontend/utils/theme.js?v=2.2',
+    'frontend/utils/exporter.js?v=2.2',
+    'frontend/components/header.js?v=2.2',
+    'frontend/components/footer.js?v=2.2',
+    'frontend/components/modals.js?v=2.2',
+    'frontend/components/toast.js?v=2.2',
+    'frontend/pages/signin.js?v=2.2',
+    'frontend/pages/menu.js?v=2.2',
+    'frontend/pages/events.js?v=2.2',
+    'frontend/pages/viewList.js?v=2.2',
+    'frontend/pages/exportPage.js?v=2.2',
+    'frontend/pages/attendance.js?v=2.2',
+    'frontend/app.js?v=2.2'
   ];
 
   // If legacy DOM is present without modular mounts, upgrade the body mount structure first
   function ensureModularMounts() {
     if (!document.getElementById('app-header-mount')) {
       document.body.className =
-        'font-sans bg-app text-main min-h-screen overflow-x-hidden flex flex-col transition-colors duration-200 select-none';
+        'font-sans bg-app text-main min-h-screen overflow-x-hidden flex flex-col select-none';
       document.body.innerHTML = `
         <div id="app-header-mount"></div>
         <main id="app" class="relative z-[1] flex-1 flex flex-col">

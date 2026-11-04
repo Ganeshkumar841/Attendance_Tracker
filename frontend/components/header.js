@@ -1,6 +1,6 @@
 /**
  * Frontend Component — Global Top Navigation Header
- * Renders the AttendX brand bar and the icon-only Dark/Light mode toggle button.
+ * Renders the AttendX brand bar, active role indicator pill, and the clean icon-only Dark/Light mode toggle button.
  */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
@@ -17,15 +17,28 @@
             AX
           </div>
           <span class="font-sans text-[1.2rem] font-medium text-main tracking-tight">AttendX</span>
+          <span
+            id="header-role-badge"
+            class="hidden ml-1.5 py-0.5 px-2.5 rounded-full text-[0.7rem] font-medium tracking-wide bg-surface-tint text-accent border border-theme select-none"
+          ></span>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2.5">
+          <button
+            type="button"
+            id="header-switch-role-btn"
+            onclick="switchRoleScreen()"
+            title="Switch Login Role"
+            class="hidden py-1.5 px-3 rounded-full font-sans text-[0.75rem] font-medium text-muted hover:text-main bg-surface border border-theme hover:border-strong cursor-pointer focus:outline-none select-none"
+          >
+            Switch Role
+          </button>
           <button
             type="button"
             id="theme-toggle-btn"
             onclick="toggleTheme()"
             title="Switch Dark / Light Theme"
             aria-label="Switch Dark / Light Theme"
-            class="w-9 h-9 rounded-full inline-flex items-center justify-center bg-surface border border-theme hover:border-strong hover:bg-surface2 text-accent transition-all duration-150 cursor-pointer focus:outline-none focus:ring-0 select-none active:scale-95"
+            class="w-9 h-9 rounded-full inline-flex items-center justify-center bg-surface border border-theme hover:border-strong hover:bg-surface2 text-accent cursor-pointer focus:outline-none focus:ring-0 select-none"
           >
             <svg
               id="theme-icon"
@@ -53,7 +66,38 @@
     `;
   }
 
+  function updateHeaderRoleBadge() {
+    const badge = document.getElementById('header-role-badge');
+    const switchBtn = document.getElementById('header-switch-role-btn');
+    if (!badge) return;
+
+    const user = AttendX.State?.user;
+    const role = AttendX.Backend?.SecurityConfig?.getSessionRole?.() || AttendX.State?.role;
+
+    if (!user || !role) {
+      badge.className = 'hidden';
+      badge.textContent = '';
+      if (switchBtn) switchBtn.classList.add('hidden');
+      return;
+    }
+
+    if (role === 'student') {
+      badge.textContent = 'Student · View Only';
+      badge.className =
+        'inline-flex items-center ml-1.5 py-0.5 px-2.5 rounded-full text-[0.7rem] font-medium tracking-wide bg-surface-tint text-accent border border-strong/40 select-none';
+    } else {
+      badge.textContent = 'Coordinator / Staff';
+      badge.className =
+        'inline-flex items-center ml-1.5 py-0.5 px-2.5 rounded-full text-[0.7rem] font-medium tracking-wide bg-success-bg text-success border border-theme select-none';
+    }
+
+    if (switchBtn) {
+      switchBtn.classList.remove('hidden');
+    }
+  }
+
   AttendX.Components.Header = {
-    renderHeader
+    renderHeader,
+    updateHeaderRoleBadge
   };
 })(window);

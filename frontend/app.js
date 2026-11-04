@@ -1,7 +1,7 @@
 /**
  * Frontend Application Bootstrapper & Router (`frontend/app.js`)
  * Initializes global application state, mounts modular components and pages,
- * and manages navigation and Supabase auth lifecycle events.
+ * and manages role-guarded navigation and Supabase auth lifecycle events.
  */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
@@ -13,14 +13,24 @@
 
   const yearPrefixes = AttendX.Utils.Sanitizer.computeAcademicYears();
 
+  const COORDINATOR_ONLY_SCREENS = new Set([
+    'screen-menu',
+    'screen-create',
+    'screen-event-created',
+    'screen-join'
+  ]);
+
   // Global Reactive State
   AttendX.State = {
     user: null,
+    role: null,
     currentEvent: null,
     attendance: [],
     currentFilter: 'all',
+    studentSearchQuery: '',
     editAuthorized: false,
     pendingDeleteId: null,
+    pendingDeleteRoll: null,
     events: [],
     authMode: IS_INITIAL_RECOVERY ? 'update-password' : 'signin',
     pendingEmail: '',
@@ -32,6 +42,26 @@
   };
 
   function showScreen(id) {
+    const state = AttendX.State;
+    const { SecurityConfig } = AttendX.Backend;
+
+    // 1. Unauthenticated guard: only 'screen-login' is allowed without an active user session
+    if (id !== 'screen-login' && !state.user) {
+      id = 'screen-login';
+    }
+
+    // 2. Role-based screen navigation guard
+    if (id !== 'screen-login' && id !== 'screen-role') {
+      const activeRole = SecurityConfig.getSessionRole();
+      if (!activeRole) {
+        id = 'screen-role';
+      } else if (activeRole === 'student' && COORDINATOR_ONLY_SCREENS.has(id)) {
+        id = 'screen-student-events';
+      } else if (activeRole === 'coordinator' && id === 'screen-student-events') {
+        id = 'screen-menu';
+      }
+    }
+
     document.querySelectorAll('.screen').forEach(s => {
       s.classList.add('hidden');
       s.classList.remove('flex', 'active');
@@ -43,20 +73,30 @@
       target.classList.add('flex', 'active');
     }
 
+    if (AttendX.Components?.Header?.updateHeaderRoleBadge) {
+      AttendX.Components.Header.updateHeaderRoleBadge();
+    }
+
     if (id === 'screen-attendance') {
       AttendX.Pages.Attendance.updateAttendanceUI();
     }
-    if (id === 'screen-join') {
+    if (id === 'screen-join' || id === 'screen-student-events') {
       AttendX.Pages.Events.fetchRecentEvents();
     }
   }
 
   function afterLogin() {
     const state = AttendX.State;
+    const { SecurityConfig } = AttendX.Backend;
     if (!state.user) return;
+
     const nameEl = document.getElementById('user-name');
     if (nameEl) {
       nameEl.textContent = state.user.name;
+    }
+    const roleNameEl = document.getElementById('role-user-name');
+    if (roleNameEl) {
+      roleNameEl.textContent = state.user.name;
     }
 
     // Start 30-minute inactivity session monitor
@@ -65,20 +105,45 @@
       logout();
     });
 
-    showScreen('screen-menu');
+    // Check if a role was already selected in this tab session; otherwise show Role Selection screen
+    const restoredRole = SecurityConfig.restoreSessionRole(state.user.id);
+    AttendX.Components.Header.updateHeaderRoleBadge();
+
+    if (restoredRole === 'coordinator') {
+      showScreen('screen-menu');
+    } else if (restoredRole === 'student') {
+      showScreen('screen-student-events');
+    } else {
+      showScreen('screen-role');
+    }
   }
 
   async function logout() {
     AttendX.Backend.SessionManager.stopSessionMonitor();
     AttendX.Backend.AttendanceService.unsubscribeRealtime();
+    AttendX.Backend.SecurityConfig.clearSessionRole();
+
+    if (AttendX.Components?.Modals) {
+      ['modal-edit-auth', 'modal-delete-confirm', 'modal-delete-event'].forEach(id => {
+        AttendX.Components.Modals.closeModal(id);
+      });
+    }
+
     await AttendX.Backend.AuthService.signOut();
 
     const state = AttendX.State;
     state.user = null;
+    state.role = null;
     state.currentEvent = null;
     state.attendance = [];
+    state.studentSearchQuery = '';
     state.editAuthorized = false;
     state.pendingDeleteId = null;
+    state.pendingDeleteRoll = null;
+
+    if (AttendX.Components?.Header?.updateHeaderRoleBadge) {
+      AttendX.Components.Header.updateHeaderRoleBadge();
+    }
 
     AttendX.Pages.SignIn.switchAuthMode('signin');
     showScreen('screen-login');
@@ -92,7 +157,7 @@
     const client = AttendX.Backend.Supabase.getClient();
     if (!client) return;
 
-    const { AuthService } = AttendX.Backend;
+    const { AuthService, SecurityConfig } = AttendX.Backend;
     const { showAuthBanner, switchAuthMode } = AttendX.Pages.SignIn;
     const state = AttendX.State;
 
@@ -135,7 +200,11 @@
           afterLogin();
         }
       } else {
+        SecurityConfig.clearSessionRole();
         state.user = null;
+        if (AttendX.Components?.Header?.updateHeaderRoleBadge) {
+          AttendX.Components.Header.updateHeaderRoleBadge();
+        }
         showScreen('screen-login');
       }
     });
@@ -151,7 +220,7 @@
     AttendX.Components.Footer.renderFooter();
     AttendX.Components.Modals.renderModals();
 
-    // 2. Initialize Dark / Light Theme (icon-only toggle)
+    // 2. Initialize Dark / Light Theme (icon-only toggle, smooth transitions)
     AttendX.Utils.Theme.initTheme();
 
     // 3. Populate dynamic academic year labels and default event date
@@ -169,7 +238,7 @@
     // 4. Register auth state listeners
     initSupabaseAuthListeners();
 
-    const { AuthService, Supabase } = AttendX.Backend;
+    const { AuthService, Supabase, SecurityConfig } = AttendX.Backend;
     const { showAuthBanner, switchAuthMode } = AttendX.Pages.SignIn;
 
     // 5. Handle URL error descriptions (e.g., expired OTP link)
@@ -213,6 +282,7 @@
           showAuthBanner('Reset link verified! Enter your new password below.', 'success');
           return;
         } else if (!error && data?.session) {
+          SecurityConfig.clearSessionRole();
           AttendX.State.user = AuthService.extractUserFromSession(data.session);
           afterLogin();
           return;

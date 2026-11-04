@@ -424,6 +424,7 @@
       }
 
       if (data?.session) {
+        SecurityConfig.clearSessionRole();
         state.user = AuthService.extractUserFromSession(data.session);
         AuditService.logAction('USER_SIGNUP_SUCCESS', {}, email);
         toast('Account created & logged in!', 'success');
@@ -486,15 +487,16 @@
 
     RateLimiter.resetLimit(rateKey);
     if (data?.session) {
+      SecurityConfig.clearSessionRole();
       state.user = AuthService.extractUserFromSession(data.session);
       AuditService.logAction('USER_SIGNIN_SUCCESS', {}, email);
-      toast('Signed in!', 'success');
+      toast('Signed in! Select your login role.', 'success');
       AttendX.App.afterLogin();
     }
   }
 
   async function verifyEmailOtp() {
-    const { Supabase, AuthService } = AttendX.Backend;
+    const { Supabase, AuthService, SecurityConfig } = AttendX.Backend;
     const { toast } = AttendX.Components.Toast;
     const state = AttendX.State;
 
@@ -546,6 +548,7 @@
             return;
           }
           if (data?.session) {
+            SecurityConfig.clearSessionRole();
             state.user = AuthService.extractUserFromSession(data.session);
             toast('Email verified & logged in!', 'success');
             AttendX.App.afterLogin();
@@ -585,6 +588,7 @@
             return;
           }
           if (data?.session) {
+            SecurityConfig.clearSessionRole();
             state.user = AuthService.extractUserFromSession(data.session);
             toast('Email verified & logged in!', 'success');
             AttendX.App.afterLogin();
@@ -630,6 +634,7 @@
       }
 
       if (data?.session) {
+        SecurityConfig.clearSessionRole();
         state.user = AuthService.extractUserFromSession(data.session);
         toast('Email verified & logged in!', 'success');
         AttendX.App.afterLogin();
@@ -685,7 +690,7 @@
   }
 
   async function submitNewPassword() {
-    const { Supabase, AuthService } = AttendX.Backend;
+    const { Supabase, AuthService, SecurityConfig } = AttendX.Backend;
     const { toast } = AttendX.Components.Toast;
     const state = AttendX.State;
 
@@ -715,6 +720,7 @@
     }
 
     state.isPasswordRecovery = false;
+    SecurityConfig.clearSessionRole();
     if (data?.user) {
       state.user = AuthService.extractUserFromSession({ user: data.user });
     }
@@ -724,13 +730,14 @@
   }
 
   function loginGoogle() {
-    const { Supabase, AuthService } = AttendX.Backend;
+    const { Supabase, AuthService, SecurityConfig } = AttendX.Backend;
     const { toast } = AttendX.Components.Toast;
 
     if (!Supabase.isConfigured()) {
       toast('Service configuration missing.', 'error');
       return;
     }
+    SecurityConfig.clearSessionRole();
     AuthService.signInWithGoogle();
   }
 

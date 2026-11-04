@@ -1,5 +1,5 @@
 /**
- * Frontend Page — Export Report, Branch Summary & Session Actions Tab
+ * Frontend Page — Export Report, Branch Summary & Session Actions Tab (Coordinator / Staff Only)
  */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
@@ -102,16 +102,38 @@
   }
 
   function exportExcel() {
-    const { exportBranchWiseExcel } = AttendX.Utils.Exporter;
+    const { SecurityConfig, AuditService } = AttendX.Backend;
     const { toast } = AttendX.Components.Toast;
-    exportBranchWiseExcel(AttendX.State.attendance, AttendX.State.currentEvent, toast);
+    const state = AttendX.State;
+
+    if (
+      !SecurityConfig.isCoordinator() ||
+      !SecurityConfig.isEventCoordinatorVerified(state.currentEvent?.id)
+    ) {
+      AuditService.logAction('UNAUTHORIZED_EXPORT_BLOCKED', { role: SecurityConfig.getSessionRole() });
+      toast('Access denied: Export is restricted to Coordinators & Staff.', 'error');
+      return;
+    }
+
+    const { exportBranchWiseExcel } = AttendX.Utils.Exporter;
+    exportBranchWiseExcel(state.attendance, state.currentEvent, toast);
   }
 
   async function executeDeleteEvent() {
     if (isDeletingEvent) return;
     const state = AttendX.State;
     const { toast } = AttendX.Components.Toast;
-    const { EventService, AttendanceService } = AttendX.Backend;
+    const { EventService, AttendanceService, SecurityConfig, AuditService } = AttendX.Backend;
+
+    if (
+      !SecurityConfig.isCoordinator() ||
+      !SecurityConfig.isEventCoordinatorVerified(state.currentEvent?.id)
+    ) {
+      AuditService.logAction('UNAUTHORIZED_EVENT_DELETE_MODAL_BLOCKED', {});
+      AttendX.Components.Modals.closeModal('modal-delete-event');
+      toast('Access denied: Student accounts cannot delete events.', 'error');
+      return;
+    }
 
     const passInput = document.getElementById('delete-event-pass');
     const pass = passInput ? passInput.value : '';

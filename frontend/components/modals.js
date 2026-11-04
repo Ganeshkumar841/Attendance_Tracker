@@ -1,10 +1,17 @@
 /**
  * Frontend Component — Security & Confirmation Modals
  * Renders and manages Edit Authorization, Delete Participant Confirmation, and Discard Event modals.
+ * Blocks modal opening if the active session is a read-only Student session.
  */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Components = AttendX.Components || {};
+
+  const COORDINATOR_ONLY_MODALS = new Set([
+    'modal-edit-auth',
+    'modal-delete-confirm',
+    'modal-delete-event'
+  ]);
 
   function renderModals() {
     const mount = document.getElementById('app-modals-mount');
@@ -169,6 +176,18 @@
   }
 
   function openModal(id) {
+    if (COORDINATOR_ONLY_MODALS.has(id)) {
+      const { SecurityConfig } = AttendX.Backend;
+      const state = AttendX.State;
+      if (
+        !SecurityConfig.isCoordinator() ||
+        !SecurityConfig.isEventCoordinatorVerified(state.currentEvent?.id)
+      ) {
+        AttendX.Components.Toast.toast('Access denied: Student login is view-only.', 'error');
+        return;
+      }
+    }
+
     const el = document.getElementById(id);
     if (!el) return;
     el.classList.remove('hidden');

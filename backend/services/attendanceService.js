@@ -1,6 +1,7 @@
 /**
  * Backend Service — Attendance & Realtime Synchronization Service
  * Handles fetching, marking, pre-registering, deleting, and real-time syncing of participant attendance.
+ * Enforces strict Coordinator-only write authorization so Student sessions remain 100% read-only.
  */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
@@ -24,14 +25,33 @@
     };
   }
 
+  /**
+   * Internal security guard: blocks any write/mutation call if the user is not an authorized Coordinator
+   * for the target event.
+   */
+  function verifyCoordinatorWriteAccess(eventId, actionName) {
+    const { SecurityConfig, AuditService } = AttendX.Backend;
+    const targetEventId = eventId || AttendX.State?.currentEvent?.id;
+    if (!SecurityConfig.isCoordinator() || !SecurityConfig.isEventCoordinatorVerified(targetEventId)) {
+      AuditService.logAction('UNAUTHORIZED_ATTENDANCE_MUTATION_BLOCKED', {
+        action: actionName,
+        eventId: targetEventId,
+        role: SecurityConfig.getSessionRole()
+      });
+      return false;
+    }
+    return true;
+  }
+
   async function fetchByEvent(eventId) {
     const client = AttendX.Backend.Supabase.getClient();
     if (!client || !eventId) return { data: [], error: new Error('Invalid client or eventId') };
 
+    const cleanEventId = String(eventId).trim().toUpperCase();
     const { data, error } = await client
       .from('attendance')
       .select('*')
-      .eq('event_id', eventId)
+      .eq('event_id', cleanEventId)
       .order('timestamp', { ascending: false });
 
     return {
@@ -41,7 +61,13 @@
   }
 
   async function markPresentFromPrereg(recordId, eventId, rollNo) {
+    if (!verifyCoordinatorWriteAccess(eventId, 'MARK_PRESENT_FROM_PREREG')) {
+      return { data: null, error: new Error('Forbidden: Student accounts are read-only.') };
+    }
+
     const client = AttendX.Backend.Supabase.getClient();
+    if (!client) return { data: null, error: new Error('Database not configured') };
+
     let query = client
       .from('attendance')
       .update({
@@ -60,7 +86,13 @@
   }
 
   async function insertEntry({ eventId, rollNo, year, yearLabel, branch, num, recordedBy }) {
+    if (!verifyCoordinatorWriteAccess(eventId, 'INSERT_ENTRY')) {
+      return { data: null, error: new Error('Forbidden: Student accounts are read-only.') };
+    }
+
     const client = AttendX.Backend.Supabase.getClient();
+    if (!client) return { data: null, error: new Error('Database not configured') };
+
     const { data, error } = await client
       .from('attendance')
       .insert([
@@ -82,7 +114,16 @@
   }
 
   async function bulkInsertPrereg(records) {
+    const targetEventId = Array.isArray(records) && records[0]?.event_id
+      ? records[0].event_id
+      : AttendX.State?.currentEvent?.id;
+
+    if (!verifyCoordinatorWriteAccess(targetEventId, 'BULK_INSERT_PREREG')) {
+      return { data: [], error: new Error('Forbidden: Student accounts are read-only.') };
+    }
+
     const client = AttendX.Backend.Supabase.getClient();
+    if (!client) return { data: [], error: new Error('Database not configured') };
     if (!Array.isArray(records) || records.length === 0) {
       return { data: [], error: null };
     }
@@ -99,9 +140,13 @@
   }
 
   /**
-   * Delete a participant attendance record by primary key `id` and/or `(event_id, roll_no)`.
+   * Delete a participant attendance record by primary key `id` and/or `(event_id, roll_no)` (Coordinator only).
    */
   async function deleteEntry({ id, rollNo, eventId }) {
+    if (!verifyCoordinatorWriteAccess(eventId, 'DELETE_ENTRY') || !AttendX.State?.editAuthorized) {
+      return { error: new Error('Forbidden: Unauthorized delete request.') };
+    }
+
     const client = AttendX.Backend.Supabase.getClient();
     if (!client) return { error: new Error('Database not configured') };
 
@@ -140,17 +185,18 @@
     const client = AttendX.Backend.Supabase.getClient();
     if (!client || !eventId) return;
 
+    const cleanEventId = String(eventId).trim().toUpperCase();
     unsubscribeRealtime();
 
     realtimeChannel = client
-      .channel('attendance_channel_' + eventId)
+      .channel('attendance_channel_' + cleanEventId)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'attendance',
-          filter: `event_id=eq.${eventId}`
+          filter: `event_id=eq.${cleanEventId}`
         },
         payload => {
           if (payload?.new && typeof callbacks?.onInsert === 'function') {
@@ -164,7 +210,7 @@
           event: 'UPDATE',
           schema: 'public',
           table: 'attendance',
-          filter: `event_id=eq.${eventId}`
+          filter: `event_id=eq.${cleanEventId}`
         },
         payload => {
           if (payload?.new && typeof callbacks?.onUpdate === 'function') {
