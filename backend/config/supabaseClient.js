@@ -1,7 +1,3 @@
-/**
- * Backend Configuration — Supabase Client Initialization
- * Initializes and exports the singleton Supabase client instance.
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Backend = AttendX.Backend || {};
@@ -31,7 +27,7 @@
         });
       }
     } catch (err) {
-      console.warn('[AttendX] Supabase client initialization failed:', err);
+      console.warn('Supabase init failed:', err);
     }
     return supabaseClient;
   }
@@ -44,7 +40,6 @@
     return Boolean(getClient());
   }
 
-  // Initialize eagerly on script load
   initSupabaseClient();
 
   AttendX.Backend.Supabase = {

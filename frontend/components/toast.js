@@ -1,6 +1,3 @@
-/**
- * Frontend Component — Toast Notification & Password Visibility Toggle
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Components = AttendX.Components || {};

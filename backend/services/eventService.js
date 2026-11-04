@@ -1,13 +1,8 @@
-/**
- * Backend Service — Event Management Service
- * Handles event creation, secure fetching of recent events (excluding passwords),
- * public read-only event lookup for students (excluding password hashes),
- * coordinator event password verification, and complete event deletion.
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Backend = AttendX.Backend || {};
 
+  // leave out password column for public/student queries
   const PUBLIC_EVENT_COLUMNS = 'id, name, date, time, venue, organization, created_by, created_at';
 
   function generateEventId() {
@@ -24,18 +19,12 @@
     return 'EV' + Math.random().toString(36).substring(2, 6).toUpperCase();
   }
 
-  /**
-   * Validate an Event ID string format to prevent malformed queries or injection payloads.
-   */
   function sanitizeEventId(rawId) {
     const clean = String(rawId || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '');
     if (clean.length < 3 || clean.length > 20) return '';
     return clean;
   }
 
-  /**
-   * Fetch recent events WITHOUT selecting the password column into public list memory.
-   */
   async function fetchRecentEvents(limit = 5) {
     const client = AttendX.Backend.Supabase.getClient();
     if (!client) return { data: [], error: new Error('Supabase not configured') };
@@ -50,10 +39,6 @@
     return { data: data || [], error };
   }
 
-  /**
-   * Fetch public event metadata by ID for Student read-only attendance viewing.
-   * Strictly omits the `password` column so password hashes are never exposed to student sessions.
-   */
   async function getPublicEventById(eventId) {
     const client = AttendX.Backend.Supabase.getClient();
     if (!client) return { event: null, error: 'Database client not configured.' };
@@ -94,11 +79,6 @@
     return { event: ev, error: null };
   }
 
-  /**
-   * Create a new event in Supabase (Coordinator / Staff only).
-   * Stores the hashed password while keeping the plain password only in the creator's
-   * immediate session summary so they can share it with co-coordinators.
-   */
   async function createEvent({ name, date, time, venue, organization, password, createdBy }) {
     const { SecurityConfig, AuditService } = AttendX.Backend;
     if (!SecurityConfig.isCoordinator()) {
@@ -135,9 +115,6 @@
     return { data, error };
   }
 
-  /**
-   * Fetch a single event by ID and verify the provided password (Coordinator / Staff only).
-   */
   async function verifyAndGetEvent(eventId, candidatePassword) {
     const { SecurityConfig, RateLimiter, AuditService } = AttendX.Backend;
     if (!SecurityConfig.isCoordinator()) {
@@ -185,9 +162,6 @@
     return { event: ev, error: null };
   }
 
-  /**
-   * Verify password against the currently active event (for edit/delete authorization — Coordinator / Staff only).
-   */
   async function verifyActiveEventPassword(currentEvent, candidatePassword) {
     const { SecurityConfig, RateLimiter, AuditService } = AttendX.Backend;
     if (!SecurityConfig.isCoordinator()) {
@@ -222,9 +196,6 @@
     return { valid: true, error: null };
   }
 
-  /**
-   * Permanently delete an event and all of its attendance records (Coordinator / Staff only).
-   */
   async function deleteEventAndRecords(eventId) {
     const { SecurityConfig, AuditService } = AttendX.Backend;
     if (!SecurityConfig.isCoordinator() || !SecurityConfig.isEventCoordinatorVerified(eventId)) {

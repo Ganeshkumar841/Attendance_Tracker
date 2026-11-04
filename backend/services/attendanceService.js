@@ -1,8 +1,3 @@
-/**
- * Backend Service — Attendance & Realtime Synchronization Service
- * Handles fetching, marking, pre-registering, deleting, and real-time syncing of participant attendance.
- * Enforces strict Coordinator-only write authorization so Student sessions remain 100% read-only.
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Backend = AttendX.Backend || {};
@@ -25,10 +20,6 @@
     };
   }
 
-  /**
-   * Internal security guard: blocks any write/mutation call if the user is not an authorized Coordinator
-   * for the target event.
-   */
   function verifyCoordinatorWriteAccess(eventId, actionName) {
     const { SecurityConfig, AuditService } = AttendX.Backend;
     const targetEventId = eventId || AttendX.State?.currentEvent?.id;
@@ -139,9 +130,6 @@
     };
   }
 
-  /**
-   * Delete a participant attendance record by primary key `id` and/or `(event_id, roll_no)` (Coordinator only).
-   */
   async function deleteEntry({ id, rollNo, eventId }) {
     if (!verifyCoordinatorWriteAccess(eventId, 'DELETE_ENTRY') || !AttendX.State?.editAuthorized) {
       return { error: new Error('Forbidden: Unauthorized delete request.') };
@@ -152,13 +140,12 @@
 
     let error = null;
 
-    // 1. Delete by primary key `id` (exact match as in original table schema)
     if (id !== undefined && id !== null && String(id) !== String(rollNo)) {
       const resById = await client.from('attendance').delete().eq('id', id);
       error = resById.error;
     }
 
-    // 2. Also delete by (event_id, roll_no) to guarantee removal even if `id` was string/UUID/composite
+    // fallback delete by event_id + roll_no in case id wasn't numeric
     if (eventId && rollNo) {
       const resByRoll = await client
         .from('attendance')
@@ -178,9 +165,6 @@
     return { error };
   }
 
-  /**
-   * Subscribe to real-time INSERT, UPDATE, and DELETE events for an event.
-   */
   function subscribeToEventAttendance(eventId, callbacks) {
     const client = AttendX.Backend.Supabase.getClient();
     if (!client || !eventId) return;

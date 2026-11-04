@@ -1,7 +1,3 @@
-/**
- * Frontend Component — Application Footer
- * Renders a minimal, unobtrusive footer matching the AttendX Luminous Void aesthetic.
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Components = AttendX.Components || {};

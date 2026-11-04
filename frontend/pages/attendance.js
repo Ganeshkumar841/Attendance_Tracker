@@ -1,8 +1,3 @@
-/**
- * Frontend Page — Attendance Workspace (Header, Stats Row, Tab Switcher, Manual Entry & Pre-reg CSV Upload)
- * Enforces role-based access: Coordinators have Entry, View List, and Export;
- * Students are restricted strictly to the View List section in read-only mode.
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Pages = AttendX.Pages || {};
@@ -15,7 +10,6 @@
 
     mount.innerHTML = `
       <section id="screen-attendance" class="screen hidden flex-1 flex-col">
-        <!-- Event Context Subheader -->
         <div class="flex items-center justify-between py-3.5 px-4 sm:px-8 border-b border-theme bg-surface select-none gap-3">
           <div class="flex items-center gap-3 min-w-0">
             <button
@@ -34,7 +28,6 @@
         </div>
 
         <div class="flex-1 overflow-y-auto py-6 px-4 max-w-[760px] mx-auto w-full">
-          <!-- STATS ROW -->
           <div class="grid grid-cols-3 gap-3.5 mb-6 select-none">
             <div class="bg-surface border border-theme rounded-2xl py-4 px-3.5 text-center shadow-card">
               <div id="stat-total" class="text-[1.6rem] font-semibold font-sans text-main leading-tight">0</div>
@@ -50,7 +43,6 @@
             </div>
           </div>
 
-          <!-- TABS (Visible for Coordinator / Staff; hidden in Student single-view mode) -->
           <div id="attendance-tabs-bar" class="flex bg-surface rounded-xl p-1 mb-6 border border-theme shadow-card select-none">
             <button
               type="button"
@@ -78,7 +70,6 @@
             </button>
           </div>
 
-          <!-- ENTRY TAB (Coordinator / Staff Only) -->
           <div id="panel-entry">
             <div class="bg-surface border border-theme rounded-2xl p-6 mb-5 shadow-card">
               <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 select-none">Select Year</div>
@@ -147,7 +138,6 @@
               </button>
             </div>
 
-            <!-- Pre-registration CSV Upload Card -->
             <div class="bg-surface border border-theme rounded-2xl p-6 shadow-card">
               <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-1.5 select-none">Pre-registration</div>
               <p class="text-[0.83rem] text-muted mb-3.5 leading-[1.5]">
@@ -174,10 +164,7 @@
             </div>
           </div>
 
-          <!-- VIEW LIST TAB MOUNT -->
           <div id="panel-list" class="hidden"></div>
-
-          <!-- EXPORT TAB MOUNT (Coordinator / Staff Only) -->
           <div id="panel-export" class="hidden"></div>
 
           <div class="h-8"></div>
@@ -189,10 +176,6 @@
     AttendX.Pages.ExportPage.renderExportTab();
   }
 
-  /**
-   * Synchronize tab bar visibility based on whether the current session
-   * is an authorized Coordinator or a Student.
-   */
   function syncAttendanceRoleUI() {
     const { SecurityConfig } = AttendX.Backend;
     const state = AttendX.State;
@@ -209,7 +192,6 @@
     const backBtn = document.getElementById('hdr-back-btn');
 
     if (!isCoord) {
-      // Student mode: hide the 3-tab switcher bar and Entry/Export panels so the view flows cleanly into the list
       if (tabsBar) {
         tabsBar.classList.add('hidden');
         tabsBar.style.display = 'none';
@@ -234,7 +216,6 @@
         backBtn.textContent = '← Events';
       }
     } else {
-      // Coordinator mode: show the 3-tab switcher bar
       if (tabsBar) {
         tabsBar.classList.remove('hidden');
         tabsBar.style.display = 'flex';
@@ -265,7 +246,6 @@
       SecurityConfig.isCoordinator() &&
       SecurityConfig.isEventCoordinatorVerified(state.currentEvent?.id);
 
-    // Enforce Student restriction: Students can ONLY access the 'list' section
     if (!isCoord && tab !== 'list') {
       AuditService.logAction('STUDENT_RESTRICTED_TAB_BLOCKED', { attemptedTab: tab });
       toast('Student login is restricted to the View List section only.', 'info');
@@ -466,7 +446,7 @@
             );
             if (idx !== -1) state.attendance[idx] = data;
             updateAttendanceUI();
-            toast('✓ Pre-reg verified: ' + fullRoll, 'success');
+            toast('Pre-reg verified: ' + fullRoll, 'success');
             rollInput.value = '';
           } else {
             toast('Unable to update pre-registered entry.', 'error');
@@ -488,6 +468,7 @@
       });
 
       if (error) {
+        // 23505 is postgres unique constraint violation
         if (error.code === '23505') {
           toast('Already marked: ' + fullRoll, 'error');
         } else {
@@ -507,7 +488,7 @@
       }
 
       rollInput.value = '';
-      toast('✓ Marked: ' + fullRoll, 'success');
+      toast('Marked: ' + fullRoll, 'success');
     } finally {
       isSubmittingEntry = false;
       if (btn) btn.disabled = false;
@@ -549,7 +530,7 @@
     if (btn) {
       btn.disabled = true;
       btn.innerHTML =
-        '<span class="inline-block w-[13px] h-[13px] border-2 border-white/20 border-t-main rounded-full animate-spin shrink-0 align-middle"></span> Uploading…';
+        '<span class="inline-block w-[13px] h-[13px] border-2 border-white/20 border-t-main rounded-full animate-spin shrink-0 align-middle"></span> Uploading...';
     }
 
     const resetBtn = () => {
@@ -614,7 +595,7 @@
             }
           });
           updateAttendanceUI();
-          toast(`✓ ${data.length} pre-registered students added`, 'success');
+          toast(`${data.length} pre-registered students added`, 'success');
         }
       } finally {
         resetBtn();

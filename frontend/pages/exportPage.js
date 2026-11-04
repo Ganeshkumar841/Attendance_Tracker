@@ -1,6 +1,3 @@
-/**
- * Frontend Page — Export Report, Branch Summary & Session Actions Tab (Coordinator / Staff Only)
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Pages = AttendX.Pages || {};

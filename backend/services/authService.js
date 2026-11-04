@@ -1,8 +1,3 @@
-/**
- * Backend Service — Authentication Service
- * Handles Supabase email/password sign-in, sign-up, Google OAuth, OTP verification,
- * password reset, and user-friendly error formatting.
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Backend = AttendX.Backend || {};

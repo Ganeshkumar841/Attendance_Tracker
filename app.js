@@ -1,9 +1,4 @@
-/**
- * Root Compatibility Entry (`app.js`)
- * Ensures that even if the browser serves a cached legacy `index.html` that loads `<script src="app.js">`,
- * it automatically upgrades the DOM to the modular `frontend/` + `backend/` architecture and applies
- * role-based Coordinator/Student portals and smooth dark/light mode transitions.
- */
+// fallback loader in case an older cached index.html only loads app.js
 (function (global) {
   if (global.AttendX && global.AttendX.App) {
     return;

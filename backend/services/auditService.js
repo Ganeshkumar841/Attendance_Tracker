@@ -1,7 +1,3 @@
-/**
- * Backend Service — Audit Logging Service
- * Records security and operational events to Supabase `audit_logs` (gracefully degrades if table is absent).
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Backend = AttendX.Backend || {};
@@ -27,7 +23,7 @@
         }
       ]);
     } catch (_err) {
-      // Non-blocking: do not interrupt main user workflow if audit_logs table is not configured
+      // ignore if audit_logs table isn't set up yet
     }
   }
 

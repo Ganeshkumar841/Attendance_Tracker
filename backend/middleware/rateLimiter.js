@@ -1,7 +1,3 @@
-/**
- * Backend Middleware — Client-Side Brute-Force Rate Limiter
- * Protects authentication and event password verification flows from rapid brute-force attempts.
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Backend = AttendX.Backend || {};
@@ -23,9 +19,6 @@
     } catch (_e) {}
   }
 
-  /**
-   * Check whether a given action key (e.g. 'auth_login', 'event_pwd_EV1234') is currently locked out.
-   */
   function checkLimit(key, maxAttempts, windowMs) {
     const now = Date.now();
     const buckets = loadBuckets();
@@ -35,7 +28,6 @@
       return { allowed: true, remaining: maxAttempts, retryAfterSec: 0 };
     }
 
-    // Filter out expired timestamps outside the window
     const validTimestamps = (record.attempts || []).filter(ts => now - ts < windowMs);
     buckets[key] = { attempts: validTimestamps };
     saveBuckets(buckets);
@@ -53,9 +45,6 @@
     };
   }
 
-  /**
-   * Record a failed attempt for a specific key.
-   */
   function recordFailure(key, windowMs) {
     const now = Date.now();
     const buckets = loadBuckets();
@@ -66,9 +55,6 @@
     saveBuckets(buckets);
   }
 
-  /**
-   * Clear attempts after a successful verification.
-   */
   function resetLimit(key) {
     const buckets = loadBuckets();
     if (buckets[key]) {

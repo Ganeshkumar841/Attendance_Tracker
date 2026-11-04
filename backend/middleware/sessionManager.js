@@ -1,7 +1,3 @@
-/**
- * Backend Middleware — Session Inactivity Manager
- * Automatically logs out the coordinator after 30 minutes of inactivity.
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Backend = AttendX.Backend || {};

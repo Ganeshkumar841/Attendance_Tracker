@@ -1,7 +1,3 @@
-/**
- * Frontend Utility — Excel Report Exporter (Coordinator / Staff Only)
- * Groups attendance records by branch and triggers sorted Excel downloads via SheetJS.
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Utils = AttendX.Utils || {};
@@ -93,11 +89,12 @@
 
       const filename = `Attendance_${safeEventName}_${sanitizeFilename(branch)}.xlsx`;
 
+      // stagger downloads slightly so the browser doesn't block multiple files
       setTimeout(() => {
         try {
           global.XLSX.writeFile(wb, filename);
         } catch (err) {
-          console.error('[AttendX] Export write error:', err);
+          console.error('Export write error:', err);
         }
       }, index * 400);
     });

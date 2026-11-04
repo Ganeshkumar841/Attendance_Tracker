@@ -1,8 +1,3 @@
-/**
- * Frontend Utility — Theme Controller (Dark / Light Mode)
- * Orchestrates a clean, synchronized color interpolation across the entire DOM
- * when switching between Dark and Light modes, without adding extra effects to the toggle button.
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Utils = AttendX.Utils || {};
@@ -34,7 +29,7 @@
     if (animate && root) {
       clearTimeout(transitionCleanupTimer);
       root.classList.add('theme-transitioning');
-      // Flush style calculation so all elements transition smoothly from their current computed colors
+      // force reflow so the browser transitions from current colors
       void root.offsetHeight;
     }
 
@@ -83,7 +78,6 @@
     }
   }
 
-  // Expose globally for direct button handlers
   global.toggleTheme = toggleTheme;
 
   AttendX.Utils.Theme = {

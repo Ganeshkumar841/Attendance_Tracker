@@ -1,22 +1,16 @@
-/**
- * Backend Configuration — Security Settings, Role Guard & Cryptographic Helpers
- * Defines rate-limit thresholds, session inactivity timeouts, file upload limits,
- * SHA-256 password hashing/verification utilities, and closure-sealed role authorization
- * to prevent client-side privilege escalation between Student and Coordinator/Staff modes.
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Backend = AttendX.Backend || {};
 
   const SECURITY_CONFIG = {
-    SESSION_TIMEOUT_MS: 30 * 60 * 1000,    // 30 minutes of inactivity
+    SESSION_TIMEOUT_MS: 30 * 60 * 1000,
     MAX_LOGIN_ATTEMPTS: 5,
-    LOGIN_LOCKOUT_MS: 15 * 60 * 1000,      // 15 minutes
+    LOGIN_LOCKOUT_MS: 15 * 60 * 1000,
     MAX_EVENT_PWD_ATTEMPTS: 5,
-    EVENT_PWD_LOCKOUT_MS: 10 * 60 * 1000,  // 10 minutes
-    MAX_STUDENT_LOOKUP_ATTEMPTS: 25,       // Anti-enumeration limit for student Event ID lookups
+    EVENT_PWD_LOCKOUT_MS: 10 * 60 * 1000,
+    MAX_STUDENT_LOOKUP_ATTEMPTS: 25,
     STUDENT_LOOKUP_WINDOW_MS: 5 * 60 * 1000,
-    MAX_FILE_SIZE_BYTES: 5 * 1024 * 1024,  // 5 MB max CSV upload
+    MAX_FILE_SIZE_BYTES: 5 * 1024 * 1024,
     MAX_CSV_ROWS: 5000,
     HASH_PREFIX: 'sha256$'
   };
@@ -24,15 +18,11 @@
   const ROLE_STORAGE_KEY = 'attendx_active_role_v2';
   const VALID_ROLES = new Set(['coordinator', 'student']);
 
-  // Private closure state — immune to direct `window.AttendX.State.role` console tampering
+  // keep role in closure so changing AttendX.State.role in devtools won't bypass checks
   let privateRole = null;
   let privateRoleUserId = null;
   const privateVerifiedEvents = new Set();
 
-  /**
-   * Hash an event password using Web Crypto SHA-256 so plain-text passwords
-   * are not stored in new event records.
-   */
   async function hashSecret(plainText) {
     const raw = String(plainText || '');
     if (!raw) return '';
@@ -52,9 +42,6 @@
     return raw;
   }
 
-  /**
-   * Constant-time string comparison to mitigate timing attacks.
-   */
   function timingSafeEqual(a, b) {
     const strA = String(a || '');
     const strB = String(b || '');
@@ -66,10 +53,7 @@
     return diff === 0;
   }
 
-  /**
-   * Verify a candidate password against a stored password (supports both
-   * SHA-256 hashed secrets and legacy plain-text event passwords).
-   */
+  // supports both sha256 hashed passwords and older plain-text ones
   async function verifySecret(candidatePlain, storedValue) {
     if (!candidatePlain || !storedValue) return false;
     const stored = String(storedValue);
@@ -80,10 +64,6 @@
     return timingSafeEqual(String(candidatePlain), stored);
   }
 
-  /**
-   * Set the authenticated user's active role ('coordinator' or 'student').
-   * Switching to 'student' or clearing role immediately revokes all coordinator event privileges.
-   */
   function setSessionRole(role, userId) {
     const normalized = VALID_ROLES.has(role) ? role : null;
     privateRole = normalized;
@@ -116,9 +96,6 @@
     return normalized;
   }
 
-  /**
-   * Restore previously chosen role for the same authenticated user within the active tab session.
-   */
   function restoreSessionRole(userId) {
     if (!userId) return null;
     if (privateRole && privateRoleUserId === String(userId)) {
@@ -166,23 +143,14 @@
     return privateRole === 'student';
   }
 
-  /**
-   * Record that the current coordinator session has legitimately created or verified
-   * the password for `eventId`. Ignored if current role is not 'coordinator'.
-   */
   function markEventCoordinatorVerified(eventId) {
     if (privateRole !== 'coordinator' || !eventId) return false;
     privateVerifiedEvents.add(String(eventId).trim().toUpperCase());
     return true;
   }
 
-  /**
-   * Check whether the current session is both in Coordinator role AND has verified
-   * the password (or created) the specified event.
-   */
   function isEventCoordinatorVerified(eventId) {
-    if (privateRole !== 'coordinator') return false;
-    if (!eventId) return false;
+    if (privateRole !== 'coordinator' || !eventId) return false;
     return privateVerifiedEvents.has(String(eventId).trim().toUpperCase());
   }
 

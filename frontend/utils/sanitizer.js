@@ -1,7 +1,3 @@
-/**
- * Frontend Utility — Sanitizer, Input Validator & Academic Year Parser
- * Prevents DOM XSS and handles edge cases in roll numbers, CSV files, and dates.
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Utils = AttendX.Utils || {};
@@ -15,17 +11,12 @@
     '/': '&#x2F;'
   };
 
-  /**
-   * Escape untrusted strings before inserting into HTML templates to prevent XSS.
-   */
   function escapeHtml(str) {
     if (str === null || str === undefined) return '';
     return String(str).replace(/[&<>"'/]/g, ch => HTML_ESCAPE_MAP[ch]);
   }
 
-  /**
-   * Dynamically calculate current academic year batch prefixes (Starts in July).
-   */
+  // academic year starts in july (month index 6)
   function computeAcademicYears() {
     const now = new Date();
     let startYear = now.getFullYear();
@@ -42,9 +33,6 @@
 
   const YEAR_LABELS = { 1: '1st', 2: '2nd', 3: '3rd', 4: '4th' };
 
-  /**
-   * Validate and parse a roll number suffix (e.g. "CSE042", "MECH007").
-   */
   function parseRollSuffix(rawSuffix) {
     const clean = String(rawSuffix || '').trim().toUpperCase();
     if (!clean) {
@@ -65,19 +53,14 @@
     };
   }
 
-  /**
-   * Validate and parse a full roll number row from CSV (e.g. "Y25CSE001").
-   * Skips CSV header labels ("ROLL_NO", "Roll Number", etc.) and malformed strings.
-   */
   function parseFullRollRow(rawLine, yearPrefixes) {
     if (!rawLine) return null;
-    // Take first CSV column if comma/semicolon separated
     const firstCol = String(rawLine).split(/[,;\t]/)[0].trim().toUpperCase();
     const cleaned = firstCol.replace(/[^A-Z0-9]/g, '');
 
     if (!cleaned) return null;
 
-    // Ignore common CSV header titles
+    // skip header rows like "ROLL_NO" or "Student ID"
     if (
       /^(ROLL|REG|SNO|SRNO|STUDENT|ID|NAME|NUMBER|REGISTERED)/.test(cleaned) &&
       !/^Y\d{2}[A-Z]{2,6}\d{2,4}$/.test(cleaned)
@@ -104,9 +87,6 @@
     };
   }
 
-  /**
-   * Format an ISO timestamp safely to local time (HH:MM).
-   */
   function formatTime(iso) {
     if (!iso) return '-';
     try {
@@ -118,9 +98,6 @@
     }
   }
 
-  /**
-   * Safely format event date + optional time string without throwing Invalid Date.
-   */
   function formatEventDateTime(dateStr, timeStr) {
     if (!dateStr) return '-';
     try {
@@ -136,9 +113,6 @@
     }
   }
 
-  /**
-   * Sanitize filenames and Excel worksheet names to prevent OS / SheetJS errors.
-   */
   function sanitizeFilename(name) {
     return String(name || 'Event')
       .trim()
@@ -147,6 +121,7 @@
       .slice(0, 50) || 'Event';
   }
 
+  // sheetjs throws if sheet names are over 31 chars or have special chars
   function sanitizeSheetName(name) {
     return String(name || 'Branch')
       .replace(/[\\/?*:[\]]+/g, '')

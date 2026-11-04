@@ -1,8 +1,3 @@
--- ============================================================================
--- AttendX — Supabase PostgreSQL Database Schema
--- ============================================================================
-
--- 1. Events Table
 CREATE TABLE IF NOT EXISTS events (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
@@ -15,7 +10,6 @@ CREATE TABLE IF NOT EXISTS events (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 2. Attendance Table
 CREATE TABLE IF NOT EXISTS attendance (
   id BIGSERIAL PRIMARY KEY,
   event_id TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
@@ -30,15 +24,13 @@ CREATE TABLE IF NOT EXISTS attendance (
   UNIQUE(event_id, roll_no)
 );
 
--- Enable FULL replica identity so Supabase Realtime broadcasts complete old rows on DELETE
+-- needed so realtime delete events include the old row values
 ALTER TABLE attendance REPLICA IDENTITY FULL;
 
--- Indexes for high-speed lookups and sorting
 CREATE INDEX IF NOT EXISTS idx_attendance_event_id ON attendance(event_id);
 CREATE INDEX IF NOT EXISTS idx_attendance_roll_no ON attendance(event_id, roll_no);
 CREATE INDEX IF NOT EXISTS idx_events_created_at ON events(created_at DESC);
 
--- 3. Audit Logs Table
 CREATE TABLE IF NOT EXISTS audit_logs (
   id BIGSERIAL PRIMARY KEY,
   log_type TEXT NOT NULL,

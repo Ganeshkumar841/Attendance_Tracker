@@ -1,8 +1,3 @@
-/**
- * Frontend Component — Security & Confirmation Modals
- * Renders and manages Edit Authorization, Delete Participant Confirmation, and Discard Event modals.
- * Blocks modal opening if the active session is a read-only Student session.
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Components = AttendX.Components || {};
@@ -18,7 +13,6 @@
     if (!mount) return;
 
     mount.innerHTML = `
-      <!-- EDIT AUTH MODAL -->
       <div
         id="modal-edit-auth"
         class="modal-overlay hidden fixed inset-0 bg-black/60 backdrop-blur-[4px] z-[500] items-center justify-center p-5"
@@ -69,7 +63,6 @@
         </div>
       </div>
 
-      <!-- DELETE CONFIRM MODAL -->
       <div
         id="modal-delete-confirm"
         class="modal-overlay hidden fixed inset-0 bg-black/60 backdrop-blur-[4px] z-[500] items-center justify-center p-5"
@@ -102,7 +95,6 @@
         </div>
       </div>
 
-      <!-- DELETE EVENT MODAL -->
       <div
         id="modal-delete-event"
         class="modal-overlay hidden fixed inset-0 bg-black/60 backdrop-blur-[4px] z-[500] items-center justify-center p-5"
@@ -111,7 +103,7 @@
         aria-labelledby="modal-delete-event-title"
       >
         <div class="bg-surface border border-theme rounded-2xl p-7 w-full max-w-[380px] shadow-card animate-modal-in">
-          <h3 id="modal-delete-event-title" class="text-[1.12rem] font-semibold text-danger mb-2">⚠ Discard Event?</h3>
+          <h3 id="modal-delete-event-title" class="text-[1.12rem] font-semibold text-danger mb-2">Discard Event?</h3>
           <p class="text-[0.86rem] text-muted mb-5 leading-relaxed">
             This will <strong class="text-main font-medium">permanently delete the event and all attendance records</strong>. This action cannot be undone.<br><br>Enter the event password to confirm.
           </p>

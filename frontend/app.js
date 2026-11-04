@@ -1,8 +1,3 @@
-/**
- * Frontend Application Bootstrapper & Router (`frontend/app.js`)
- * Initializes global application state, mounts modular components and pages,
- * and manages role-guarded navigation and Supabase auth lifecycle events.
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
 
@@ -20,7 +15,6 @@
     'screen-join'
   ]);
 
-  // Global Reactive State
   AttendX.State = {
     user: null,
     role: null,
@@ -45,12 +39,10 @@
     const state = AttendX.State;
     const { SecurityConfig } = AttendX.Backend;
 
-    // 1. Unauthenticated guard: only 'screen-login' is allowed without an active user session
     if (id !== 'screen-login' && !state.user) {
       id = 'screen-login';
     }
 
-    // 2. Role-based screen navigation guard
     if (id !== 'screen-login' && id !== 'screen-role') {
       const activeRole = SecurityConfig.getSessionRole();
       if (!activeRole) {
@@ -99,13 +91,11 @@
       roleNameEl.textContent = state.user.name;
     }
 
-    // Start 30-minute inactivity session monitor
     AttendX.Backend.SessionManager.startSessionMonitor(() => {
       AttendX.Components.Toast.toast('Session expired due to inactivity. Please sign in again.', 'info');
       logout();
     });
 
-    // Check if a role was already selected in this tab session; otherwise show Role Selection screen
     const restoredRole = SecurityConfig.restoreSessionRole(state.user.id);
     AttendX.Components.Header.updateHeaderRoleBadge();
 
@@ -179,7 +169,7 @@
           }
         }
       })
-      .catch(err => console.warn('[AttendX] Session check error:', err));
+      .catch(err => console.warn('Session check error:', err));
 
     client.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
@@ -211,7 +201,6 @@
   }
 
   async function bootstrapApp() {
-    // 1. Mount all modular UI components & pages
     AttendX.Components.Header.renderHeader();
     AttendX.Pages.SignIn.renderSignInPage();
     AttendX.Pages.Menu.renderMenuPage();
@@ -220,10 +209,8 @@
     AttendX.Components.Footer.renderFooter();
     AttendX.Components.Modals.renderModals();
 
-    // 2. Initialize Dark / Light Theme (icon-only toggle, smooth transitions)
     AttendX.Utils.Theme.initTheme();
 
-    // 3. Populate dynamic academic year labels and default event date
     const prefixes = AttendX.State.yearPrefixes;
     ['1', '2', '3', '4'].forEach(y => {
       const el = document.getElementById(`y${y}-prefix`);
@@ -235,13 +222,11 @@
       dateInput.valueAsDate = new Date();
     }
 
-    // 4. Register auth state listeners
     initSupabaseAuthListeners();
 
     const { AuthService, Supabase, SecurityConfig } = AttendX.Backend;
     const { showAuthBanner, switchAuthMode } = AttendX.Pages.SignIn;
 
-    // 5. Handle URL error descriptions (e.g., expired OTP link)
     if (
       INITIAL_URL_HASH.includes('error_description=') ||
       INITIAL_URL_SEARCH.includes('error_description=')
@@ -259,7 +244,6 @@
       }
     }
 
-    // 6. Handle token_hash in URL query if present
     if (
       Supabase.isConfigured() &&
       (INITIAL_URL_SEARCH.includes('token_hash=') || INITIAL_URL_SEARCH.includes('token='))

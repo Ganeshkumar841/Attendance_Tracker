@@ -6,28 +6,22 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>AttendX — Event Attendance System</title>
+  <title>AttendX</title>
 
-  <!-- External Libraries: SheetJS & Supabase Client -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Tailwind CSS CDN & Custom Theme Configuration -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="frontend/styles/tailwind.config.js?v=2.3"></script>
   <link rel="stylesheet" href="frontend/styles/theme.css?v=2.3">
 </head>
 <body class="font-sans bg-app text-main min-h-screen overflow-x-hidden flex flex-col select-none">
-
-  <!-- GLOBAL HEADER COMPONENT MOUNT -->
   <div id="app-header-mount"></div>
 
-  <!-- MAIN APPLICATION WORKSPACE -->
   <main id="app" class="relative z-[1] flex-1 flex flex-col">
     <div id="page-signin-mount" class="flex-1 flex flex-col"></div>
     <div id="page-menu-mount" class="flex-1 flex flex-col"></div>
@@ -35,22 +29,16 @@
     <div id="page-attendance-mount" class="flex-1 flex flex-col"></div>
   </main>
 
-  <!-- GLOBAL FOOTER COMPONENT MOUNT -->
   <div id="app-footer-mount"></div>
-
-  <!-- MODALS MOUNT -->
   <div id="app-modals-mount"></div>
 
-  <!-- TOAST NOTIFICATION -->
   <div
     id="toast"
     class="fixed bottom-6 left-1/2 -translate-x-1/2 translate-y-[95px] bg-surface border border-strong text-main py-2.5 px-5 rounded-xl text-[0.85rem] font-medium shadow-toast transition-transform duration-300 z-[1000] whitespace-nowrap pointer-events-none"
   ></div>
 
-  <!-- Environment Configuration -->
   <script src="config.js?v=2.3"></script>
 
-  <!-- Backend Layer (Config, Middleware & Services) -->
   <script src="backend/config/securityConfig.js?v=2.3"></script>
   <script src="backend/config/supabaseClient.js?v=2.3"></script>
   <script src="backend/middleware/rateLimiter.js?v=2.3"></script>
@@ -60,7 +48,6 @@
   <script src="backend/services/eventService.js?v=2.3"></script>
   <script src="backend/services/attendanceService.js?v=2.3"></script>
 
-  <!-- Frontend Layer (Utilities, Components, Pages & App Router) -->
   <script src="frontend/utils/sanitizer.js?v=2.3"></script>
   <script src="frontend/utils/theme.js?v=2.3"></script>
   <script src="frontend/utils/exporter.js?v=2.3"></script>

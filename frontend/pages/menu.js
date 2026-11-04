@@ -1,6 +1,3 @@
-/**
- * Frontend Page — Post-Auth Role Selection (Coordinator/Staff vs. Student) & Coordinator Dashboard Menu Page
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Pages = AttendX.Pages || {};
@@ -10,7 +7,6 @@
     if (!mount) return;
 
     mount.innerHTML = `
-      <!-- POST-AUTHENTICATION ROLE SELECTION SCREEN -->
       <section id="screen-role" class="screen hidden flex-1 flex-col">
         <div class="max-w-[760px] mx-auto px-5 w-full pt-14 pb-10 flex-1 flex flex-col justify-center">
           <div class="mb-9 text-center select-none">
@@ -23,7 +19,6 @@
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- Coordinator / Staff Login Card -->
             <button
               type="button"
               id="btn-role-coordinator"
@@ -44,7 +39,6 @@
               <span class="text-muted text-[1.25rem] transition-all duration-150 group-hover:translate-x-[3px] group-hover:text-accent">›</span>
             </button>
 
-            <!-- Student Login Card -->
             <button
               type="button"
               id="btn-role-student"
@@ -78,7 +72,6 @@
         </div>
       </section>
 
-      <!-- COORDINATOR / STAFF DASHBOARD MENU -->
       <section id="screen-menu" class="screen hidden flex-1 flex-col">
         <div class="max-w-[760px] mx-auto px-5 w-full pt-14 pb-10 flex-1 flex flex-col justify-center">
           <div class="mb-9 text-center select-none">
@@ -165,7 +158,6 @@
 
     const normalized = role === 'student' ? 'student' : 'coordinator';
 
-    // Reset any active event state when selecting or changing role
     AttendanceService.unsubscribeRealtime();
     state.currentEvent = null;
     state.attendance = [];
@@ -197,7 +189,6 @@
       return;
     }
 
-    // Close any open modals and clear active event session
     if (AttendX.Components?.Modals) {
       ['modal-edit-auth', 'modal-delete-confirm', 'modal-delete-event'].forEach(id => {
         AttendX.Components.Modals.closeModal(id);

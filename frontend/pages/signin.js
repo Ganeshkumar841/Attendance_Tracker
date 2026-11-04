@@ -1,6 +1,3 @@
-/**
- * Frontend Page — Sign In, Sign Up, Password Reset & OTP Verification Page
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Pages = AttendX.Pages || {};
@@ -43,7 +40,6 @@
               <span class="flex-1 h-px bg-theme"></span>
             </div>
 
-            <!-- Mode Tabs: Sign In vs Sign Up -->
             <div id="auth-mode-tabs" class="flex bg-input rounded-xl p-1 mb-[18px] border border-theme select-none">
               <button
                 type="button"
@@ -63,10 +59,8 @@
               </button>
             </div>
 
-            <!-- Status / Error Banner -->
             <div id="auth-status-banner" class="hidden py-3 px-3.5 rounded-xl text-[0.82rem] leading-[1.45] mb-4 border border-theme bg-surface2 text-main"></div>
 
-            <!-- Main Email / Password View -->
             <div id="auth-view-credentials">
               <div id="field-login-email" class="mb-[18px]">
                 <label for="login-email" class="block text-[0.8rem] font-medium text-secondary mb-[7px]">Email Address</label>
@@ -135,7 +129,6 @@
               </div>
             </div>
 
-            <!-- Email Link / OTP Verification View -->
             <div id="auth-view-otp" class="hidden">
               <div id="otp-instructions-box" class="bg-input border border-theme rounded-xl py-3 px-3.5 mb-3.5 text-[0.8rem] leading-relaxed text-secondary">
                 <strong class="text-accent font-medium">1. Click the link in your email:</strong> Open the email sent to <strong id="otp-email-display" class="text-main font-medium"></strong> and click the action link.<br>
@@ -178,7 +171,6 @@
               </div>
             </div>
 
-            <!-- Update Password View -->
             <div id="auth-view-update-pwd" class="hidden">
               <div class="mb-[18px]">
                 <label for="new-password" class="block text-[0.8rem] font-medium text-secondary mb-[7px]">New Password</label>
@@ -353,7 +345,6 @@
       return;
     }
 
-    // 1. PASSWORD RESET FLOW
     if (state.authMode === 'reset') {
       submitBtn.disabled = true;
       const origText = submitBtn.textContent;
@@ -388,7 +379,6 @@
       return;
     }
 
-    // 2. SIGN UP FLOW
     if (state.authMode === 'signup') {
       const pwdErr = AuthService.validatePasswordPolicy(pass);
       if (pwdErr) {
@@ -413,6 +403,7 @@
         return;
       }
 
+      // supabase returns empty identities array when email is already registered
       if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
         switchAuthMode('signin');
         showAuthBanner(
@@ -440,7 +431,6 @@
       return;
     }
 
-    // 3. SIGN IN FLOW (with Brute-Force Rate Limiting)
     const rateKey = 'login_' + email.toLowerCase();
     const limitStatus = RateLimiter.checkLimit(
       rateKey,
@@ -517,6 +507,7 @@
     const verifyType = state.otpType === 'recovery' ? 'recovery' : 'signup';
 
     try {
+      // user pasted the redirected url with #access_token=...
       if (rawInput.includes('access_token=')) {
         const hashPart = rawInput.includes('#')
           ? rawInput.split('#')[1]
@@ -556,6 +547,7 @@
         }
       }
 
+      // user pasted the raw link from the email (?token=...)
       if (rawInput.startsWith('http://') || rawInput.startsWith('https://') || rawInput.includes('token=')) {
         const queryPart = rawInput.includes('?') ? rawInput.split('?')[1].split('#')[0] : rawInput;
         const params = new URLSearchParams(queryPart);

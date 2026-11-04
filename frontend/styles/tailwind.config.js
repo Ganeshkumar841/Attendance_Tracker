@@ -1,8 +1,3 @@
-/**
- * Frontend Styles — Tailwind CSS Configuration
- * Maps the unified Obsidian Slate (Dark) & Crisp Daylight (Light) CSS variables
- * to semantic Tailwind utility classes and typography scales.
- */
 window.tailwind = window.tailwind || {};
 window.tailwind.config = {
   darkMode: ['selector', '[data-theme="dark"]'],

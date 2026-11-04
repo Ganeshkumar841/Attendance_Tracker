@@ -1,8 +1,3 @@
-/**
- * Frontend Page — View List, Roll Number Status Checker & Coordinator Reactive Participant Deletion Page
- * In Student mode: strictly read-only (no delete/edit buttons, no modifications allowed) with instant roll status lookup.
- * In Coordinator mode: supports instant reactive participant deletion with password verification.
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Pages = AttendX.Pages || {};
@@ -14,7 +9,6 @@
     if (!mount) return;
 
     mount.innerHTML = `
-      <!-- Roll Number Search & Instant Attendance Status Verification -->
       <div class="bg-surface border border-theme rounded-2xl p-4 sm:p-5 mb-5 shadow-card">
         <label for="att-search-input" class="block text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-2.5 select-none">
           Check Attendance Status by Roll Number
@@ -36,13 +30,15 @@
             aria-label="Clear search"
             class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-muted hover:text-main hover:bg-surface2 cursor-pointer focus:outline-none select-none"
           >
-            ✕
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
           </button>
         </div>
         <div id="student-status-banner" class="hidden mt-3 py-2.5 px-3.5 rounded-xl text-[0.82rem] leading-relaxed"></div>
       </div>
 
-      <!-- Status Filter Chips -->
       <div id="filter-bar" class="flex items-center gap-2 mb-4 flex-wrap select-none">
         <button
           type="button"
@@ -72,12 +68,10 @@
 
       <div id="att-list-container">
         <div class="text-center py-12 px-5 text-muted">
-          <div class="text-[2.2rem] mb-3 opacity-35">📋</div>
           <p class="text-[0.88rem]">No entries present yet.</p>
         </div>
       </div>
 
-      <!-- Student Session Navigation Footer (Visible only in Student Mode) -->
       <div id="student-session-actions" class="hidden mt-6 bg-surface border border-theme rounded-2xl p-5 shadow-card">
         <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 select-none">
           Navigation
@@ -178,11 +172,11 @@
       if (exactMatch.status === 'attended') {
         banner.className =
           'mt-3 py-2.5 px-3.5 rounded-xl text-[0.82rem] leading-relaxed bg-success-bg text-success border border-theme';
-        banner.innerHTML = `<strong>✓ Marked Attended:</strong> <span class="font-mono font-semibold">${safeRoll}</span> (${safeYear} Year · ${safeBranch}) is marked <strong>Present</strong> at ${safeTime}.`;
+        banner.innerHTML = `<strong>Marked Attended:</strong> <span class="font-mono font-semibold">${safeRoll}</span> (${safeYear} Year · ${safeBranch}) is marked <strong>Present</strong> at ${safeTime}.`;
       } else {
         banner.className =
           'mt-3 py-2.5 px-3.5 rounded-xl text-[0.82rem] leading-relaxed bg-surface-tint text-accent border border-theme';
-        banner.innerHTML = `<strong>○ Pre-Registered:</strong> <span class="font-mono font-semibold">${safeRoll}</span> (${safeYear} Year · ${safeBranch}) is pre-registered but <strong>not yet marked attended</strong>.`;
+        banner.innerHTML = `<strong>Pre-Registered:</strong> <span class="font-mono font-semibold">${safeRoll}</span> (${safeYear} Year · ${safeBranch}) is pre-registered but <strong>not yet marked attended</strong>.`;
       }
       return;
     }
@@ -262,7 +256,6 @@
 
       container.innerHTML = `
         <div class="bg-surface border border-theme rounded-2xl text-center py-12 px-5 text-muted shadow-card select-none">
-          <div class="text-[2.2rem] mb-3 opacity-35">📋</div>
           <p class="text-[0.9rem] font-medium text-secondary mb-1">No entries present</p>
           <p class="text-[0.78rem] text-muted">${escapeHtml(subText)}</p>
         </div>
@@ -283,9 +276,8 @@
           const badgeClass = isAttended
             ? 'bg-success-bg text-success border border-theme'
             : 'bg-surface-tint text-accent border border-theme';
-          const badgeText = isAttended ? '✓ Present' : '○ Pre-reg';
+          const badgeText = isAttended ? 'Present' : 'Pre-reg';
 
-          // Strictly omit delete button for Students (canModify === false)
           const deleteActionHtml = canModify
             ? `
                 <button
@@ -325,7 +317,6 @@
         .join('') +
       '</div>';
 
-    // Bind delete listeners ONLY when Coordinator modification privileges are active
     if (canModify) {
       container.querySelectorAll('.delete-participant-btn').forEach(btn => {
         btn.addEventListener('click', e => {
@@ -405,9 +396,6 @@
     AttendX.Components.Modals.openModal('modal-delete-confirm');
   }
 
-  /**
-   * Execute participant deletion with immediate synchronous state + DOM update (Coordinator only).
-   */
   async function executeDelete() {
     if (isDeletingParticipant) return;
     const state = AttendX.State;
@@ -444,6 +432,7 @@
 
     const previousAttendance = [...(state.attendance || [])];
 
+    // update local state right away so UI doesn't lag waiting on network
     state.attendance = previousAttendance.filter(a => {
       if (targetRoll && String(a.rollNo).toUpperCase() === String(targetRoll).toUpperCase()) {
         return false;

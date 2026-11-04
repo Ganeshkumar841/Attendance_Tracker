@@ -1,7 +1,3 @@
-/**
- * Frontend Component — Global Top Navigation Header
- * Renders the AttendX brand bar, matching role indicator pill, and the clean icon-only Dark/Light mode toggle button.
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Components = AttendX.Components || {};
@@ -81,7 +77,6 @@
       return;
     }
 
-    // Both Coordinator / Staff and Student use the exact same harmonious matching badge style
     badge.textContent = role === 'student' ? 'Student' : 'Coordinator / Staff';
     badge.className =
       'inline-flex items-center ml-1.5 py-1 px-2.5 rounded-lg text-[0.72rem] font-medium tracking-wide bg-surface-tint text-accent border border-theme select-none';

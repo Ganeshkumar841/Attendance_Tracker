@@ -1,6 +1,3 @@
-/**
- * Frontend Page — Events Page (Coordinator Create/Join Event & Student Read-Only Event Lookup)
- */
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Pages = AttendX.Pages || {};
@@ -14,7 +11,6 @@
     if (!mount) return;
 
     mount.innerHTML = `
-      <!-- CREATE EVENT (Coordinator / Staff Only) -->
       <section id="screen-create" class="screen hidden flex-1 flex-col">
         <div class="flex-1 flex flex-col justify-center py-9 px-5">
           <div class="max-w-[460px] mx-auto px-5 w-full">
@@ -115,7 +111,6 @@
         </div>
       </section>
 
-      <!-- EVENT CREATED SUMMARY (Coordinator / Staff Only) -->
       <section id="screen-event-created" class="screen hidden flex-1 flex-col">
         <div class="flex-1 flex flex-col justify-center py-9 px-5">
           <div class="max-w-[460px] mx-auto px-5 w-full">
@@ -124,7 +119,7 @@
 
             <div class="bg-surface-tint border border-dashed border-strong rounded-2xl p-6 text-center my-6">
               <div class="text-[0.72rem] text-accent uppercase tracking-[0.08em] mb-1.5 font-semibold">Event ID</div>
-              <div id="display-event-id" class="font-mono text-[2rem] font-semibold text-main tracking-[0.12em]">──────</div>
+              <div id="display-event-id" class="font-mono text-[2rem] font-semibold text-main tracking-[0.12em]">EV0000</div>
               <div class="text-[0.82rem] text-muted mt-2">
                 Password: <span id="display-event-pass" class="text-main font-mono">••••••</span>
               </div>
@@ -166,7 +161,6 @@
         </div>
       </section>
 
-      <!-- JOIN EVENT (Coordinator / Staff Only) -->
       <section id="screen-join" class="screen hidden flex-1 flex-col">
         <div class="flex-1 flex flex-col justify-start py-9 px-5">
           <div class="max-w-[460px] mx-auto px-5 w-full">
@@ -224,7 +218,6 @@
               </button>
             </div>
 
-            <!-- RECENT EVENTS -->
             <div class="mt-9">
               <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 flex items-center gap-2.5 select-none">
                 <span class="flex-1 h-px bg-theme"></span>
@@ -237,7 +230,6 @@
         </div>
       </section>
 
-      <!-- STUDENT EVENT SELECTION & ATTENDANCE LOOKUP -->
       <section id="screen-student-events" class="screen hidden flex-1 flex-col">
         <div class="flex-1 flex flex-col justify-start py-9 px-5">
           <div class="max-w-[500px] mx-auto px-5 w-full">
@@ -295,7 +287,6 @@
               </button>
             </div>
 
-            <!-- ACTIVE / RECENT CAMPUS EVENTS FOR STUDENTS -->
             <div class="mt-9">
               <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 flex items-center gap-2.5 select-none">
                 <span class="flex-1 h-px bg-theme"></span>
@@ -485,7 +476,6 @@
         return;
       }
 
-      // Reset session-scoped flags for the new event
       state.currentEvent = data;
       state.events.unshift(data);
       state.attendance = [];
@@ -578,9 +568,6 @@
     }
   }
 
-  /**
-   * Student read-only event entry: loads public event details and directs strictly to the View List section.
-   */
   async function joinEventAsStudent(explicitId) {
     if (isStudentLoadingEvent) return;
     const { Supabase, EventService, AttendanceService } = AttendX.Backend;
