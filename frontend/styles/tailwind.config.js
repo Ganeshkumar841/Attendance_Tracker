@@ -1,6 +1,5 @@
 window.tailwind = window.tailwind || {};
 window.tailwind.config = {
-  darkMode: ['selector', '[data-theme="dark"]'],
   theme: {
     extend: {
       colors: {
@@ -57,8 +56,8 @@ window.tailwind.config = {
       },
       boxShadow: {
         card: 'var(--card-shadow)',
-        'btn-primary': '0 1px 2px rgba(0, 0, 0, 0.22), 0 4px 12px rgba(37, 99, 235, 0.26)',
-        toast: '0 10px 30px rgba(0, 0, 0, 0.35)'
+        'btn-primary': '0 1px 2px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(37, 99, 235, 0.22)',
+        toast: '0 10px 28px rgba(15, 23, 42, 0.15)'
       },
       keyframes: {
         slideIn: {

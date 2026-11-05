@@ -37,7 +37,7 @@
     pendingEmail: '',
     otpType: 'signup',
     isPasswordRecovery: IS_INITIAL_RECOVERY,
-    theme: 'dark',
+    theme: 'light',
     selectedYear: null,
     yearPrefixes
   };

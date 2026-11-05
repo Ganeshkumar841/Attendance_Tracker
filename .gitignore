@@ -1,0 +1,17 @@
+# Local configuration and secrets
+config.js
+.env
+.env.*
+
+# Dependencies and build artifacts
+node_modules/
+dist/
+build/
+.vercel/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.log
+.vscode/*
+!.vscode/extensions.json
