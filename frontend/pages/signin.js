@@ -7,7 +7,7 @@
     if (!mount) return;
 
     mount.innerHTML = `
-      <section id="screen-login" class="screen flex flex-1 flex-col items-center justify-center py-10 px-5 pb-14">
+      <section id="screen-login" class="screen hidden flex-1 flex-col items-center justify-center py-10 px-5 pb-14">
         <div class="max-w-[460px] mx-auto px-5 w-full">
           <div class="text-center mb-7 select-none">
             <span class="font-sans text-[1.95rem] sm:text-[2.25rem] font-semibold text-main block mb-2 tracking-[-0.03em]">AttendX</span>
@@ -70,7 +70,7 @@
                   placeholder="Email"
                   autocomplete="email"
                   onkeydown="if(event.key==='Enter') loginEmail()"
-                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                 >
               </div>
 
@@ -93,7 +93,7 @@
                     placeholder="Password"
                     autocomplete="current-password"
                     onkeydown="if(event.key==='Enter') loginEmail()"
-                    class="w-full py-3 pl-[15px] pr-11 bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                    class="w-full py-3 pl-[15px] pr-11 bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                   >
                   <button
                     type="button"
@@ -141,7 +141,7 @@
                   id="otp-code"
                   placeholder="Paste link from email or enter code..."
                   onkeydown="if(event.key==='Enter') verifyEmailOtp()"
-                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-xl text-main font-mono text-[0.9rem] font-medium placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                  class="w-full py-3 px-[15px] bg-input border border-theme rounded-xl text-main font-mono text-[0.9rem] font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                 >
               </div>
               <div class="flex flex-col gap-2.5">
@@ -180,7 +180,7 @@
                     id="new-password"
                     placeholder="Min. 8 chars (letters + digits)"
                     onkeydown="if(event.key==='Enter') submitNewPassword()"
-                    class="w-full py-3 pl-[15px] pr-11 bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                    class="w-full py-3 pl-[15px] pr-11 bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                   >
                   <button
                     type="button"
@@ -247,80 +247,82 @@
     }
     showAuthBanner('');
 
-    const tabsWrap      = document.getElementById('auth-mode-tabs');
-    const tabSignin     = document.getElementById('tab-auth-signin');
-    const tabSignup     = document.getElementById('tab-auth-signup');
-    const credView      = document.getElementById('auth-view-credentials');
-    const otpView       = document.getElementById('auth-view-otp');
+    const tabsWrap = document.getElementById('auth-mode-tabs');
+    const tabSignin = document.getElementById('tab-auth-signin');
+    const tabSignup = document.getElementById('tab-auth-signup');
+    const credView = document.getElementById('auth-view-credentials');
+    const otpView = document.getElementById('auth-view-otp');
     const updatePwdView = document.getElementById('auth-view-update-pwd');
-    const pwdField      = document.getElementById('field-login-password');
-    const pwdHint       = document.getElementById('pwd-policy-hint');
-    const forgotLink    = document.getElementById('forgot-pwd-link');
-    const submitBtn     = document.getElementById('auth-submit-btn');
+    const pwdField = document.getElementById('field-login-password');
+    const pwdHint = document.getElementById('pwd-policy-hint');
+    const forgotLink = document.getElementById('forgot-pwd-link');
+    const submitBtn = document.getElementById('auth-submit-btn');
     const resetBackWrap = document.getElementById('reset-back-wrap');
-    const cardTitle     = document.getElementById('auth-card-title');
-    const googleBtn     = document.getElementById('btn-google-login');
-    const orDivider     = document.getElementById('auth-divider-or');
+    const cardTitle = document.getElementById('auth-card-title');
+    const googleBtn = document.getElementById('btn-google-login');
+    const orDivider = document.getElementById('auth-divider-or');
 
     if (!credView) return;
 
-    credView.style.display      = 'none';
-    otpView.style.display       = 'none';
+    credView.style.display = 'none';
+    otpView.style.display = 'none';
     updatePwdView.style.display = 'none';
 
-    const activeTabClass   = 'auth-tab flex-1 py-2 px-3 rounded-lg text-[0.82rem] font-semibold cursor-pointer text-center transition-all font-sans bg-primary text-white shadow-btn-primary focus:outline-none select-none';
-    const inactiveTabClass = 'auth-tab flex-1 py-2 px-3 rounded-lg text-[0.82rem] font-medium cursor-pointer text-center transition-all font-sans bg-transparent text-muted hover:text-main focus:outline-none select-none';
+    const activeTabClass =
+      'auth-tab flex-1 py-2 px-3 rounded-lg text-[0.82rem] font-semibold cursor-pointer text-center transition-all font-sans bg-primary text-white shadow-btn-primary focus:outline-none select-none';
+    const inactiveTabClass =
+      'auth-tab flex-1 py-2 px-3 rounded-lg text-[0.82rem] font-medium cursor-pointer text-center transition-all font-sans bg-transparent text-muted hover:text-main focus:outline-none select-none';
 
     if (mode === 'signin') {
-      cardTitle.textContent       = 'Sign in to continue';
-      googleBtn.style.display     = 'inline-flex';
-      orDivider.style.display     = 'flex';
-      tabsWrap.style.display      = 'flex';
-      tabSignin.className         = activeTabClass;
-      tabSignup.className         = inactiveTabClass;
-      credView.style.display      = 'block';
-      pwdField.style.display      = 'block';
-      pwdHint.style.display       = 'none';
-      forgotLink.style.display    = 'inline';
+      cardTitle.textContent = 'Sign in to continue';
+      googleBtn.style.display = 'inline-flex';
+      orDivider.style.display = 'flex';
+      tabsWrap.style.display = 'flex';
+      tabSignin.className = activeTabClass;
+      tabSignup.className = inactiveTabClass;
+      credView.style.display = 'block';
+      pwdField.style.display = 'block';
+      pwdHint.style.display = 'none';
+      forgotLink.style.display = 'inline';
       resetBackWrap.style.display = 'none';
-      submitBtn.textContent       = 'Sign In';
+      submitBtn.textContent = 'Sign In';
     } else if (mode === 'signup') {
-      cardTitle.textContent       = 'Create an account';
-      googleBtn.style.display     = 'inline-flex';
-      orDivider.style.display     = 'flex';
-      tabsWrap.style.display      = 'flex';
-      tabSignin.className         = inactiveTabClass;
-      tabSignup.className         = activeTabClass;
-      credView.style.display      = 'block';
-      pwdField.style.display      = 'block';
-      pwdHint.style.display       = 'block';
-      forgotLink.style.display    = 'none';
+      cardTitle.textContent = 'Create an account';
+      googleBtn.style.display = 'inline-flex';
+      orDivider.style.display = 'flex';
+      tabsWrap.style.display = 'flex';
+      tabSignin.className = inactiveTabClass;
+      tabSignup.className = activeTabClass;
+      credView.style.display = 'block';
+      pwdField.style.display = 'block';
+      pwdHint.style.display = 'block';
+      forgotLink.style.display = 'none';
       resetBackWrap.style.display = 'none';
-      submitBtn.textContent       = 'Create Account';
+      submitBtn.textContent = 'Create Account';
     } else if (mode === 'reset') {
-      cardTitle.textContent       = 'Reset your password';
-      googleBtn.style.display     = 'none';
-      orDivider.style.display     = 'none';
-      tabsWrap.style.display      = 'none';
-      credView.style.display      = 'block';
-      pwdField.style.display      = 'none';
+      cardTitle.textContent = 'Reset your password';
+      googleBtn.style.display = 'none';
+      orDivider.style.display = 'none';
+      tabsWrap.style.display = 'none';
+      credView.style.display = 'block';
+      pwdField.style.display = 'none';
       resetBackWrap.style.display = 'block';
-      submitBtn.textContent       = 'Send Reset Email';
+      submitBtn.textContent = 'Send Reset Email';
       showAuthBanner('Enter your registered email address to receive a password reset link.', 'info');
     } else if (mode === 'otp') {
-      cardTitle.textContent       = state.otpType === 'recovery' ? 'Check your email to reset' : 'Verify your email';
-      googleBtn.style.display     = 'none';
-      orDivider.style.display     = 'none';
-      tabsWrap.style.display      = 'none';
-      otpView.style.display       = 'block';
+      cardTitle.textContent = state.otpType === 'recovery' ? 'Check your email to reset' : 'Verify your email';
+      googleBtn.style.display = 'none';
+      orDivider.style.display = 'none';
+      tabsWrap.style.display = 'none';
+      otpView.style.display = 'block';
       document.getElementById('otp-email-display').textContent = state.pendingEmail || 'your email';
       document.getElementById('otp-code').value = '';
       document.getElementById('otp-code').focus();
     } else if (mode === 'update-password') {
-      cardTitle.textContent       = 'Set a new password';
-      googleBtn.style.display     = 'none';
-      orDivider.style.display     = 'none';
-      tabsWrap.style.display      = 'none';
+      cardTitle.textContent = 'Set a new password';
+      googleBtn.style.display = 'none';
+      orDivider.style.display = 'none';
+      tabsWrap.style.display = 'none';
       updatePwdView.style.display = 'block';
       document.getElementById('new-password').value = '';
     }
@@ -337,7 +339,7 @@
     }
 
     const email = document.getElementById('login-email').value.trim();
-    const pass  = document.getElementById('login-password').value;
+    const pass = document.getElementById('login-password').value;
     const submitBtn = document.getElementById('auth-submit-btn');
 
     if (!email || !AuthService.validateEmailFormat(email)) {
@@ -351,26 +353,31 @@
       submitBtn.textContent = 'Sending...';
       showAuthBanner('');
 
-      const { error } = await AuthService.resetPasswordForEmail(email);
+      try {
+        const { error } = await AuthService.resetPasswordForEmail(email);
+        if (error) {
+          const friendly = AuthService.formatAuthError(error, 'reset');
+          showAuthBanner(friendly, 'error');
+          toast(friendly, 'error');
+          return;
+        }
 
-      submitBtn.disabled = false;
-      submitBtn.textContent = origText;
-
-      if (error) {
-        const friendly = AuthService.formatAuthError(error, 'reset');
+        state.pendingEmail = email;
+        state.otpType = 'recovery';
+        switchAuthMode('otp');
+        showAuthBanner(
+          `Password reset link sent to ${email}. Click the "Reset Password" link in the email, or copy & paste that link below if opened on another device.`,
+          'success'
+        );
+        toast('Reset link sent to your email!', 'success');
+      } catch (err) {
+        const friendly = AuthService.formatAuthError(err, 'reset');
         showAuthBanner(friendly, 'error');
         toast(friendly, 'error');
-        return;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = origText;
       }
-
-      state.pendingEmail = email;
-      state.otpType = 'recovery';
-      switchAuthMode('otp');
-      showAuthBanner(
-        `Password reset link sent to ${email}. Click the "Reset Password" link in the email, or copy & paste that link below if opened on another device.`,
-        'success'
-      );
-      toast('Reset link sent to your email!', 'success');
       return;
     }
 
@@ -391,43 +398,49 @@
       submitBtn.textContent = 'Creating Account...';
       showAuthBanner('');
 
-      const { data, error } = await AuthService.signUp(email, pass);
+      try {
+        const { data, error } = await AuthService.signUp(email, pass);
 
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Create Account';
+        if (error) {
+          const friendly = AuthService.formatAuthError(error, 'signup');
+          showAuthBanner(friendly, 'error');
+          toast(friendly, 'error');
+          return;
+        }
 
-      if (error) {
-        const friendly = AuthService.formatAuthError(error, 'signup');
+        // supabase returns empty identities array when email is already registered
+        if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+          switchAuthMode('signin');
+          showAuthBanner(
+            'An account with this email already exists. Please sign in with your password, or use "Forgot password?" to reset it.',
+            'error'
+          );
+          toast('Account already exists. Please Sign In.', 'error');
+          return;
+        }
+
+        if (data?.session) {
+          SecurityConfig.clearSessionRole();
+          state.user = AuthService.extractUserFromSession(data.session);
+          AuditService.logAction('USER_SIGNUP_SUCCESS', {}, email);
+          toast('Account created & logged in!', 'success');
+          AttendX.App.afterLogin();
+          return;
+        }
+
+        state.pendingEmail = email;
+        state.otpType = 'signup';
+        switchAuthMode('otp');
+        showAuthBanner(`Account created! Click the confirmation link sent to ${email}, or paste the link below.`, 'success');
+        toast('Check your email to confirm your account!', 'info');
+      } catch (err) {
+        const friendly = AuthService.formatAuthError(err, 'signup');
         showAuthBanner(friendly, 'error');
         toast(friendly, 'error');
-        return;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Account';
       }
-
-      // supabase returns empty identities array when email is already registered
-      if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-        switchAuthMode('signin');
-        showAuthBanner(
-          'An account with this email already exists. Please sign in with your password, or use "Forgot password?" to reset it.',
-          'error'
-        );
-        toast('Account already exists. Please Sign In.', 'error');
-        return;
-      }
-
-      if (data?.session) {
-        SecurityConfig.clearSessionRole();
-        state.user = AuthService.extractUserFromSession(data.session);
-        AuditService.logAction('USER_SIGNUP_SUCCESS', {}, email);
-        toast('Account created & logged in!', 'success');
-        AttendX.App.afterLogin();
-        return;
-      }
-
-      state.pendingEmail = email;
-      state.otpType = 'signup';
-      switchAuthMode('otp');
-      showAuthBanner(`Account created! Click the confirmation link sent to ${email}, or paste the link below.`, 'success');
-      toast('Check your email to confirm your account!', 'info');
       return;
     }
 
@@ -450,38 +463,44 @@
     submitBtn.textContent = 'Signing In...';
     showAuthBanner('');
 
-    const { data, error } = await AuthService.signInWithPassword(email, pass);
+    try {
+      const { data, error } = await AuthService.signInWithPassword(email, pass);
 
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Sign In';
-
-    if (error) {
-      RateLimiter.recordFailure(rateKey, SecurityConfig.LOGIN_LOCKOUT_MS);
-      const rawMsg = (error.message || '').toLowerCase();
-      if (rawMsg.includes('email not confirmed')) {
-        state.pendingEmail = email;
-        state.otpType = 'signup';
-        switchAuthMode('otp');
-        showAuthBanner(
-          'Your email is not verified yet. Click the link in your email, paste the link below, or click "Resend Email".',
-          'error'
-        );
-        toast('Please verify your email first', 'error');
+      if (error) {
+        RateLimiter.recordFailure(rateKey, SecurityConfig.LOGIN_LOCKOUT_MS);
+        const rawMsg = (error.message || '').toLowerCase();
+        if (rawMsg.includes('email not confirmed')) {
+          state.pendingEmail = email;
+          state.otpType = 'signup';
+          switchAuthMode('otp');
+          showAuthBanner(
+            'Your email is not verified yet. Click the link in your email, paste the link below, or click "Resend Email".',
+            'error'
+          );
+          toast('Please verify your email first', 'error');
+          return;
+        }
+        const friendly = AuthService.formatAuthError(error, 'signin');
+        showAuthBanner(friendly, 'error');
+        toast(friendly, 'error');
         return;
       }
-      const friendly = AuthService.formatAuthError(error, 'signin');
+
+      RateLimiter.resetLimit(rateKey);
+      if (data?.session) {
+        SecurityConfig.clearSessionRole();
+        state.user = AuthService.extractUserFromSession(data.session);
+        AuditService.logAction('USER_SIGNIN_SUCCESS', {}, email);
+        toast('Signed in!', 'success');
+        AttendX.App.afterLogin();
+      }
+    } catch (err) {
+      const friendly = AuthService.formatAuthError(err, 'signin');
       showAuthBanner(friendly, 'error');
       toast(friendly, 'error');
-      return;
-    }
-
-    RateLimiter.resetLimit(rateKey);
-    if (data?.session) {
-      SecurityConfig.clearSessionRole();
-      state.user = AuthService.extractUserFromSession(data.session);
-      AuditService.logAction('USER_SIGNIN_SUCCESS', {}, email);
-      toast('Signed in!', 'success');
-      AttendX.App.afterLogin();
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Sign In';
     }
   }
 
@@ -656,25 +675,31 @@
     btn.disabled = true;
     btn.textContent = 'Sending...';
 
-    let error = null;
-    if (state.otpType === 'recovery') {
-      const res = await AuthService.resetPasswordForEmail(email);
-      error = res.error;
-    } else {
-      const res = await AuthService.resendSignupEmail(email);
-      error = res.error;
-    }
+    try {
+      let error = null;
+      if (state.otpType === 'recovery') {
+        const res = await AuthService.resetPasswordForEmail(email);
+        error = res.error;
+      } else {
+        const res = await AuthService.resendSignupEmail(email);
+        error = res.error;
+      }
 
-    btn.disabled = false;
-    btn.textContent = 'Resend Email';
-
-    if (error) {
-      const friendly = AuthService.formatAuthError(error, state.otpType === 'recovery' ? 'reset' : 'resend');
+      if (error) {
+        const friendly = AuthService.formatAuthError(error, state.otpType === 'recovery' ? 'reset' : 'resend');
+        showAuthBanner(friendly, 'error');
+        toast(friendly, 'error');
+      } else {
+        showAuthBanner(`A new verification email has been sent to ${email}. Please check your inbox.`, 'success');
+        toast('Email resent!', 'success');
+      }
+    } catch (err) {
+      const friendly = AuthService.formatAuthError(err, 'resend');
       showAuthBanner(friendly, 'error');
       toast(friendly, 'error');
-    } else {
-      showAuthBanner(`A new verification email has been sent to ${email}. Please check your inbox.`, 'success');
-      toast('Email resent!', 'success');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Resend Email';
     }
   }
 
@@ -696,26 +721,32 @@
     btn.disabled = true;
     btn.textContent = 'Updating...';
 
-    const { data, error } = await AuthService.updatePassword(newPass);
+    try {
+      const { data, error } = await AuthService.updatePassword(newPass);
 
-    btn.disabled = false;
-    btn.textContent = 'Update Password';
+      if (error) {
+        const friendly = AuthService.formatAuthError(error, 'update-password');
+        showAuthBanner(friendly, 'error');
+        toast(friendly, 'error');
+        return;
+      }
 
-    if (error) {
-      const friendly = AuthService.formatAuthError(error, 'update-password');
+      state.isPasswordRecovery = false;
+      SecurityConfig.clearSessionRole();
+      if (data?.user) {
+        state.user = AuthService.extractUserFromSession({ user: data.user });
+      }
+      switchAuthMode('signin');
+      toast('Password updated & logged in!', 'success');
+      AttendX.App.afterLogin();
+    } catch (err) {
+      const friendly = AuthService.formatAuthError(err, 'update-password');
       showAuthBanner(friendly, 'error');
       toast(friendly, 'error');
-      return;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Update Password';
     }
-
-    state.isPasswordRecovery = false;
-    SecurityConfig.clearSessionRole();
-    if (data?.user) {
-      state.user = AuthService.extractUserFromSession({ user: data.user });
-    }
-    switchAuthMode('signin');
-    toast('Password updated & logged in!', 'success');
-    AttendX.App.afterLogin();
   }
 
   function loginGoogle() {

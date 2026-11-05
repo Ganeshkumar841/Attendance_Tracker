@@ -8,6 +8,9 @@
     LOGIN_LOCKOUT_MS: 15 * 60 * 1000,
     MAX_EVENT_PWD_ATTEMPTS: 5,
     EVENT_PWD_LOCKOUT_MS: 10 * 60 * 1000,
+    MAX_EVENT_RESET_REQUESTS: 3,
+    EVENT_RESET_WINDOW_MS: 60 * 60 * 1000,
+    EVENT_RESET_TOKEN_TTL_MS: 15 * 60 * 1000,
     MAX_STUDENT_LOOKUP_ATTEMPTS: 25,
     STUDENT_LOOKUP_WINDOW_MS: 5 * 60 * 1000,
     MAX_FILE_SIZE_BYTES: 5 * 1024 * 1024,
@@ -16,12 +19,30 @@
   };
 
   const ROLE_STORAGE_KEY = 'attendx_active_role_v2';
+  const VERIFIED_EVENTS_KEY = 'attendx_verified_events_v2';
   const VALID_ROLES = new Set(['coordinator', 'student']);
 
   // keep role in closure so changing AttendX.State.role in devtools won't bypass checks
   let privateRole = null;
   let privateRoleUserId = null;
   const privateVerifiedEvents = new Set();
+
+  function generateSecureToken(byteLength = 24) {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+    let token = '';
+    if (global.crypto && global.crypto.getRandomValues) {
+      const bytes = new Uint8Array(byteLength);
+      global.crypto.getRandomValues(bytes);
+      for (let i = 0; i < byteLength; i++) {
+        token += chars[bytes[i] % chars.length];
+      }
+      return token;
+    }
+    for (let i = 0; i < byteLength; i++) {
+      token += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return token;
+  }
 
   async function hashSecret(plainText) {
     const raw = String(plainText || '');
@@ -64,6 +85,25 @@
     return timingSafeEqual(String(candidatePlain), stored);
   }
 
+  function saveVerifiedEventsToStorage() {
+    try {
+      sessionStorage.setItem(VERIFIED_EVENTS_KEY, JSON.stringify(Array.from(privateVerifiedEvents)));
+    } catch (_e) {}
+  }
+
+  function loadVerifiedEventsFromStorage() {
+    try {
+      const raw = sessionStorage.getItem(VERIFIED_EVENTS_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        parsed.forEach(id => {
+          if (id) privateVerifiedEvents.add(String(id).trim().toUpperCase());
+        });
+      }
+    } catch (_e) {}
+  }
+
   function setSessionRole(role, userId) {
     const normalized = VALID_ROLES.has(role) ? role : null;
     privateRole = normalized;
@@ -71,6 +111,9 @@
 
     if (normalized !== 'coordinator') {
       privateVerifiedEvents.clear();
+      try {
+        sessionStorage.removeItem(VERIFIED_EVENTS_KEY);
+      } catch (_e) {}
       if (AttendX.State) {
         AttendX.State.editAuthorized = false;
         AttendX.State.pendingDeleteId = null;
@@ -82,12 +125,13 @@
       AttendX.State.role = normalized;
     }
 
+    const payload = normalized && privateRoleUserId
+      ? JSON.stringify({ role: normalized, uid: String(privateRoleUserId) })
+      : null;
+
     try {
-      if (normalized && privateRoleUserId) {
-        sessionStorage.setItem(
-          ROLE_STORAGE_KEY,
-          JSON.stringify({ role: normalized, uid: String(privateRoleUserId) })
-        );
+      if (payload) {
+        sessionStorage.setItem(ROLE_STORAGE_KEY, payload);
       } else {
         sessionStorage.removeItem(ROLE_STORAGE_KEY);
       }
@@ -97,8 +141,7 @@
   }
 
   function restoreSessionRole(userId) {
-    if (!userId) return null;
-    if (privateRole && privateRoleUserId === String(userId)) {
+    if (privateRole && (!userId || privateRoleUserId === String(userId))) {
       if (AttendX.State) AttendX.State.role = privateRole;
       return privateRole;
     }
@@ -106,9 +149,16 @@
       const raw = sessionStorage.getItem(ROLE_STORAGE_KEY);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      if (parsed && parsed.uid === String(userId) && VALID_ROLES.has(parsed.role)) {
+      if (
+        parsed &&
+        VALID_ROLES.has(parsed.role) &&
+        (!userId || !parsed.uid || parsed.uid === String(userId))
+      ) {
         privateRole = parsed.role;
-        privateRoleUserId = String(userId);
+        privateRoleUserId = String(userId || parsed.uid || '');
+        if (privateRole === 'coordinator') {
+          loadVerifiedEventsFromStorage();
+        }
         if (AttendX.State) AttendX.State.role = privateRole;
         return privateRole;
       }
@@ -128,6 +178,7 @@
     }
     try {
       sessionStorage.removeItem(ROLE_STORAGE_KEY);
+      sessionStorage.removeItem(VERIFIED_EVENTS_KEY);
     } catch (_e) {}
   }
 
@@ -146,16 +197,19 @@
   function markEventCoordinatorVerified(eventId) {
     if (privateRole !== 'coordinator' || !eventId) return false;
     privateVerifiedEvents.add(String(eventId).trim().toUpperCase());
+    saveVerifiedEventsToStorage();
     return true;
   }
 
   function isEventCoordinatorVerified(eventId) {
     if (privateRole !== 'coordinator' || !eventId) return false;
+    loadVerifiedEventsFromStorage();
     return privateVerifiedEvents.has(String(eventId).trim().toUpperCase());
   }
 
   AttendX.Backend.SecurityConfig = {
     ...SECURITY_CONFIG,
+    generateSecureToken,
     hashSecret,
     verifySecret,
     timingSafeEqual,

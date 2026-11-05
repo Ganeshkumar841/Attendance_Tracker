@@ -6,6 +6,12 @@
   const IS_INITIAL_RECOVERY =
     INITIAL_URL_HASH.includes('type=recovery') || INITIAL_URL_SEARCH.includes('type=recovery');
 
+  const CACHED_USER_KEY = 'attendx_cached_user_v2';
+  const ACTIVE_EVENT_KEY = 'attendx_active_event_v2';
+  const SIGNOUT_SIGNAL_KEY = 'attendx_signout_signal_v2';
+
+  let signoutChannel = null;
+
   const yearPrefixes = AttendX.Utils.Sanitizer.computeAcademicYears();
 
   const COORDINATOR_ONLY_SCREENS = new Set([
@@ -22,6 +28,7 @@
     attendance: [],
     currentFilter: 'all',
     studentSearchQuery: '',
+    activeAttendanceTab: 'entry',
     editAuthorized: false,
     pendingDeleteId: null,
     pendingDeleteRoll: null,
@@ -34,6 +41,57 @@
     selectedYear: null,
     yearPrefixes
   };
+
+  function cacheUserSession(user) {
+    try {
+      if (user && user.id) {
+        const serialized = JSON.stringify(user);
+        sessionStorage.setItem(CACHED_USER_KEY, serialized);
+        localStorage.setItem(CACHED_USER_KEY, serialized);
+      } else {
+        sessionStorage.removeItem(CACHED_USER_KEY);
+        localStorage.removeItem(CACHED_USER_KEY);
+      }
+    } catch (_e) {}
+  }
+
+  function loadCachedUserSession() {
+    try {
+      const raw = sessionStorage.getItem(CACHED_USER_KEY) || localStorage.getItem(CACHED_USER_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.id) return parsed;
+      }
+    } catch (_e) {}
+    return null;
+  }
+
+  function persistActiveEventSession(eventObj) {
+    try {
+      if (eventObj && eventObj.id) {
+        sessionStorage.setItem(ACTIVE_EVENT_KEY, JSON.stringify(eventObj));
+      } else {
+        sessionStorage.removeItem(ACTIVE_EVENT_KEY);
+      }
+    } catch (_e) {}
+  }
+
+  function loadPersistedActiveEvent() {
+    try {
+      const raw = sessionStorage.getItem(ACTIVE_EVENT_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed && parsed.id ? AttendX.Backend.EventService.normalizeEventRow(parsed) : null;
+    } catch (_e) {
+      return null;
+    }
+  }
+
+  function clearPersistedActiveEvent() {
+    try {
+      sessionStorage.removeItem(ACTIVE_EVENT_KEY);
+    } catch (_e) {}
+  }
 
   function showScreen(id) {
     const state = AttendX.State;
@@ -54,6 +112,10 @@
       }
     }
 
+    if (id !== 'screen-attendance') {
+      clearPersistedActiveEvent();
+    }
+
     document.querySelectorAll('.screen').forEach(s => {
       s.classList.add('hidden');
       s.classList.remove('flex', 'active');
@@ -66,7 +128,7 @@
     }
 
     if (AttendX.Components?.Header?.updateHeaderRoleBadge) {
-      AttendX.Components.Header.updateHeaderRoleBadge();
+      AttendX.Components.Header.updateHeaderRoleBadge(id);
     }
 
     if (id === 'screen-attendance') {
@@ -77,10 +139,12 @@
     }
   }
 
-  function afterLogin() {
+  async function afterLogin(preserveCurrentScreen = false) {
     const state = AttendX.State;
-    const { SecurityConfig } = AttendX.Backend;
+    const { SecurityConfig, AttendanceService } = AttendX.Backend;
     if (!state.user) return;
+
+    cacheUserSession(state.user);
 
     const nameEl = document.getElementById('user-name');
     if (nameEl) {
@@ -97,7 +161,26 @@
     });
 
     const restoredRole = SecurityConfig.restoreSessionRole(state.user.id);
-    AttendX.Components.Header.updateHeaderRoleBadge();
+
+    if (preserveCurrentScreen) {
+      const currentActive = document.querySelector('.screen.active')?.id;
+      if (currentActive && currentActive !== 'screen-login') {
+        AttendX.Components.Header.updateHeaderRoleBadge(currentActive);
+        return;
+      }
+    }
+
+    const persistedEvent = loadPersistedActiveEvent();
+    if (restoredRole && persistedEvent && persistedEvent.id) {
+      state.currentEvent = persistedEvent;
+      if (restoredRole === 'coordinator') {
+        SecurityConfig.markEventCoordinatorVerified(persistedEvent.id);
+      }
+      const { data: attList } = await AttendanceService.fetchByEvent(persistedEvent.id);
+      state.attendance = attList || [];
+      AttendX.Pages.Attendance.enterAttendance();
+      return;
+    }
 
     if (restoredRole === 'coordinator') {
       showScreen('screen-menu');
@@ -108,18 +191,19 @@
     }
   }
 
-  async function logout() {
+  function handleSignedOutCleanup() {
     AttendX.Backend.SessionManager.stopSessionMonitor();
+    if (AttendX.Pages?.Attendance?.stopExpirationMonitor) {
+      AttendX.Pages.Attendance.stopExpirationMonitor();
+    }
     AttendX.Backend.AttendanceService.unsubscribeRealtime();
     AttendX.Backend.SecurityConfig.clearSessionRole();
+    cacheUserSession(null);
+    clearPersistedActiveEvent();
 
-    if (AttendX.Components?.Modals) {
-      ['modal-edit-auth', 'modal-delete-confirm', 'modal-delete-event'].forEach(id => {
-        AttendX.Components.Modals.closeModal(id);
-      });
+    if (AttendX.Components?.Modals?.closeAllModals) {
+      AttendX.Components.Modals.closeAllModals();
     }
-
-    await AttendX.Backend.AuthService.signOut();
 
     const state = AttendX.State;
     state.user = null;
@@ -131,23 +215,64 @@
     state.pendingDeleteId = null;
     state.pendingDeleteRoll = null;
 
-    if (AttendX.Components?.Header?.updateHeaderRoleBadge) {
-      AttendX.Components.Header.updateHeaderRoleBadge();
+    if (AttendX.Pages?.SignIn?.switchAuthMode) {
+      AttendX.Pages.SignIn.switchAuthMode('signin');
     }
-
-    AttendX.Pages.SignIn.switchAuthMode('signin');
     showScreen('screen-login');
+  }
+
+  function broadcastSignOutSignal() {
+    try {
+      if (signoutChannel) {
+        signoutChannel.postMessage({ type: 'SIGN_OUT', ts: Date.now() });
+      }
+    } catch (_e) {}
+    try {
+      localStorage.setItem(SIGNOUT_SIGNAL_KEY, String(Date.now()));
+    } catch (_e) {}
+  }
+
+  async function logout() {
+    handleSignedOutCleanup();
+    broadcastSignOutSignal();
+    try {
+      await AttendX.Backend.AuthService.signOut();
+    } catch (_e) {}
   }
 
   function confirmLogout() {
     logout();
   }
 
+  function initCrossTabSignOutListener() {
+    if (typeof global.BroadcastChannel !== 'undefined' && !signoutChannel) {
+      try {
+        signoutChannel = new global.BroadcastChannel('attendx_auth_sync_v2');
+        signoutChannel.onmessage = evt => {
+          if (evt?.data?.type === 'SIGN_OUT') {
+            handleSignedOutCleanup();
+          }
+        };
+      } catch (_e) {}
+    }
+
+    global.addEventListener('storage', e => {
+      if (e.key === SIGNOUT_SIGNAL_KEY && e.newValue) {
+        handleSignedOutCleanup();
+      }
+    });
+  }
+
   function initSupabaseAuthListeners() {
     const client = AttendX.Backend.Supabase.getClient();
-    if (!client) return;
+    if (!client) {
+      if (!AttendX.State.user) {
+        showScreen('screen-login');
+      }
+      return;
+    }
 
-    const { AuthService, SecurityConfig } = AttendX.Backend;
+    const { AuthService } = AttendX.Backend;
     const { showAuthBanner, switchAuthMode } = AttendX.Pages.SignIn;
     const state = AttendX.State;
 
@@ -165,11 +290,17 @@
             switchAuthMode('update-password');
             showAuthBanner('Reset link verified! Enter your new password below.', 'success');
           } else {
-            afterLogin();
+            afterLogin(true);
           }
+        } else if (!state.user) {
+          handleSignedOutCleanup();
         }
       })
-      .catch(err => console.warn('Session check error:', err));
+      .catch(() => {
+        if (!state.user) {
+          showScreen('screen-login');
+        }
+      });
 
     client.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
@@ -179,23 +310,21 @@
         showAuthBanner('Password recovery link verified! Enter your new password below.', 'success');
         return;
       }
+      if (event === 'SIGNED_OUT' || !session) {
+        handleSignedOutCleanup();
+        return;
+      }
       if (session) {
         state.user = AuthService.extractUserFromSession(session);
+        cacheUserSession(state.user);
         if (state.isPasswordRecovery || state.authMode === 'update-password') {
           showScreen('screen-login');
           return;
         }
         const loginScreen = document.getElementById('screen-login');
-        if (loginScreen && loginScreen.classList.contains('active')) {
+        if (!document.querySelector('.screen.active') || (loginScreen && loginScreen.classList.contains('active'))) {
           afterLogin();
         }
-      } else {
-        SecurityConfig.clearSessionRole();
-        state.user = null;
-        if (AttendX.Components?.Header?.updateHeaderRoleBadge) {
-          AttendX.Components.Header.updateHeaderRoleBadge();
-        }
-        showScreen('screen-login');
       }
     });
   }
@@ -210,6 +339,7 @@
     AttendX.Components.Modals.renderModals();
 
     AttendX.Utils.Theme.initTheme();
+    initCrossTabSignOutListener();
 
     const prefixes = AttendX.State.yearPrefixes;
     ['1', '2', '3', '4'].forEach(y => {
@@ -222,10 +352,55 @@
       dateInput.valueAsDate = new Date();
     }
 
-    initSupabaseAuthListeners();
-
     const { AuthService, Supabase, SecurityConfig } = AttendX.Backend;
     const { showAuthBanner, switchAuthMode } = AttendX.Pages.SignIn;
+
+    // synchronously restore cached user and role so hard refresh never flashes the login screen
+    const cachedUser = loadCachedUserSession();
+    if (cachedUser && !IS_INITIAL_RECOVERY) {
+      AttendX.State.user = cachedUser;
+      const role = SecurityConfig.restoreSessionRole(cachedUser.id);
+      const nameEl = document.getElementById('user-name');
+      if (nameEl) nameEl.textContent = cachedUser.name;
+      const roleNameEl = document.getElementById('role-user-name');
+      if (roleNameEl) roleNameEl.textContent = cachedUser.name;
+
+      const persistedEv = loadPersistedActiveEvent();
+      if (role && persistedEv && persistedEv.id) {
+        AttendX.State.currentEvent = persistedEv;
+        if (role === 'coordinator') {
+          SecurityConfig.markEventCoordinatorVerified(persistedEv.id);
+        }
+        AttendX.Pages.Attendance.enterAttendance();
+        AttendX.Backend.AttendanceService.fetchByEvent(persistedEv.id).then(({ data }) => {
+          if (Array.isArray(data)) {
+            AttendX.State.attendance = data;
+            AttendX.Pages.Attendance.updateAttendanceUI();
+          }
+        });
+      } else if (role === 'coordinator') {
+        showScreen('screen-menu');
+      } else if (role === 'student') {
+        showScreen('screen-student-events');
+      } else {
+        showScreen('screen-role');
+      }
+    } else {
+      showScreen('screen-login');
+    }
+
+    initSupabaseAuthListeners();
+
+    if (INITIAL_URL_SEARCH.includes('event_reset=1')) {
+      const searchParams = new URLSearchParams(INITIAL_URL_SEARCH);
+      const resetEventId = searchParams.get('event_id');
+      const resetToken = searchParams.get('reset_token');
+      if (resetEventId && resetToken) {
+        setTimeout(() => {
+          AttendX.Pages.Events.openResetEventPasswordModal(resetEventId, resetToken);
+        }, 120);
+      }
+    }
 
     if (
       INITIAL_URL_HASH.includes('error_description=') ||
@@ -293,6 +468,9 @@
     showScreen,
     afterLogin,
     logout,
-    confirmLogout
+    confirmLogout,
+    handleSignedOutCleanup,
+    persistActiveEventSession,
+    clearPersistedActiveEvent
   };
 })(window);

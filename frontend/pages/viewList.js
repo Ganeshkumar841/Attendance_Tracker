@@ -11,7 +11,7 @@
     mount.innerHTML = `
       <div class="bg-surface border border-theme rounded-2xl p-4 sm:p-5 mb-5 shadow-card">
         <label for="att-search-input" class="block text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-2.5 select-none">
-          Check Attendance Status by Roll Number
+          Search Participant by Roll Number
         </label>
         <div class="relative flex items-center">
           <input
@@ -20,7 +20,7 @@
             placeholder="Search roll number (e.g. Y25CSE001 or CSE001)..."
             maxlength="20"
             oninput="handleSearchRollInput(this.value)"
-            class="w-full py-2.5 pl-3.5 pr-9 bg-input border border-theme rounded-xl text-main font-mono text-[0.9rem] uppercase placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+            class="w-full py-2.5 pl-3.5 pr-9 bg-input border border-theme rounded-xl text-main font-mono text-[0.9rem] uppercase focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
           >
           <button
             type="button"
@@ -86,13 +86,6 @@
           </button>
           <button
             type="button"
-            onclick="switchRoleScreen()"
-            class="flex-1 inline-flex items-center justify-center py-2.5 px-4 rounded-xl font-sans text-[0.83rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
-          >
-            Switch Role
-          </button>
-          <button
-            type="button"
             onclick="confirmLogout()"
             class="flex-1 inline-flex items-center justify-center py-2.5 px-4 rounded-xl font-sans text-[0.83rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
           >
@@ -135,8 +128,10 @@
   function setFilter(filterKey, el) {
     AttendX.State.currentFilter = filterKey;
 
-    const activeChipClass   = 'filter-chip py-1.5 px-4 rounded-lg text-[0.78rem] font-semibold cursor-pointer border transition-all bg-primary border-primary text-white shadow-btn-primary focus:outline-none select-none';
-    const inactiveChipClass = 'filter-chip py-1.5 px-4 rounded-lg text-[0.78rem] font-medium cursor-pointer border transition-all border-theme bg-surface text-secondary hover:text-main hover:border-strong focus:outline-none select-none';
+    const activeChipClass =
+      'filter-chip py-1.5 px-4 rounded-lg text-[0.78rem] font-semibold cursor-pointer border transition-all bg-primary border-primary text-white shadow-btn-primary focus:outline-none select-none';
+    const inactiveChipClass =
+      'filter-chip py-1.5 px-4 rounded-lg text-[0.78rem] font-medium cursor-pointer border transition-all border-theme bg-surface text-secondary hover:text-main hover:border-strong focus:outline-none select-none';
 
     document.querySelectorAll('.filter-chip').forEach(chip => {
       const isMatch = el ? chip === el : chip.getAttribute('data-filter') === filterKey;
@@ -197,12 +192,14 @@
     if (!container) return;
 
     const state = AttendX.State;
-    const { SecurityConfig } = AttendX.Backend;
+    const { SecurityConfig, EventService } = AttendX.Backend;
     const { escapeHtml, formatTime } = AttendX.Utils.Sanitizer;
 
     const canModify =
       SecurityConfig.isCoordinator() &&
       SecurityConfig.isEventCoordinatorVerified(state.currentEvent?.id);
+
+    const isExpired = EventService.isEventExpired(state.currentEvent);
 
     const studentActions = document.getElementById('student-session-actions');
     const clearBtn = document.getElementById('att-search-clear-btn');
@@ -250,7 +247,7 @@
         subText = `No entries matching "${searchQuery}".`;
       } else if (state.currentFilter !== 'all') {
         subText = 'Try switching to a different status filter.';
-      } else if (canModify) {
+      } else if (canModify && !isExpired) {
         subText = 'Start marking attendance in the Entry tab.';
       }
 
@@ -301,7 +298,7 @@
               id="entry-${safeRoll}"
               data-entry-id="${safeId}"
               data-entry-roll="${safeRoll}"
-              class="att-item flex items-center justify-between py-3.5 px-[18px] bg-surface border border-theme hover:border-strong rounded-xl gap-3 shadow-card transition-colors"
+              class="att-item flex items-center justify-between py-3.5 px-4 bg-surface border border-theme hover:border-strong rounded-xl gap-3 shadow-card transition-colors"
             >
               <div class="flex-1 min-w-0">
                 <div class="font-mono text-[0.92rem] font-semibold text-main truncate">${safeRoll}</div>
@@ -450,6 +447,13 @@
     AttendX.Pages.Attendance.updateAttendanceUI();
 
     try {
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        state.attendance = previousAttendance;
+        AttendX.Pages.Attendance.updateAttendanceUI();
+        toast('Network offline: Failed to delete entry. Row restored.', 'error');
+        return;
+      }
+
       if (Supabase.isConfigured() && state.currentEvent?.id) {
         const { error } = await AttendanceService.deleteEntry({
           id: targetId,
@@ -460,12 +464,16 @@
         if (error) {
           state.attendance = previousAttendance;
           AttendX.Pages.Attendance.updateAttendanceUI();
-          toast('Failed to delete entry', 'error');
+          toast('Failed to delete entry. Student row restored.', 'error');
           return;
         }
       }
 
       toast('Entry deleted', 'info');
+    } catch (_err) {
+      state.attendance = previousAttendance;
+      AttendX.Pages.Attendance.updateAttendanceUI();
+      toast('Failed to delete entry. Student row restored.', 'error');
     } finally {
       isDeletingParticipant = false;
       if (delBtn) {

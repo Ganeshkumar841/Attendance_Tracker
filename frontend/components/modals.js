@@ -5,8 +5,18 @@
   const COORDINATOR_ONLY_MODALS = new Set([
     'modal-edit-auth',
     'modal-delete-confirm',
-    'modal-delete-event'
+    'modal-delete-event',
+    'modal-change-event-password'
   ]);
+
+  const ALL_MODAL_IDS = [
+    'modal-edit-auth',
+    'modal-delete-confirm',
+    'modal-delete-event',
+    'modal-change-event-password',
+    'modal-forgot-event-password',
+    'modal-reset-event-password'
+  ];
 
   function renderModals() {
     const mount = document.getElementById('app-modals-mount');
@@ -20,18 +30,27 @@
         aria-modal="true"
         aria-labelledby="modal-edit-auth-title"
       >
-        <div class="bg-surface border border-theme rounded-2xl p-7 w-full max-w-[380px] shadow-card animate-modal-in">
-          <h3 id="modal-edit-auth-title" class="text-[1.12rem] font-semibold text-main mb-2">Authorization Required</h3>
-          <p class="text-[0.86rem] text-muted mb-5 leading-relaxed">Enter the event password to manage or delete records.</p>
+        <div class="bg-surface border border-theme rounded-2xl p-6 sm:p-7 w-full max-w-[390px] shadow-card animate-modal-in">
+          <h3 id="modal-edit-auth-title" class="text-[1.12rem] font-semibold text-main mb-1.5">Authorization Required</h3>
+          <p class="text-[0.85rem] text-muted mb-5 leading-relaxed">Enter the event password to manage or delete participant records.</p>
           <div class="mb-4">
-            <label for="edit-auth-pass" class="block text-[0.8rem] font-medium text-secondary mb-1.5">Event Password</label>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="edit-auth-pass" class="text-[0.8rem] font-medium text-secondary">Event Password</label>
+              <button
+                type="button"
+                onclick="openForgotEventPasswordModal(AttendX.State?.currentEvent?.id)"
+                class="bg-transparent border-none text-accent text-[0.76rem] font-medium cursor-pointer p-0 font-sans hover:underline focus:outline-none select-none"
+              >
+                Forgot password?
+              </button>
+            </div>
             <div class="relative w-full">
               <input
                 type="password"
                 id="edit-auth-pass"
                 placeholder="••••••••"
                 onkeydown="if(event.key==='Enter') confirmEditAuth()"
-                class="w-full py-3 pl-3.5 pr-11 bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                class="w-full py-2.5 pl-3.5 pr-11 bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
               >
               <button
                 type="button"
@@ -70,10 +89,10 @@
         aria-modal="true"
         aria-labelledby="modal-delete-confirm-title"
       >
-        <div class="bg-surface border border-theme rounded-2xl p-7 w-full max-w-[380px] shadow-card animate-modal-in">
-          <h3 id="modal-delete-confirm-title" class="text-[1.12rem] font-semibold text-danger mb-2">Delete Entry?</h3>
-          <p class="text-[0.86rem] text-muted mb-5 leading-relaxed">
-            Remove <strong id="delete-target-roll" class="text-main font-mono font-semibold"></strong> from attendance? This cannot be undone.
+        <div class="bg-surface border border-theme rounded-2xl p-6 sm:p-7 w-full max-w-[390px] shadow-card animate-modal-in">
+          <h3 id="modal-delete-confirm-title" class="text-[1.12rem] font-semibold text-danger mb-1.5">Delete Entry?</h3>
+          <p class="text-[0.85rem] text-muted mb-5 leading-relaxed">
+            Remove <strong id="delete-target-roll" class="text-main font-mono font-semibold"></strong> from attendance? This action cannot be undone.
           </p>
           <div class="flex gap-2.5 mt-5">
             <button
@@ -102,10 +121,10 @@
         aria-modal="true"
         aria-labelledby="modal-delete-event-title"
       >
-        <div class="bg-surface border border-theme rounded-2xl p-7 w-full max-w-[380px] shadow-card animate-modal-in">
-          <h3 id="modal-delete-event-title" class="text-[1.12rem] font-semibold text-danger mb-2">Discard Event?</h3>
-          <p class="text-[0.86rem] text-muted mb-5 leading-relaxed">
-            This will <strong class="text-main font-medium">permanently delete the event and all attendance records</strong>. This action cannot be undone.<br><br>Enter the event password to confirm.
+        <div class="bg-surface border border-theme rounded-2xl p-6 sm:p-7 w-full max-w-[390px] shadow-card animate-modal-in">
+          <h3 id="modal-delete-event-title" class="text-[1.12rem] font-semibold text-danger mb-1.5">Discard Event?</h3>
+          <p class="text-[0.85rem] text-muted mb-5 leading-relaxed">
+            This will <strong class="text-main font-medium">permanently delete the event and all attendance records</strong>. Enter the event password to confirm.
           </p>
           <div class="mb-4">
             <label for="delete-event-pass" class="block text-[0.8rem] font-medium text-secondary mb-1.5">Event Password</label>
@@ -115,7 +134,7 @@
                 id="delete-event-pass"
                 placeholder="••••••••"
                 onkeydown="if(event.key==='Enter') executeDeleteEvent()"
-                class="w-full py-3 pl-3.5 pr-11 bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] placeholder:text-muted/65 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                class="w-full py-2.5 pl-3.5 pr-11 bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
               >
               <button
                 type="button"
@@ -142,6 +161,198 @@
               class="flex-1 inline-flex items-center justify-center py-2.5 px-5 rounded-xl font-sans text-[0.86rem] font-semibold bg-danger-bg text-danger border border-theme hover:border-danger/40 transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
             >
               Delete Everything
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="modal-change-event-password"
+        class="modal-overlay hidden fixed inset-0 bg-black/60 backdrop-blur-[4px] z-[500] items-center justify-center p-5"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-change-event-pwd-title"
+      >
+        <div class="bg-surface border border-theme rounded-2xl p-6 sm:p-7 w-full max-w-[400px] shadow-card animate-modal-in">
+          <h3 id="modal-change-event-pwd-title" class="text-[1.12rem] font-semibold text-main mb-1.5">Change Event Password</h3>
+          <p class="text-[0.85rem] text-muted mb-5 leading-relaxed">
+            Verify the current event password and set a new password for co-coordinators.
+          </p>
+          <div class="flex flex-col gap-3.5">
+            <div>
+              <label for="change-ev-current-pass" class="block text-[0.8rem] font-medium text-secondary mb-1.5">Current Event Password</label>
+              <div class="relative w-full">
+                <input
+                  type="password"
+                  id="change-ev-current-pass"
+                  placeholder="Enter current password"
+                  class="w-full py-2.5 pl-3.5 pr-11 bg-input border border-theme rounded-xl text-main font-sans text-[0.9rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                >
+                <button
+                  type="button"
+                  onclick="togglePwd('change-ev-current-pass', this)"
+                  aria-label="Toggle password visibility"
+                  class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-muted hover:text-main hover:bg-surface2 transition-colors cursor-pointer focus:outline-none select-none"
+                >
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label for="change-ev-new-pass" class="block text-[0.8rem] font-medium text-secondary mb-1.5">New Event Password</label>
+              <div class="relative w-full">
+                <input
+                  type="password"
+                  id="change-ev-new-pass"
+                  placeholder="Min. 4 characters"
+                  class="w-full py-2.5 pl-3.5 pr-11 bg-input border border-theme rounded-xl text-main font-sans text-[0.9rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                >
+                <button
+                  type="button"
+                  onclick="togglePwd('change-ev-new-pass', this)"
+                  aria-label="Toggle password visibility"
+                  class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-muted hover:text-main hover:bg-surface2 transition-colors cursor-pointer focus:outline-none select-none"
+                >
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label for="change-ev-confirm-pass" class="block text-[0.8rem] font-medium text-secondary mb-1.5">Confirm New Password</label>
+              <input
+                type="password"
+                id="change-ev-confirm-pass"
+                placeholder="Re-enter new password"
+                onkeydown="if(event.key==='Enter') executeChangeEventPassword()"
+                class="w-full py-2.5 px-3.5 bg-input border border-theme rounded-xl text-main font-sans text-[0.9rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+              >
+            </div>
+          </div>
+          <div class="flex gap-2.5 mt-5">
+            <button
+              type="button"
+              onclick="closeModal('modal-change-event-password')"
+              class="flex-1 inline-flex items-center justify-center py-2.5 px-5 rounded-xl font-sans text-[0.86rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              id="btn-submit-change-ev-pwd"
+              onclick="executeChangeEventPassword()"
+              class="flex-1 inline-flex items-center justify-center py-2.5 px-5 rounded-xl font-sans text-[0.86rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+            >
+              Update Password
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="modal-forgot-event-password"
+        class="modal-overlay hidden fixed inset-0 bg-black/60 backdrop-blur-[4px] z-[500] items-center justify-center p-5"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-forgot-ev-pwd-title"
+      >
+        <div class="bg-surface border border-theme rounded-2xl p-6 sm:p-7 w-full max-w-[420px] shadow-card animate-modal-in">
+          <h3 id="modal-forgot-ev-pwd-title" class="text-[1.12rem] font-semibold text-main mb-1.5">Event Password Recovery</h3>
+          <p class="text-[0.84rem] text-muted mb-4 leading-relaxed">
+            Enter the Event ID. A single-use password reset link will be sent exclusively to the email address of the administrator who created the event.
+          </p>
+          <div class="mb-4">
+            <label for="forgot-ev-id-input" class="block text-[0.8rem] font-medium text-secondary mb-1.5">Event ID</label>
+            <input
+              type="text"
+              id="forgot-ev-id-input"
+              placeholder="e.g. EV2405"
+              maxlength="20"
+              oninput="this.value=this.value.toUpperCase()"
+              onkeydown="if(event.key==='Enter') submitForgotEventPassword()"
+              class="w-full py-2.5 px-3.5 bg-input border border-theme rounded-xl text-main font-mono text-[0.92rem] tracking-[0.08em] uppercase focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+            >
+          </div>
+          <div id="forgot-ev-status-box" class="hidden mb-4 py-3 px-3.5 rounded-xl text-[0.8rem] leading-relaxed border border-theme bg-surface2 text-main"></div>
+          <div class="flex gap-2.5 mt-4">
+            <button
+              type="button"
+              onclick="closeModal('modal-forgot-event-password')"
+              class="flex-1 inline-flex items-center justify-center py-2.5 px-5 rounded-xl font-sans text-[0.86rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              id="btn-submit-forgot-ev-pwd"
+              onclick="submitForgotEventPassword()"
+              class="flex-1 inline-flex items-center justify-center py-2.5 px-5 rounded-xl font-sans text-[0.86rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+            >
+              Send Reset Link
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="modal-reset-event-password"
+        class="modal-overlay hidden fixed inset-0 bg-black/60 backdrop-blur-[4px] z-[500] items-center justify-center p-5"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-reset-ev-pwd-title"
+      >
+        <div class="bg-surface border border-theme rounded-2xl p-6 sm:p-7 w-full max-w-[400px] shadow-card animate-modal-in">
+          <h3 id="modal-reset-ev-pwd-title" class="text-[1.12rem] font-semibold text-main mb-1.5">Set New Event Password</h3>
+          <p class="text-[0.84rem] text-muted mb-4 leading-relaxed">
+            Resetting password for event <strong id="reset-ev-target-id" class="font-mono text-accent"></strong>.
+          </p>
+          <input type="hidden" id="reset-ev-hidden-id">
+          <input type="hidden" id="reset-ev-hidden-token">
+          <div class="flex flex-col gap-3.5">
+            <div>
+              <label for="reset-ev-new-pass" class="block text-[0.8rem] font-medium text-secondary mb-1.5">New Event Password</label>
+              <div class="relative w-full">
+                <input
+                  type="password"
+                  id="reset-ev-new-pass"
+                  placeholder="Min. 4 characters"
+                  class="w-full py-2.5 pl-3.5 pr-11 bg-input border border-theme rounded-xl text-main font-sans text-[0.9rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                >
+                <button
+                  type="button"
+                  onclick="togglePwd('reset-ev-new-pass', this)"
+                  aria-label="Toggle password visibility"
+                  class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-muted hover:text-main hover:bg-surface2 transition-colors cursor-pointer focus:outline-none select-none"
+                >
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label for="reset-ev-confirm-pass" class="block text-[0.8rem] font-medium text-secondary mb-1.5">Confirm New Password</label>
+              <input
+                type="password"
+                id="reset-ev-confirm-pass"
+                placeholder="Re-enter new password"
+                onkeydown="if(event.key==='Enter') executeResetEventPassword()"
+                class="w-full py-2.5 px-3.5 bg-input border border-theme rounded-xl text-main font-sans text-[0.9rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+              >
+            </div>
+          </div>
+          <div class="flex gap-2.5 mt-5">
+            <button
+              type="button"
+              onclick="closeModal('modal-reset-event-password')"
+              class="flex-1 inline-flex items-center justify-center py-2.5 px-5 rounded-xl font-sans text-[0.86rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              id="btn-submit-reset-ev-pwd"
+              onclick="executeResetEventPassword()"
+              class="flex-1 inline-flex items-center justify-center py-2.5 px-5 rounded-xl font-sans text-[0.86rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+            >
+              Save New Password
             </button>
           </div>
         </div>
@@ -184,7 +395,7 @@
     el.classList.add('flex');
 
     setTimeout(() => {
-      const input = el.querySelector('input');
+      const input = el.querySelector('input:not([type="hidden"])');
       if (input) input.focus();
     }, 50);
   }
@@ -198,11 +409,24 @@
     if (id === 'modal-edit-auth') {
       const inp = document.getElementById('edit-auth-pass');
       if (inp) inp.value = '';
-    }
-    if (id === 'modal-delete-event') {
+    } else if (id === 'modal-delete-event') {
       const inp = document.getElementById('delete-event-pass');
       if (inp) inp.value = '';
+    } else if (id === 'modal-change-event-password') {
+      ['change-ev-current-pass', 'change-ev-new-pass', 'change-ev-confirm-pass'].forEach(fid => {
+        const inp = document.getElementById(fid);
+        if (inp) inp.value = '';
+      });
+    } else if (id === 'modal-reset-event-password') {
+      ['reset-ev-new-pass', 'reset-ev-confirm-pass'].forEach(fid => {
+        const inp = document.getElementById(fid);
+        if (inp) inp.value = '';
+      });
     }
+  }
+
+  function closeAllModals() {
+    ALL_MODAL_IDS.forEach(closeModal);
   }
 
   global.openModal = openModal;
@@ -211,6 +435,7 @@
   AttendX.Components.Modals = {
     renderModals,
     openModal,
-    closeModal
+    closeModal,
+    closeAllModals
   };
 })(window);

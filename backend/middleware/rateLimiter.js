@@ -3,17 +3,24 @@
   AttendX.Backend = AttendX.Backend || {};
 
   const STORAGE_KEY = 'attendx_rate_limits_v1';
+  let memoryBuckets = {};
 
   function loadBuckets() {
     try {
       const raw = sessionStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
-    } catch (_e) {
-      return {};
-    }
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          memoryBuckets = parsed;
+          return parsed;
+        }
+      }
+    } catch (_e) {}
+    return { ...memoryBuckets };
   }
 
   function saveBuckets(buckets) {
+    memoryBuckets = { ...buckets };
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(buckets));
     } catch (_e) {}

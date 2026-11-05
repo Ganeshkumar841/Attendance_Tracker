@@ -8,13 +8,13 @@
 
     mount.innerHTML = `
       <section id="screen-role" class="screen hidden flex-1 flex-col">
-        <div class="max-w-[760px] mx-auto px-5 w-full pt-14 pb-10 flex-1 flex flex-col justify-center">
+        <div class="max-w-[760px] mx-auto px-5 w-full pt-12 pb-10 flex-1 flex flex-col justify-center">
           <div class="mb-9 text-center select-none">
-            <div class="text-[1.95rem] sm:text-[2.15rem] font-semibold mb-2 tracking-[-0.025em] text-main">
+            <div class="text-[1.85rem] sm:text-[2.15rem] font-semibold mb-2 tracking-[-0.025em] text-main">
               Welcome, <span id="role-user-name" class="text-accent">User</span>
             </div>
-            <p class="text-muted text-[0.94rem] max-w-[460px] mx-auto leading-relaxed">
-              Choose your portal to continue.
+            <p class="text-muted text-[0.92rem] max-w-[460px] mx-auto leading-relaxed">
+              Select your portal to continue.
             </p>
           </div>
 
@@ -33,7 +33,8 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-[1.02rem] font-semibold text-main">Coordinator / Staff Login</h3>
+                  <h3 class="text-[1.02rem] font-semibold text-main mb-0.5">Coordinator / Staff</h3>
+                  <p class="text-[0.8rem] text-muted">Create events &amp; manage attendance</p>
                 </div>
               </div>
               <span class="text-muted text-[1.25rem] transition-all duration-150 group-hover:translate-x-[3px] group-hover:text-accent">›</span>
@@ -53,7 +54,8 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-[1.02rem] font-semibold text-main">Student Login</h3>
+                  <h3 class="text-[1.02rem] font-semibold text-main mb-0.5">Student Portal</h3>
+                  <p class="text-[0.8rem] text-muted">View live event attendance lists</p>
                 </div>
               </div>
               <span class="text-muted text-[1.25rem] transition-all duration-150 group-hover:translate-x-[3px] group-hover:text-accent">›</span>
@@ -73,12 +75,12 @@
       </section>
 
       <section id="screen-menu" class="screen hidden flex-1 flex-col">
-        <div class="max-w-[760px] mx-auto px-5 w-full pt-14 pb-10 flex-1 flex flex-col justify-center">
+        <div class="max-w-[760px] mx-auto px-5 w-full pt-12 pb-10 flex-1 flex flex-col justify-center">
           <div class="mb-9 text-center select-none">
-            <div class="text-[1.95rem] sm:text-[2.15rem] font-semibold mb-2 tracking-[-0.025em] text-main">
+            <div class="text-[1.85rem] sm:text-[2.15rem] font-semibold mb-2 tracking-[-0.025em] text-main">
               Welcome back, <span id="user-name" class="text-accent">Coordinator</span>
             </div>
-            <p class="text-muted text-[0.94rem]">Create a new attendance session or join an active campus event.</p>
+            <p class="text-muted text-[0.92rem]">Create a new attendance session or join an existing campus event.</p>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -97,8 +99,8 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-[1.02rem] font-semibold text-main mb-1">Create New Event</h3>
-                  <p class="text-[0.82rem] text-muted">Set up a fresh attendance session</p>
+                  <h3 class="text-[1.02rem] font-semibold text-main mb-0.5">Create New Event</h3>
+                  <p class="text-[0.8rem] text-muted">Set up a scheduled attendance session</p>
                 </div>
               </div>
               <span class="text-muted text-[1.25rem] transition-all duration-150 group-hover:translate-x-[3px] group-hover:text-accent">›</span>
@@ -117,22 +119,15 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-[1.02rem] font-semibold text-main mb-1">Join Existing Event</h3>
-                  <p class="text-[0.82rem] text-muted">Multiple coordinators, same event</p>
+                  <h3 class="text-[1.02rem] font-semibold text-main mb-0.5">Join Existing Event</h3>
+                  <p class="text-[0.8rem] text-muted">Co-manage an event with its ID &amp; password</p>
                 </div>
               </div>
               <span class="text-muted text-[1.25rem] transition-all duration-150 group-hover:translate-x-[3px] group-hover:text-accent">›</span>
             </button>
           </div>
 
-          <div class="mt-10 flex items-center justify-center gap-3">
-            <button
-              type="button"
-              onclick="switchRoleScreen()"
-              class="inline-flex items-center justify-center py-2.5 px-5 rounded-xl font-sans text-[0.82rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
-            >
-              ← Switch Role
-            </button>
+          <div class="mt-10 flex items-center justify-center">
             <button
               type="button"
               onclick="logout()"
@@ -158,6 +153,9 @@
 
     const normalized = role === 'student' ? 'student' : 'coordinator';
 
+    if (AttendX.Pages?.Attendance?.stopExpirationMonitor) {
+      AttendX.Pages.Attendance.stopExpirationMonitor();
+    }
     AttendanceService.unsubscribeRealtime();
     state.currentEvent = null;
     state.attendance = [];
@@ -165,9 +163,11 @@
     state.pendingDeleteId = null;
     state.pendingDeleteRoll = null;
     state.studentSearchQuery = '';
+    if (AttendX.App?.clearPersistedActiveEvent) {
+      AttendX.App.clearPersistedActiveEvent();
+    }
 
     SecurityConfig.setSessionRole(normalized, state.user.id);
-    AttendX.Components.Header.updateHeaderRoleBadge();
 
     if (normalized === 'student') {
       AuditService.logAction('ROLE_SELECTED_STUDENT', { email: state.user.email });
@@ -189,12 +189,13 @@
       return;
     }
 
-    if (AttendX.Components?.Modals) {
-      ['modal-edit-auth', 'modal-delete-confirm', 'modal-delete-event'].forEach(id => {
-        AttendX.Components.Modals.closeModal(id);
-      });
+    if (AttendX.Components?.Modals?.closeAllModals) {
+      AttendX.Components.Modals.closeAllModals();
     }
 
+    if (AttendX.Pages?.Attendance?.stopExpirationMonitor) {
+      AttendX.Pages.Attendance.stopExpirationMonitor();
+    }
     AttendanceService.unsubscribeRealtime();
     state.currentEvent = null;
     state.attendance = [];
@@ -202,9 +203,11 @@
     state.pendingDeleteId = null;
     state.pendingDeleteRoll = null;
     state.studentSearchQuery = '';
+    if (AttendX.App?.clearPersistedActiveEvent) {
+      AttendX.App.clearPersistedActiveEvent();
+    }
 
     SecurityConfig.clearSessionRole();
-    AttendX.Components.Header.updateHeaderRoleBadge();
     AttendX.App.showScreen('screen-role');
   }
 

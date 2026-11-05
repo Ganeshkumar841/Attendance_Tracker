@@ -3,6 +3,7 @@
   AttendX.Pages = AttendX.Pages || {};
 
   let isDeletingEvent = false;
+  let isChangingEventPassword = false;
 
   function renderExportTab() {
     const mount = document.getElementById('panel-export');
@@ -10,12 +11,13 @@
 
     mount.innerHTML = `
       <div class="bg-surface border border-theme rounded-2xl p-6 mb-4 shadow-card">
-        <div class="text-[1.02rem] font-semibold mb-2 text-main">Export Report</div>
+        <div class="text-[1.02rem] font-semibold mb-1.5 text-main">Export Attendance Data</div>
         <p class="text-[0.84rem] text-muted mb-4 leading-relaxed">
-          Generates separate Excel files for each branch. Students are ordered by their registered year (Y25, Y24, etc.).
+          Generates separate Excel (.xlsx) files for each branch. Students are ordered by their registered year (Y25, Y24, etc.).
         </p>
         <button
           type="button"
+          id="btn-download-excel"
           onclick="exportExcel()"
           class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none"
         >
@@ -24,16 +26,24 @@
       </div>
 
       <div class="bg-surface border border-theme rounded-2xl p-6 mb-4 shadow-card">
-        <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 select-none">Branch Summary</div>
+        <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 select-none">Branch Summary (Attended)</div>
         <div id="branch-summary"></div>
       </div>
 
       <div class="bg-surface border border-theme rounded-2xl p-6 shadow-card">
-        <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 select-none">Session Actions</div>
+        <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 select-none">Event &amp; Session Management</div>
         <div class="flex flex-col gap-2.5">
           <button
             type="button"
-            onclick="showScreen('screen-menu')"
+            id="btn-open-change-ev-pwd"
+            onclick="openModal('modal-change-event-password')"
+            class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-sans text-[0.84rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
+          >
+            Change Event Password
+          </button>
+          <button
+            type="button"
+            onclick="leaveAttendanceScreen()"
             class="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-xl font-sans text-[0.84rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
           >
             Back to Menu
@@ -77,7 +87,7 @@
     const entries = Object.entries(branches);
 
     if (entries.length === 0) {
-      container.innerHTML = '<p class="text-muted text-[0.83rem]">No attendance data yet.</p>';
+      container.innerHTML = '<p class="text-muted text-[0.83rem]">No attendance data recorded yet.</p>';
       return;
     }
 
@@ -114,6 +124,71 @@
 
     const { exportBranchWiseExcel } = AttendX.Utils.Exporter;
     exportBranchWiseExcel(state.attendance, state.currentEvent, toast);
+  }
+
+  async function executeChangeEventPassword() {
+    if (isChangingEventPassword) return;
+    const state = AttendX.State;
+    const { toast } = AttendX.Components.Toast;
+    const { EventService, SecurityConfig, AuditService } = AttendX.Backend;
+
+    if (
+      !SecurityConfig.isCoordinator() ||
+      !SecurityConfig.isEventCoordinatorVerified(state.currentEvent?.id)
+    ) {
+      AuditService.logAction('UNAUTHORIZED_CHANGE_EVENT_PWD_BLOCKED', {});
+      AttendX.Components.Modals.closeModal('modal-change-event-password');
+      toast('Access denied: Unauthorized password change attempt.', 'error');
+      return;
+    }
+
+    const currentPass = document.getElementById('change-ev-current-pass')?.value || '';
+    const newPass = document.getElementById('change-ev-new-pass')?.value || '';
+    const confirmPass = document.getElementById('change-ev-confirm-pass')?.value || '';
+
+    if (!currentPass || !newPass || !confirmPass) {
+      toast('Please fill in all password fields', 'error');
+      return;
+    }
+
+    if (newPass.length < 4) {
+      toast('New event password must be at least 4 characters', 'error');
+      return;
+    }
+
+    if (newPass !== confirmPass) {
+      toast('New password and confirmation do not match', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('btn-submit-change-ev-pwd');
+    isChangingEventPassword = true;
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Updating...';
+    }
+
+    try {
+      const res = await EventService.changeEventPassword(
+        state.currentEvent.id,
+        currentPass,
+        newPass
+      );
+
+      if (!res.success) {
+        toast(res.error || 'Unable to change event password', 'error');
+        return;
+      }
+
+      AttendX.Components.Modals.closeModal('modal-change-event-password');
+      toast('Event password updated! Previous password is no longer valid.', 'success');
+    } finally {
+      isChangingEventPassword = false;
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Update Password';
+      }
+    }
   }
 
   async function executeDeleteEvent() {
@@ -166,12 +241,18 @@
         return;
       }
 
+      if (AttendX.Pages?.Attendance?.stopExpirationMonitor) {
+        AttendX.Pages.Attendance.stopExpirationMonitor();
+      }
       AttendanceService.unsubscribeRealtime();
       state.currentEvent = null;
       state.attendance = [];
       state.editAuthorized = false;
       state.pendingDeleteId = null;
       state.events = (state.events || []).filter(e => e.id !== eventId);
+      if (AttendX.App?.clearPersistedActiveEvent) {
+        AttendX.App.clearPersistedActiveEvent();
+      }
 
       AttendX.Components.Modals.closeModal('modal-delete-event');
       if (passInput) passInput.value = '';
@@ -188,12 +269,14 @@
 
   global.renderBranchSummary = renderBranchSummary;
   global.exportExcel = exportExcel;
+  global.executeChangeEventPassword = executeChangeEventPassword;
   global.executeDeleteEvent = executeDeleteEvent;
 
   AttendX.Pages.ExportPage = {
     renderExportTab,
     renderBranchSummary,
     exportExcel,
+    executeChangeEventPassword,
     executeDeleteEvent
   };
 })(window);

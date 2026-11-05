@@ -80,7 +80,7 @@
         { wch: 10 },
         { wch: 10 },
         { wch: 14 },
-        { wch: 12 },
+        { wch: 14 },
         { wch: 22 }
       ];
 
@@ -93,8 +93,10 @@
       setTimeout(() => {
         try {
           global.XLSX.writeFile(wb, filename);
-        } catch (err) {
-          console.error('Export write error:', err);
+        } catch (_err) {
+          if (typeof toastFn === 'function') {
+            toastFn(`Failed to save ${filename}`, 'error');
+          }
         }
       }, index * 400);
     });
