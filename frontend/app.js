@@ -3,8 +3,10 @@
 
   const INITIAL_URL_HASH = window.location.hash || '';
   const INITIAL_URL_SEARCH = window.location.search || '';
+  const IS_EVENT_RESET = INITIAL_URL_SEARCH.includes('event_reset=1');
   const IS_INITIAL_RECOVERY =
-    INITIAL_URL_HASH.includes('type=recovery') || INITIAL_URL_SEARCH.includes('type=recovery');
+    !IS_EVENT_RESET &&
+    (INITIAL_URL_HASH.includes('type=recovery') || INITIAL_URL_SEARCH.includes('type=recovery'));
 
   const CACHED_USER_KEY = 'attendx_cached_user_v2';
   const ACTIVE_EVENT_KEY = 'attendx_active_event_v2';
@@ -282,9 +284,10 @@
         if (session) {
           state.user = AuthService.extractUserFromSession(session);
           if (
-            state.isPasswordRecovery ||
-            state.authMode === 'update-password' ||
-            INITIAL_URL_HASH.includes('type=recovery')
+            !IS_EVENT_RESET &&
+            (state.isPasswordRecovery ||
+              state.authMode === 'update-password' ||
+              INITIAL_URL_HASH.includes('type=recovery'))
           ) {
             showScreen('screen-login');
             switchAuthMode('update-password');
@@ -303,7 +306,7 @@
       });
 
     client.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
+      if (event === 'PASSWORD_RECOVERY' && !IS_EVENT_RESET) {
         state.isPasswordRecovery = true;
         showScreen('screen-login');
         switchAuthMode('update-password');
@@ -317,7 +320,7 @@
       if (session) {
         state.user = AuthService.extractUserFromSession(session);
         cacheUserSession(state.user);
-        if (state.isPasswordRecovery || state.authMode === 'update-password') {
+        if (!IS_EVENT_RESET && (state.isPasswordRecovery || state.authMode === 'update-password')) {
           showScreen('screen-login');
           return;
         }
@@ -347,9 +350,15 @@
       if (el) el.textContent = prefixes[y];
     });
 
+    const todayStr = AttendX.Utils.Sanitizer.getTodayDateInKolkata();
     const dateInput = document.getElementById('ev-date');
+    const endDateInput = document.getElementById('ev-end-date');
     if (dateInput) {
-      dateInput.valueAsDate = new Date();
+      dateInput.value = todayStr;
+    }
+    if (endDateInput) {
+      endDateInput.value = todayStr;
+      endDateInput.min = todayStr;
     }
 
     const { AuthService, Supabase, SecurityConfig } = AttendX.Backend;
@@ -391,7 +400,7 @@
 
     initSupabaseAuthListeners();
 
-    if (INITIAL_URL_SEARCH.includes('event_reset=1')) {
+    if (IS_EVENT_RESET) {
       const searchParams = new URLSearchParams(INITIAL_URL_SEARCH);
       const resetEventId = searchParams.get('event_id');
       const resetToken = searchParams.get('reset_token');
@@ -421,6 +430,7 @@
 
     if (
       Supabase.isConfigured() &&
+      !IS_EVENT_RESET &&
       (INITIAL_URL_SEARCH.includes('token_hash=') || INITIAL_URL_SEARCH.includes('token='))
     ) {
       const searchParams = new URLSearchParams(INITIAL_URL_SEARCH);

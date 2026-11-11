@@ -1,17 +1,16 @@
-# Local configuration and secrets
+# Ignore local Supabase & environment config containing sensitive keys
 config.js
 .env
-.env.*
+.env.local
+.env.*.local
 
-# Dependencies and build artifacts
+# Dependencies & build artifacts
 node_modules/
 dist/
-build/
 .vercel/
 
-# OS and editor files
+# OS & Editor files
 .DS_Store
 Thumbs.db
-*.log
-.vscode/*
-!.vscode/extensions.json
+.vscode/
+.idea/

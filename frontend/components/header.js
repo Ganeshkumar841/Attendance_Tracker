@@ -22,12 +22,6 @@
           ></span>
         </div>
         <div class="flex items-center gap-2.5 shrink-0">
-          <span
-            id="header-portal-tagline"
-            class="text-[0.76rem] text-muted font-normal tracking-tight select-none"
-          >
-            Real-time Sync · Coordinator &amp; Student Portals
-          </span>
           <button
             type="button"
             id="header-switch-role-btn"
@@ -51,9 +45,6 @@
   function updateHeaderRoleBadge(activeScreenId) {
     const badge = document.getElementById('header-role-badge');
     const switchBtn = document.getElementById('header-switch-role-btn');
-    const headerTagline = document.getElementById('header-portal-tagline');
-    const footerTagline = document.getElementById('footer-portal-tagline');
-    const footerContainer = document.getElementById('footer-inner-container');
     if (!badge) return;
 
     const user = AttendX.State?.user;
@@ -64,24 +55,6 @@
       'screen-login';
 
     const isOpeningScreen = OPENING_SCREENS.has(currentScreen) || !user || !role;
-
-    if (headerTagline) {
-      if (isOpeningScreen) {
-        headerTagline.classList.remove('hidden');
-      } else {
-        headerTagline.classList.add('hidden');
-      }
-    }
-
-    if (footerTagline && footerContainer) {
-      if (isOpeningScreen) {
-        footerTagline.classList.add('hidden');
-        footerContainer.className = 'max-w-[760px] mx-auto flex items-center justify-center text-center';
-      } else {
-        footerTagline.classList.remove('hidden');
-        footerContainer.className = 'max-w-[760px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2';
-      }
-    }
 
     if (isOpeningScreen) {
       badge.className = 'hidden';

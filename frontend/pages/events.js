@@ -43,8 +43,7 @@
             >
               ← Back to Menu
             </button>
-            <div class="text-[1.6rem] font-semibold mb-1 tracking-[-0.025em] text-main">Create Event</div>
-            <div class="text-[0.88rem] text-muted mb-6">Configure your attendance session schedule and credentials</div>
+            <div class="text-[1.6rem] font-semibold mb-5 tracking-[-0.025em] text-main">Create Event</div>
 
             <div class="bg-surface border border-theme rounded-2xl p-5 sm:p-7 shadow-card flex flex-col gap-4">
               <div>
@@ -60,47 +59,74 @@
                 >
               </div>
 
-              <div>
-                <label for="ev-date" class="block text-[0.8rem] font-medium text-secondary mb-1.5">
-                  Event Date <span class="text-danger">*</span>
-                </label>
+              <label class="inline-flex items-center gap-2.5 text-[0.84rem] font-medium text-secondary cursor-pointer select-none">
                 <input
-                  type="date"
-                  id="ev-date"
-                  class="w-full py-2.5 px-3.5 bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                  type="checkbox"
+                  id="ev-single-day"
+                  checked
+                  onchange="toggleSingleDayEvent(this.checked)"
+                  class="w-4 h-4 rounded border-theme text-primary focus:ring-primary/20 cursor-pointer accent-blue-600"
                 >
+                <span>Single-day event</span>
+              </label>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div id="ev-start-date-wrap" class="sm:col-span-2">
+                  <label for="ev-date" id="ev-date-label" class="block text-[0.8rem] font-medium text-secondary mb-1.5">
+                    Start Date <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    id="ev-date"
+                    onchange="handleStartDateChange(this.value)"
+                    class="w-full py-2.5 px-3.5 bg-input border border-theme rounded-xl text-main font-sans text-[0.9rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                  >
+                </div>
+
+                <div id="ev-end-date-wrap" class="hidden">
+                  <label for="ev-end-date" class="block text-[0.8rem] font-medium text-secondary mb-1.5">
+                    End Date <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    id="ev-end-date"
+                    class="w-full py-2.5 px-3.5 bg-input border border-theme rounded-xl text-main font-sans text-[0.9rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
+                  >
+                </div>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label for="ev-start-hour" class="block text-[0.8rem] font-medium text-secondary mb-1.5">
-                    Start Time (12h) <span class="text-danger">*</span>
+                    Start Time <span class="text-danger">*</span>
                   </label>
                   <input type="hidden" id="ev-time" value="09:00 AM">
-                  <div class="flex items-center bg-input border border-theme rounded-xl px-2 py-1.5 gap-1 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                    <select
-                      id="ev-start-hour"
-                      aria-label="Start Hour"
-                      onchange="syncTimePickerValue('start')"
-                      class="bg-transparent text-main font-mono text-[0.9rem] font-medium py-1 px-1.5 rounded-lg focus:outline-none cursor-pointer"
-                    >
-                      ${buildHourOptions(9)}
-                    </select>
-                    <span class="text-muted font-mono font-semibold">:</span>
-                    <select
-                      id="ev-start-min"
-                      aria-label="Start Minute"
-                      onchange="syncTimePickerValue('start')"
-                      class="bg-transparent text-main font-mono text-[0.9rem] font-medium py-1 px-1.5 rounded-lg focus:outline-none cursor-pointer"
-                    >
-                      ${buildMinuteOptions(0)}
-                    </select>
-                    <div class="ml-auto flex bg-surface2 rounded-lg p-0.5 border border-theme">
+                  <div class="flex items-center justify-between bg-input border border-theme rounded-xl px-3 py-2 gap-1.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                    <div class="flex items-center gap-1">
+                      <select
+                        id="ev-start-hour"
+                        aria-label="Start Hour"
+                        onchange="syncTimePickerValue('start')"
+                        class="bg-transparent text-main font-sans text-[0.9rem] font-normal py-0.5 px-1 rounded focus:outline-none cursor-pointer"
+                      >
+                        ${buildHourOptions(9)}
+                      </select>
+                      <span class="text-muted font-sans text-[0.9rem]">:</span>
+                      <select
+                        id="ev-start-min"
+                        aria-label="Start Minute"
+                        onchange="syncTimePickerValue('start')"
+                        class="bg-transparent text-main font-sans text-[0.9rem] font-normal py-0.5 px-1 rounded focus:outline-none cursor-pointer"
+                      >
+                        ${buildMinuteOptions(0)}
+                      </select>
+                    </div>
+                    <div class="flex items-center bg-surface2 rounded-lg p-0.5 border border-theme">
                       <button
                         type="button"
                         id="ev-start-am"
                         onclick="setTimePeriod('start', 'AM')"
-                        class="py-1 px-2 rounded-md text-[0.72rem] font-semibold font-sans transition-all bg-primary text-white"
+                        class="py-0.5 px-2 rounded-md text-[0.78rem] font-medium font-sans transition-all bg-surface text-main border border-theme"
                       >
                         AM
                       </button>
@@ -108,7 +134,7 @@
                         type="button"
                         id="ev-start-pm"
                         onclick="setTimePeriod('start', 'PM')"
-                        class="py-1 px-2 rounded-md text-[0.72rem] font-medium font-sans transition-all text-muted hover:text-main"
+                        class="py-0.5 px-2 rounded-md text-[0.78rem] font-normal font-sans transition-all bg-transparent text-muted hover:text-main border border-transparent"
                       >
                         PM
                       </button>
@@ -118,33 +144,35 @@
 
                 <div>
                   <label for="ev-end-hour" class="block text-[0.8rem] font-medium text-secondary mb-1.5">
-                    End Time (12h) <span class="text-danger">*</span>
+                    End Time <span class="text-danger">*</span>
                   </label>
                   <input type="hidden" id="ev-end-time" value="11:00 AM">
-                  <div class="flex items-center bg-input border border-theme rounded-xl px-2 py-1.5 gap-1 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-                    <select
-                      id="ev-end-hour"
-                      aria-label="End Hour"
-                      onchange="syncTimePickerValue('end')"
-                      class="bg-transparent text-main font-mono text-[0.9rem] font-medium py-1 px-1.5 rounded-lg focus:outline-none cursor-pointer"
-                    >
-                      ${buildHourOptions(11)}
-                    </select>
-                    <span class="text-muted font-mono font-semibold">:</span>
-                    <select
-                      id="ev-end-min"
-                      aria-label="End Minute"
-                      onchange="syncTimePickerValue('end')"
-                      class="bg-transparent text-main font-mono text-[0.9rem] font-medium py-1 px-1.5 rounded-lg focus:outline-none cursor-pointer"
-                    >
-                      ${buildMinuteOptions(0)}
-                    </select>
-                    <div class="ml-auto flex bg-surface2 rounded-lg p-0.5 border border-theme">
+                  <div class="flex items-center justify-between bg-input border border-theme rounded-xl px-3 py-2 gap-1.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                    <div class="flex items-center gap-1">
+                      <select
+                        id="ev-end-hour"
+                        aria-label="End Hour"
+                        onchange="syncTimePickerValue('end')"
+                        class="bg-transparent text-main font-sans text-[0.9rem] font-normal py-0.5 px-1 rounded focus:outline-none cursor-pointer"
+                      >
+                        ${buildHourOptions(11)}
+                      </select>
+                      <span class="text-muted font-sans text-[0.9rem]">:</span>
+                      <select
+                        id="ev-end-min"
+                        aria-label="End Minute"
+                        onchange="syncTimePickerValue('end')"
+                        class="bg-transparent text-main font-sans text-[0.9rem] font-normal py-0.5 px-1 rounded focus:outline-none cursor-pointer"
+                      >
+                        ${buildMinuteOptions(0)}
+                      </select>
+                    </div>
+                    <div class="flex items-center bg-surface2 rounded-lg p-0.5 border border-theme">
                       <button
                         type="button"
                         id="ev-end-am"
                         onclick="setTimePeriod('end', 'AM')"
-                        class="py-1 px-2 rounded-md text-[0.72rem] font-semibold font-sans transition-all bg-primary text-white"
+                        class="py-0.5 px-2 rounded-md text-[0.78rem] font-medium font-sans transition-all bg-surface text-main border border-theme"
                       >
                         AM
                       </button>
@@ -152,7 +180,7 @@
                         type="button"
                         id="ev-end-pm"
                         onclick="setTimePeriod('end', 'PM')"
-                        class="py-1 px-2 rounded-md text-[0.72rem] font-medium font-sans transition-all text-muted hover:text-main"
+                        class="py-0.5 px-2 rounded-md text-[0.78rem] font-normal font-sans transition-all bg-transparent text-muted hover:text-main border border-transparent"
                       >
                         PM
                       </button>
@@ -160,15 +188,6 @@
                   </div>
                 </div>
               </div>
-
-              <label class="flex items-center gap-2.5 text-[0.8rem] text-secondary cursor-pointer select-none -mt-1">
-                <input
-                  type="checkbox"
-                  id="ev-crosses-midnight"
-                  class="w-4 h-4 rounded border-theme text-primary focus:ring-primary/20 cursor-pointer accent-blue-600"
-                >
-                <span>Session crosses midnight (ends on the next calendar day)</span>
-              </label>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
@@ -202,7 +221,7 @@
                   <input
                     type="password"
                     id="ev-pass"
-                    placeholder="Min. 4 characters (used by coordinators)"
+                    placeholder="Min. 4 characters"
                     onkeydown="if(event.key==='Enter') createNewEvent()"
                     class="w-full py-2.5 pl-3.5 pr-11 bg-input border border-theme rounded-xl text-main font-sans text-[0.92rem] focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all"
                   >
@@ -233,26 +252,22 @@
       <section id="screen-event-created" class="screen hidden flex-1 flex-col">
         <div class="flex-1 flex flex-col justify-center py-8 px-4 sm:px-5">
           <div class="max-w-[480px] mx-auto w-full">
-            <div class="text-[1.6rem] font-semibold mb-1 tracking-[-0.025em] text-main text-center">Event Created</div>
-            <div class="text-[0.88rem] text-muted mb-5 text-center">Share the Event ID with participants and co-coordinators</div>
+            <div class="text-[1.6rem] font-semibold mb-5 tracking-[-0.025em] text-main text-center">Event Created</div>
 
             <div class="bg-surface-tint border border-dashed border-strong rounded-2xl p-6 text-center mb-4">
               <div class="text-[0.72rem] text-accent uppercase tracking-[0.08em] mb-1 font-semibold">Event ID</div>
               <div id="display-event-id" class="font-mono text-[2rem] font-semibold text-main tracking-[0.12em]">EV0000</div>
-              <div class="text-[0.8rem] text-muted mt-2">
-                Coordinator Password Set · <span class="text-secondary">Use Forgot/Change Password to manage</span>
-              </div>
             </div>
 
             <div class="bg-surface border border-theme rounded-2xl p-5 shadow-card mb-4">
               <div class="text-[0.72rem] text-muted mb-1 uppercase tracking-[0.05em] font-semibold">Event Name</div>
-              <div id="display-event-name" class="font-semibold text-[1.04rem] text-main"></div>
-              <div class="text-[0.72rem] text-muted mt-3.5 mb-1 uppercase tracking-[0.05em] font-semibold">Schedule (12-Hour Format)</div>
+              <div id="display-event-name" class="font-semibold text-[1.04rem] text-main break-words"></div>
+              <div class="text-[0.72rem] text-muted mt-3.5 mb-1 uppercase tracking-[0.05em] font-semibold">Schedule</div>
               <div id="display-event-dt" class="text-[0.9rem] text-accent font-medium"></div>
             </div>
 
             <div id="display-email-confirmation" class="bg-success-bg border border-theme rounded-xl py-3 px-4 mb-5 text-[0.8rem] text-success leading-relaxed">
-              Confirmation email sent to <strong id="display-creator-email" class="font-semibold"></strong> with Event ID and session schedule (password omitted for security).
+              Confirmation email sent to <strong id="display-creator-email" class="font-semibold"></strong>.
             </div>
 
             <div class="flex flex-col gap-2.5">
@@ -292,8 +307,7 @@
             >
               ← Back to Menu
             </button>
-            <div class="text-[1.6rem] font-semibold mb-1 tracking-[-0.025em] text-main">Join Event</div>
-            <div class="text-[0.88rem] text-muted mb-6">Enter credentials for the event you are coordinating</div>
+            <div class="text-[1.6rem] font-semibold mb-5 tracking-[-0.025em] text-main">Join Event</div>
 
             <div class="bg-surface border border-theme rounded-2xl p-5 sm:p-7 shadow-card flex flex-col gap-4">
               <div>
@@ -364,10 +378,7 @@
       <section id="screen-student-events" class="screen hidden flex-1 flex-col">
         <div class="flex-1 flex flex-col justify-start py-8 px-4 sm:px-5">
           <div class="max-w-[500px] mx-auto w-full">
-            <div class="text-[1.6rem] font-semibold mb-1 tracking-[-0.025em] text-main">Check Event Attendance</div>
-            <div class="text-[0.88rem] text-muted mb-6">
-              Select a campus event below or enter its Event ID to view the live attendance list.
-            </div>
+            <div class="text-[1.6rem] font-semibold mb-5 tracking-[-0.025em] text-main">Check Event Attendance</div>
 
             <div class="bg-surface border border-theme rounded-2xl p-5 sm:p-7 shadow-card flex flex-col gap-4">
               <div>
@@ -420,6 +431,44 @@
   let startPeriodState = 'AM';
   let endPeriodState = 'AM';
 
+  function toggleSingleDayEvent(isSingleDay) {
+    const singleDay = Boolean(isSingleDay);
+    const startWrap = document.getElementById('ev-start-date-wrap');
+    const endWrap = document.getElementById('ev-end-date-wrap');
+    const startDateInput = document.getElementById('ev-date');
+    const endDateInput = document.getElementById('ev-end-date');
+
+    if (singleDay) {
+      if (endWrap) endWrap.classList.add('hidden');
+      if (startWrap) startWrap.className = 'sm:col-span-2';
+      if (endDateInput && startDateInput) {
+        endDateInput.value = startDateInput.value;
+      }
+    } else {
+      if (endWrap) endWrap.classList.remove('hidden');
+      if (startWrap) startWrap.className = '';
+      if (endDateInput && startDateInput) {
+        endDateInput.min = startDateInput.value || '';
+        if (!endDateInput.value || endDateInput.value < startDateInput.value) {
+          endDateInput.value = startDateInput.value;
+        }
+      }
+    }
+  }
+
+  function handleStartDateChange(newStartDate) {
+    const singleDayCheckbox = document.getElementById('ev-single-day');
+    const endDateInput = document.getElementById('ev-end-date');
+    if (!endDateInput) return;
+
+    endDateInput.min = newStartDate || '';
+    if (!singleDayCheckbox || singleDayCheckbox.checked) {
+      endDateInput.value = newStartDate;
+    } else if (endDateInput.value && endDateInput.value < newStartDate) {
+      endDateInput.value = newStartDate;
+    }
+  }
+
   function setTimePeriod(which, period) {
     const normalized = period === 'PM' ? 'PM' : 'AM';
     if (which === 'start') {
@@ -430,8 +479,10 @@
 
     const amBtn = document.getElementById(`ev-${which}-am`);
     const pmBtn = document.getElementById(`ev-${which}-pm`);
-    const activeCls = 'py-1 px-2 rounded-md text-[0.72rem] font-semibold font-sans transition-all bg-primary text-white';
-    const inactiveCls = 'py-1 px-2 rounded-md text-[0.72rem] font-medium font-sans transition-all text-muted hover:text-main';
+    const activeCls =
+      'py-0.5 px-2 rounded-md text-[0.78rem] font-medium font-sans transition-all bg-surface text-main border border-theme';
+    const inactiveCls =
+      'py-0.5 px-2 rounded-md text-[0.78rem] font-normal font-sans transition-all bg-transparent text-muted hover:text-main border border-transparent';
 
     if (amBtn && pmBtn) {
       amBtn.className = normalized === 'AM' ? activeCls : inactiveCls;
@@ -478,16 +529,21 @@
 
   function formatEventScheduleSnippet(ev) {
     const { escapeHtml, formatTime12h } = AttendX.Utils.Sanitizer;
-    const safeDate = escapeHtml(ev.date || '');
+    const safeStartDate = escapeHtml(ev.date || '');
+    const safeEndDate = escapeHtml(ev.end_date || ev.date || '');
     const start12 = ev.time ? formatTime12h(ev.time) : '';
     const end12 = ev.end_time ? formatTime12h(ev.end_time) : '';
+
+    if (safeEndDate && safeEndDate !== safeStartDate) {
+      return `${safeStartDate} (${escapeHtml(start12)}) – ${safeEndDate} (${escapeHtml(end12)})`;
+    }
     if (start12 && end12 && end12 !== '-') {
-      return `${safeDate} · ${escapeHtml(start12)} – ${escapeHtml(end12)}`;
+      return `${safeStartDate} · ${escapeHtml(start12)} – ${escapeHtml(end12)}`;
     }
     if (start12 && start12 !== '-') {
-      return `${safeDate} · ${escapeHtml(start12)}`;
+      return `${safeStartDate} · ${escapeHtml(start12)}`;
     }
-    return safeDate;
+    return safeStartDate;
   }
 
   function renderRecentEvents() {
@@ -512,8 +568,8 @@
         const scheduleStr = formatEventScheduleSnippet(ev);
         const expired = isEventExpired(ev);
         const statusBadge = expired
-          ? '<span class="text-[0.68rem] py-0.5 px-2 rounded-md font-medium bg-warning-bg text-warning border border-theme">Closed</span>'
-          : '<span class="text-[0.68rem] py-0.5 px-2 rounded-md font-medium bg-success-bg text-success border border-theme">Active</span>';
+          ? '<span class="text-[0.68rem] py-0.5 px-2 rounded-md font-medium bg-warning-bg text-warning border border-theme shrink-0">Closed</span>'
+          : '<span class="text-[0.68rem] py-0.5 px-2 rounded-md font-medium bg-success-bg text-success border border-theme shrink-0">Active</span>';
         return `
           <button
             type="button"
@@ -553,7 +609,7 @@
 
     if (events.length === 0) {
       container.innerHTML =
-        '<p class="text-muted text-[0.85rem] text-center p-5 bg-surface border border-theme rounded-xl">No recent events found. Enter an Event ID above.</p>';
+        '<p class="text-muted text-[0.85rem] text-center p-5 bg-surface border border-theme rounded-xl">No recent events found</p>';
       return;
     }
 
@@ -565,8 +621,8 @@
         const safeVenue = ev.venue ? ' · ' + escapeHtml(ev.venue) : '';
         const expired = isEventExpired(ev);
         const statusBadge = expired
-          ? '<span class="text-[0.68rem] py-0.5 px-2 rounded-md font-medium bg-warning-bg text-warning border border-theme">Closed</span>'
-          : '<span class="text-[0.68rem] py-0.5 px-2 rounded-md font-medium bg-success-bg text-success border border-theme">Active</span>';
+          ? '<span class="text-[0.68rem] py-0.5 px-2 rounded-md font-medium bg-warning-bg text-warning border border-theme shrink-0">Closed</span>'
+          : '<span class="text-[0.68rem] py-0.5 px-2 rounded-md font-medium bg-success-bg text-success border border-theme shrink-0">Active</span>';
         return `
           <button
             type="button"
@@ -604,7 +660,7 @@
     if (isCreatingEvent) return;
     const { Supabase, EventService, SecurityConfig } = AttendX.Backend;
     const { toast } = AttendX.Components.Toast;
-    const { formatEventDateTime } = AttendX.Utils.Sanitizer;
+    const { formatEventDateTime, escapeHtml } = AttendX.Utils.Sanitizer;
     const state = AttendX.State;
 
     if (!SecurityConfig.isCoordinator()) {
@@ -619,21 +675,33 @@
 
     const name = document.getElementById('ev-name')?.value.trim() || '';
     const date = document.getElementById('ev-date')?.value || '';
+    const singleDayEl = document.getElementById('ev-single-day');
+    const isSingleDay = singleDayEl ? Boolean(singleDayEl.checked) : true;
+    const endDate = isSingleDay
+      ? date
+      : (document.getElementById('ev-end-date')?.value || '');
     const time = document.getElementById('ev-time')?.value.trim() || '';
     const endTime = document.getElementById('ev-end-time')?.value.trim() || '';
-    const endsNextDay = Boolean(document.getElementById('ev-crosses-midnight')?.checked);
     const venue = document.getElementById('ev-venue')?.value.trim() || null;
     const org = document.getElementById('ev-org')?.value.trim() || null;
     const pass = document.getElementById('ev-pass')?.value || '';
 
-    if (!name || !date || !time || !endTime || !pass) {
-      toast('Fill in all required fields (Name, Date, Start Time, End Time, Password)', 'error');
+    if (!name || !date || (!isSingleDay && !endDate) || !time || !endTime || !pass) {
+      toast('Fill in all required fields', 'error');
       return;
     }
 
-    const timeCheck = EventService.validateEventTimes(time, endTime, endsNextDay);
-    if (!timeCheck.valid) {
-      toast(timeCheck.error, 'error');
+    const scheduleCheck = EventService.validateEventSchedule({
+      date,
+      endDate,
+      isSingleDay,
+      startTimeRaw: time,
+      endTimeRaw: endTime,
+      checkNotPast: true
+    });
+
+    if (!scheduleCheck.valid) {
+      toast(scheduleCheck.error, 'error');
       return;
     }
 
@@ -650,12 +718,13 @@
     }
 
     try {
-      const { data, error } = await EventService.createEvent({
+      const { data, emailResult, error } = await EventService.createEvent({
         name,
-        date,
-        time: timeCheck.startTime12,
-        endTime: timeCheck.endTime12,
-        endsNextDay: timeCheck.endsNextDay,
+        date: scheduleCheck.date,
+        endDate: scheduleCheck.endDate,
+        isSingleDay: scheduleCheck.isSingleDay,
+        time: scheduleCheck.startTime24,
+        endTime: scheduleCheck.endTime24,
         venue,
         organization: org,
         password: pass,
@@ -680,18 +749,26 @@
         data.date,
         data.time,
         data.end_time,
-        data.ends_next_day
+        data.end_date,
+        data.is_single_day
       );
 
-      const emailEl = document.getElementById('display-creator-email');
-      if (emailEl) {
-        emailEl.textContent = data.creator_email || state.user?.email || 'your registered email';
+      const emailBox = document.getElementById('display-email-confirmation');
+      const targetEmail = escapeHtml(data.creator_email || state.user?.email || 'your registered email');
+      if (emailBox) {
+        if (emailResult && emailResult.sent) {
+          emailBox.className = 'bg-success-bg border border-theme rounded-xl py-3 px-4 mb-5 text-[0.8rem] text-success leading-relaxed';
+          emailBox.innerHTML = `Confirmation email sent to <strong id="display-creator-email" class="font-semibold">${targetEmail}</strong>.`;
+        } else {
+          emailBox.className = 'bg-warning-bg border border-theme rounded-xl py-3 px-4 mb-5 text-[0.8rem] text-warning leading-relaxed';
+          emailBox.innerHTML = `Event saved (<strong id="display-creator-email" class="font-semibold">${targetEmail}</strong>). Email delivery notice: ${escapeHtml(emailResult?.error || 'Configure RESEND_API_KEY in Vercel to enable confirmation emails.')}`;
+        }
       }
 
       document.getElementById('ev-pass').value = '';
 
       AttendX.App.showScreen('screen-event-created');
-      toast('Event created and confirmation email sent!', 'success');
+      toast('Event created!', 'success');
     } finally {
       isCreatingEvent = false;
       if (btn) {
@@ -882,17 +959,29 @@
       }
 
       if (statusBox) {
-        statusBox.className = 'mb-4 py-3 px-3.5 rounded-xl text-[0.8rem] leading-relaxed border border-theme bg-success-bg text-success';
+        const isEmailDelivered = res.emailSent !== false;
+        statusBox.className = isEmailDelivered
+          ? 'mb-4 py-3 px-3.5 rounded-xl text-[0.8rem] leading-relaxed border border-theme bg-success-bg text-success'
+          : 'mb-4 py-3 px-3.5 rounded-xl text-[0.8rem] leading-relaxed border border-theme bg-warning-bg text-warning';
+
         let html = escapeHtml(res.message);
+        if (!isEmailDelivered && res.emailError) {
+          html += `<div class="mt-1.5 text-[0.75rem]">Delivery error: ${escapeHtml(res.emailError)}</div>`;
+        }
         if (res.isCreatorSession && res.creatorResetLink) {
           const urlObj = new URL(res.creatorResetLink, window.location.origin);
           const evIdParam = escapeHtml(urlObj.searchParams.get('event_id') || rawId);
           const tokenParam = escapeHtml(urlObj.searchParams.get('reset_token') || '');
-          html += `<div class="mt-2.5 pt-2.5 border-t border-theme"><button type="button" onclick="openResetEventPasswordModal('${evIdParam}', '${tokenParam}')" class="text-accent font-semibold underline cursor-pointer bg-transparent border-none p-0 text-[0.8rem]">Verified Creator Session: Click here to open Reset Link →</button></div>`;
+          html += `<div class="mt-2.5 pt-2.5 border-t border-theme"><button type="button" onclick="openResetEventPasswordModal('${evIdParam}', '${tokenParam}')" class="text-accent font-semibold underline cursor-pointer bg-transparent border-none p-0 text-[0.8rem]">Verified Creator Session: Open Reset Form →</button></div>`;
         }
         statusBox.innerHTML = html;
       }
-      toast('Password reset link dispatched to creator email', 'success');
+      toast(
+        res.emailSent === false
+          ? 'Reset token generated (check email provider settings)'
+          : 'Password reset link dispatched to creator email',
+        res.emailSent === false ? 'info' : 'success'
+      );
     } finally {
       isSubmittingForgotPwd = false;
       if (btn) {
@@ -979,6 +1068,8 @@
     }
   }
 
+  global.toggleSingleDayEvent = toggleSingleDayEvent;
+  global.handleStartDateChange = handleStartDateChange;
   global.setTimePeriod = setTimePeriod;
   global.syncTimePickerValue = syncTimePickerValue;
   global.applyTimeToPickerUI = applyTimeToPickerUI;
@@ -994,6 +1085,8 @@
 
   AttendX.Pages.Events = {
     renderEventsPages,
+    toggleSingleDayEvent,
+    handleStartDateChange,
     setTimePeriod,
     syncTimePickerValue,
     applyTimeToPickerUI,

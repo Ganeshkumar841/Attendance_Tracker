@@ -138,9 +138,6 @@
                   class="flex-1 py-3 px-4 bg-transparent border-none outline-none text-main font-mono text-[0.95rem] uppercase font-medium"
                 >
               </div>
-              <p class="text-[0.75rem] text-muted mt-2">
-                Format: Branch + 3-digit number (e.g. CSE042, MECH007)
-              </p>
               <button
                 type="button"
                 id="btn-mark-attendance"
@@ -152,25 +149,14 @@
             </div>
 
             <div class="bg-surface border border-theme rounded-2xl p-6 shadow-card">
-              <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-1.5 select-none">Pre-registration</div>
-              <p class="text-[0.83rem] text-muted mb-3.5 leading-[1.5]">
-                Upload a CSV of pre-registered roll numbers to automatically verify them during manual entry.
-              </p>
-
-              <div class="bg-input border border-dashed border-theme rounded-xl p-3.5 text-[0.78rem] text-muted">
-                <strong class="text-secondary font-medium">Format requirement:</strong><br>
-                A single column list containing full roll numbers (headers and duplicates are skipped automatically).<br>
-                <code class="block mt-2 bg-surface py-2 px-3 rounded-lg text-accent border border-theme font-mono">
-                  Y25CSE001<br>Y25CSE002<br>Y24ECE045
-                </code>
-              </div>
+              <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 select-none">Pre-registration</div>
 
               <input type="file" id="prereg-file" accept=".csv,text/csv" class="hidden" onchange="loadPreregCSV(this)">
               <button
                 type="button"
                 id="btn-upload-prereg"
                 onclick="document.getElementById('prereg-file').click()"
-                class="mt-4 w-full inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-sans text-[0.84rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-sans text-[0.84rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
               >
                 Upload Pre-reg CSV
               </button>
@@ -216,7 +202,13 @@
     const rollInput = document.getElementById('roll-input');
 
     if (scheduleEl && ev) {
-      scheduleEl.textContent = formatEventDateTime(ev.date, ev.time, ev.end_time, ev.ends_next_day);
+      scheduleEl.textContent = formatEventDateTime(
+        ev.date,
+        ev.time,
+        ev.end_time,
+        ev.end_date,
+        ev.is_single_day
+      );
     }
 
     if (sessionBadge && ev) {
@@ -234,13 +226,14 @@
     if (expiredBanner && ev) {
       if (isExpired) {
         const endFormatted = escapeHtml(formatTime12h(ev.end_time));
+        const endDateFormatted = escapeHtml(ev.end_date || ev.date || '');
         expiredBanner.classList.remove('hidden');
         if (isCoord) {
           expiredBanner.innerHTML =
-            `<strong>Attendance Session Closed (${endFormatted}):</strong> This event has reached its end time. Taking new attendance is disabled. You may only <strong>Delete Participants</strong> or <strong>Export Attendance Data</strong>.`;
+            `<strong>Attendance Session Closed (${endDateFormatted} ${endFormatted}):</strong> Taking new attendance is disabled. Only <strong>Delete Participants</strong> and <strong>Export Attendance Data</strong> are available.`;
         } else {
           expiredBanner.innerHTML =
-            `<strong>Attendance Session Closed (${endFormatted}):</strong> This event has ended. You are viewing the finalized attendance list in read-only mode.`;
+            `<strong>Attendance Session Closed (${endDateFormatted} ${endFormatted})</strong>`;
         }
       } else {
         expiredBanner.classList.add('hidden');

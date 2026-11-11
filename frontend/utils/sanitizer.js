@@ -16,6 +16,25 @@
     return String(str).replace(/[&<>"'/]/g, ch => HTML_ESCAPE_MAP[ch]);
   }
 
+  function getNowInKolkataMs() {
+    return Date.now();
+  }
+
+  function getTodayDateInKolkata() {
+    try {
+      return new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Kolkata',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).format(new Date());
+    } catch (_e) {
+      const d = new Date();
+      const istMs = d.getTime() + (5.5 * 60 * 60 * 1000);
+      return new Date(istMs).toISOString().slice(0, 10);
+    }
+  }
+
   // academic year starts in july (month index 6)
   function computeAcademicYears() {
     const now = new Date();
@@ -161,6 +180,7 @@
       const d = new Date(iso);
       if (isNaN(d.getTime())) return '-';
       return d.toLocaleTimeString('en-US', {
+        timeZone: 'Asia/Kolkata',
         hour: '2-digit',
         minute: '2-digit',
         hour12: true
@@ -170,25 +190,43 @@
     }
   }
 
-  function formatEventDateTime(dateStr, startTimeStr, endTimeStr, endsNextDay = false) {
+  function formatShortDate(dateStr) {
+    if (!dateStr) return '-';
+    try {
+      const d = new Date(`${dateStr}T00:00:00+05:30`);
+      if (isNaN(d.getTime())) return String(dateStr);
+      return d.toLocaleDateString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        dateStyle: 'medium'
+      });
+    } catch (_e) {
+      return String(dateStr);
+    }
+  }
+
+  function formatEventDateTime(dateStr, startTimeStr, endTimeStr, endDateStr = null, isSingleDay = true) {
     if (!dateStr) return '-';
     try {
       const startParsed = parseTimeString(startTimeStr);
       const endParsed = parseTimeString(endTimeStr);
-      const normalizedStart = startParsed ? startParsed.time24 : '00:00';
-      const d = new Date(`${dateStr}T${normalizedStart}`);
-      const dateFormatted = !isNaN(d.getTime())
-        ? d.toLocaleDateString('en-IN', { dateStyle: 'medium' })
-        : String(dateStr);
+      const startDateFormatted = formatShortDate(dateStr);
+      const resolvedEndDate = (!isSingleDay && endDateStr) ? endDateStr : dateStr;
+      const endDateFormatted = formatShortDate(resolvedEndDate);
+
+      if (resolvedEndDate && resolvedEndDate !== dateStr) {
+        if (startParsed && endParsed) {
+          return `${startDateFormatted}, ${startParsed.time12} – ${endDateFormatted}, ${endParsed.time12}`;
+        }
+        return `${startDateFormatted} – ${endDateFormatted}`;
+      }
 
       if (startParsed && endParsed) {
-        const nextDayLabel = endsNextDay ? ' (+1d)' : '';
-        return `${dateFormatted} · ${startParsed.time12} – ${endParsed.time12}${nextDayLabel}`;
+        return `${startDateFormatted} · ${startParsed.time12} – ${endParsed.time12}`;
       }
       if (startParsed) {
-        return `${dateFormatted} · ${startParsed.time12}`;
+        return `${startDateFormatted} · ${startParsed.time12}`;
       }
-      return dateFormatted;
+      return startDateFormatted;
     } catch (_e) {
       return String(dateStr);
     }
@@ -212,6 +250,8 @@
 
   AttendX.Utils.Sanitizer = {
     escapeHtml,
+    getNowInKolkataMs,
+    getTodayDateInKolkata,
     computeAcademicYears,
     YEAR_LABELS,
     parseRollSuffix,
@@ -219,6 +259,7 @@
     parseTimeString,
     formatTime12h,
     formatTime,
+    formatShortDate,
     formatEventDateTime,
     sanitizeFilename,
     sanitizeSheetName

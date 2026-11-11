@@ -4,7 +4,7 @@
 
   // leave out password and reset token columns for public/student queries
   const PUBLIC_EVENT_COLUMNS =
-    'id, name, date, time, end_time, ends_next_day, venue, organization, created_by, creator_email, is_closed, created_at';
+    'id, name, date, end_date, is_single_day, time, end_time, venue, organization, created_by, creator_email, is_closed, created_at';
   const LEGACY_PUBLIC_EVENT_COLUMNS =
     'id, name, date, time, venue, organization, created_by, created_at';
 
@@ -110,12 +110,46 @@
     return clean;
   }
 
-  function validateEventTimes(startTimeRaw, endTimeRaw, crossesMidnight = false) {
+  function parseKolkataTimestampMs(dateStr, time24Str) {
+    if (!dateStr || !time24Str) return NaN;
+    const cleanDate = String(dateStr).trim();
+    const cleanTime = String(time24Str).trim().slice(0, 5);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(cleanDate) || !/^\d{2}:\d{2}$/.test(cleanTime)) {
+      return NaN;
+    }
+    return new Date(`${cleanDate}T${cleanTime}:00+05:30`).getTime();
+  }
+
+  function validateEventSchedule({
+    date,
+    endDate = null,
+    isSingleDay = true,
+    startTimeRaw,
+    endTimeRaw,
+    checkNotPast = false
+  }) {
     const { parseTimeString } = AttendX.Utils.Sanitizer;
+
+    const startDate = String(date || '').trim();
+    if (!startDate || !/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
+      return { valid: false, error: 'Please select a valid Start Date.' };
+    }
+
+    const singleDay = Boolean(isSingleDay);
+    const resolvedEndDate = singleDay ? startDate : String(endDate || '').trim();
+
+    if (!resolvedEndDate || !/^\d{4}-\d{2}-\d{2}$/.test(resolvedEndDate)) {
+      return { valid: false, error: 'Please select a valid End Date.' };
+    }
+
+    if (resolvedEndDate < startDate) {
+      return { valid: false, error: 'End date cannot be before start date.' };
+    }
+
     if (!startTimeRaw || !endTimeRaw) {
       return {
         valid: false,
-        error: 'Both Event Start Time and Event End Time are required.'
+        error: 'Both Start Time and End Time are required.'
       };
     }
 
@@ -129,31 +163,58 @@
       };
     }
 
-    const overnight = Boolean(crossesMidnight);
-    if (!overnight) {
+    if (singleDay || resolvedEndDate === startDate) {
       if (endParsed.totalMinutes <= startParsed.totalMinutes) {
         return {
           valid: false,
-          error: 'Event End Time must be later than Event Start Time.'
-        };
-      }
-    } else {
-      if (endParsed.totalMinutes >= startParsed.totalMinutes) {
-        return {
-          valid: false,
-          error: 'For overnight sessions crossing midnight, End Time on the next day must be earlier on the clock than Start Time.'
+          error: singleDay
+            ? 'For a single-day event, end time must be after start time.'
+            : 'End date and time must be after start date and time.'
         };
       }
     }
 
+    const startTs = parseKolkataTimestampMs(startDate, startParsed.time24);
+    const endTs = parseKolkataTimestampMs(resolvedEndDate, endParsed.time24);
+
+    if (isNaN(startTs) || isNaN(endTs) || endTs <= startTs) {
+      return {
+        valid: false,
+        error: 'End date and time must be after start date and time.'
+      };
+    }
+
+    if (checkNotPast && endTs <= getTrustedNowMs()) {
+      return {
+        valid: false,
+        error: 'Event end date and time cannot be in the past.'
+      };
+    }
+
     return {
       valid: true,
+      date: startDate,
+      endDate: resolvedEndDate,
+      isSingleDay: singleDay,
       startTime24: startParsed.time24,
       endTime24: endParsed.time24,
       startTime12: startParsed.time12,
       endTime12: endParsed.time12,
-      endsNextDay: overnight
+      startTs,
+      endTs
     };
+  }
+
+  function validateEventTimes(startTimeRaw, endTimeRaw, isSingleDay = true, startDate = '2027-01-01', endDate = null) {
+    const resolvedEnd = isSingleDay ? startDate : (endDate || '2027-01-02');
+    return validateEventSchedule({
+      date: startDate,
+      endDate: resolvedEnd,
+      isSingleDay,
+      startTimeRaw,
+      endTimeRaw,
+      checkNotPast: false
+    });
   }
 
   function normalizeEventRow(rawEv) {
@@ -166,10 +227,16 @@
     const startParsed = parseTimeString(startRaw);
     const endParsed = parseTimeString(endRaw);
 
-    let endsNextDay = Boolean(rawEv.ends_next_day ?? rawEv.endsNextDay ?? meta.ends_next_day ?? false);
-    if (!endsNextDay && startParsed && endParsed && endParsed.totalMinutes < startParsed.totalMinutes) {
-      endsNextDay = true;
-    }
+    const startDate = rawEv.date || meta.date || null;
+    const resolvedEndDate = rawEv.end_date || rawEv.endDate || meta.end_date || meta.endDate || startDate;
+    const isSingleDay =
+      rawEv.is_single_day !== undefined
+        ? Boolean(rawEv.is_single_day)
+        : rawEv.isSingleDay !== undefined
+        ? Boolean(rawEv.isSingleDay)
+        : meta.is_single_day !== undefined
+        ? Boolean(meta.is_single_day)
+        : resolvedEndDate === startDate;
 
     const creatorEmail =
       rawEv.creator_email ||
@@ -180,11 +247,13 @@
 
     return {
       ...rawEv,
+      date: startDate,
+      end_date: isSingleDay ? startDate : resolvedEndDate,
+      is_single_day: isSingleDay,
       time: startParsed ? startParsed.time24 : startRaw,
       end_time: endParsed ? endParsed.time24 : endRaw,
       start_time_12h: startParsed ? startParsed.time12 : (startRaw || '-'),
       end_time_12h: endParsed ? endParsed.time12 : (endRaw || '-'),
-      ends_next_day: endsNextDay,
       creator_email: creatorEmail ? String(creatorEmail).trim().toLowerCase() : null,
       is_closed: Boolean(rawEv.is_closed ?? meta.is_closed ?? false),
       password: meta.password_override || rawEv.password,
@@ -206,35 +275,19 @@
     const endParsed = parseTimeString(endStr);
     if (!endParsed) return null;
 
-    const parts = String(normalized.date).split('-').map(Number);
-    if (parts.length !== 3 || parts.some(isNaN)) return null;
-
-    const endDate = new Date(
-      parts[0],
-      parts[1] - 1,
-      parts[2],
-      endParsed.hours24,
-      endParsed.minutes,
-      0,
-      0
-    );
-
-    if (isNaN(endDate.getTime())) return null;
-
-    if (normalized.ends_next_day) {
-      endDate.setDate(endDate.getDate() + 1);
-    }
-
-    return endDate.getTime();
+    const effectiveEndDate = normalized.end_date || normalized.date;
+    const ts = parseKolkataTimestampMs(effectiveEndDate, endParsed.time24);
+    return isNaN(ts) ? null : ts;
   }
 
   function isEventExpired(event, referenceNowMs) {
     if (!event) return false;
     const normalized = normalizeEventRow(event);
     if (normalized.is_closed) return true;
+    if (!normalized.end_time) return true;
 
     const endTs = computeEventEndTimestamp(normalized);
-    if (endTs === null) return false;
+    if (endTs === null) return true;
 
     const nowMs = typeof referenceNowMs === 'number' ? referenceNowMs : getTrustedNowMs();
     return nowMs >= endTs;
@@ -279,60 +332,191 @@
     return { active: true, expired: false, error: null };
   }
 
+  async function dispatchTransactionalEmail({ to, subject, html, text, emailType, resetLink }) {
+    const errors = [];
+
+    // 1. Try Vercel Serverless Function (/api/send-email) when running over HTTP(S)
+    if (typeof global.fetch === 'function' && global.location?.protocol?.startsWith('http')) {
+      try {
+        const resp = await global.fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ to, subject, html, text })
+        });
+        if (resp.ok) {
+          const data = await resp.json().catch(() => ({}));
+          if (data && data.sent) {
+            return { sent: true, provider: data.provider || 'api-route', error: null };
+          }
+        } else {
+          const errBody = await resp.json().catch(() => ({}));
+          errors.push(errBody?.error || `/api/send-email returned HTTP ${resp.status}`);
+        }
+      } catch (err) {
+        errors.push(`API route unreachable: ${err.message || err}`);
+      }
+    }
+
+    // 2. Try Supabase Edge Function ('send-email') if available on the Supabase client
+    const client = AttendX.Backend.Supabase.getClient();
+    if (client && client.functions && typeof client.functions.invoke === 'function') {
+      try {
+        const { data, error } = await client.functions.invoke('send-email', {
+          body: { to, subject, html, text }
+        });
+        if (!error && data?.sent) {
+          return { sent: true, provider: 'supabase-edge-function', error: null };
+        }
+        if (error) {
+          errors.push(`Edge function error: ${error.message || error}`);
+        }
+      } catch (err) {
+        errors.push(`Edge function exception: ${err.message || err}`);
+      }
+    }
+
+    // 3. For password reset, fallback to Supabase Auth's built-in recovery mailer with redirectTo = resetLink
+    if (emailType === 'EVENT_PASSWORD_RESET' && resetLink && client?.auth?.resetPasswordForEmail) {
+      try {
+        const { error } = await client.auth.resetPasswordForEmail(to, { redirectTo: resetLink });
+        if (!error) {
+          return { sent: true, provider: 'supabase-auth-recovery', error: null };
+        }
+        errors.push(`Supabase Auth recovery email error: ${error.message || error}`);
+      } catch (err) {
+        errors.push(`Supabase Auth exception: ${err.message || err}`);
+      }
+    }
+
+    const combinedError =
+      errors.length > 0
+        ? errors.join(' | ')
+        : 'No transactional email provider configured (set RESEND_API_KEY or BREVO_API_KEY in Vercel, or configure Supabase Auth SMTP).';
+
+    return { sent: false, provider: null, error: combinedError };
+  }
+
   async function sendEventCreationConfirmationEmail(eventData, creatorEmail) {
     const cleanEmail = String(creatorEmail || '').trim().toLowerCase();
-    if (!eventData || !eventData.id || !cleanEmail) return { sent: false };
+    if (!eventData || !eventData.id || !cleanEmail) {
+      return { sent: false, error: 'Missing event data or creator email address.' };
+    }
 
     // send confirmation email only once per event creation
     if (confirmedEmailEventIds.has(eventData.id)) {
-      return { sent: false, skippedDuplicate: true };
+      return { sent: false, skippedDuplicate: true, error: null };
     }
     confirmedEmailEventIds.add(eventData.id);
 
-    const { formatTime12h } = AttendX.Utils.Sanitizer;
+    const { formatTime12h, escapeHtml } = AttendX.Utils.Sanitizer;
     const startTime12 = formatTime12h(eventData.time);
     const endTime12 = formatTime12h(eventData.end_time);
+    const endDateStr = eventData.end_date || eventData.date;
     const creationDateStr = eventData.created_at
-      ? new Date(eventData.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
-      : new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+      ? new Date(eventData.created_at).toLocaleString('en-IN', {
+          timeZone: 'Asia/Kolkata',
+          dateStyle: 'medium',
+          timeStyle: 'short'
+        })
+      : new Date().toLocaleString('en-IN', {
+          timeZone: 'Asia/Kolkata',
+          dateStyle: 'medium',
+          timeStyle: 'short'
+        });
+
+    const subject = `AttendX Event Created: ${eventData.name} (${eventData.id})`;
+    const textBody = [
+      `Your AttendX event has been created.`,
+      ``,
+      `Event ID: ${eventData.id}`,
+      `Event Name: ${eventData.name}`,
+      `Start Date: ${eventData.date}`,
+      `End Date: ${endDateStr}`,
+      `Start Time: ${startTime12}`,
+      `End Time: ${endTime12}`,
+      `Venue: ${eventData.venue || 'Not specified'}`,
+      `Organization: ${eventData.organization || 'Not specified'}`,
+      `Created At: ${creationDateStr}`,
+      `Creator Email: ${cleanEmail}`,
+      ``,
+      `For security reasons, your event password is never sent via email. Use Forgot Password on the Join Event screen if you need to reset it.`
+    ].join('\n');
+
+    const htmlBody = `
+      <div style="font-family: sans-serif; color: #0f172a; max-width: 520px; margin: 0 auto; padding: 20px; border: 1px solid #cbd5e1; border-radius: 12px;">
+        <h2 style="margin-top: 0; color: #2563eb;">AttendX Event Created</h2>
+        <p>Your attendance session has been registered with the details below:</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;">
+          <tr><td style="padding: 6px 0; color: #64748b;">Event ID</td><td style="padding: 6px 0; font-weight: 600; font-family: monospace;">${escapeHtml(eventData.id)}</td></tr>
+          <tr><td style="padding: 6px 0; color: #64748b;">Event Name</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(eventData.name)}</td></tr>
+          <tr><td style="padding: 6px 0; color: #64748b;">Start Date</td><td style="padding: 6px 0;">${escapeHtml(eventData.date)}</td></tr>
+          <tr><td style="padding: 6px 0; color: #64748b;">End Date</td><td style="padding: 6px 0;">${escapeHtml(endDateStr)}</td></tr>
+          <tr><td style="padding: 6px 0; color: #64748b;">Start Time</td><td style="padding: 6px 0;">${escapeHtml(startTime12)}</td></tr>
+          <tr><td style="padding: 6px 0; color: #64748b;">End Time</td><td style="padding: 6px 0;">${escapeHtml(endTime12)}</td></tr>
+          <tr><td style="padding: 6px 0; color: #64748b;">Venue</td><td style="padding: 6px 0;">${escapeHtml(eventData.venue || 'Not specified')}</td></tr>
+          <tr><td style="padding: 6px 0; color: #64748b;">Organization</td><td style="padding: 6px 0;">${escapeHtml(eventData.organization || 'Not specified')}</td></tr>
+          <tr><td style="padding: 6px 0; color: #64748b;">Created On</td><td style="padding: 6px 0;">${escapeHtml(creationDateStr)}</td></tr>
+          <tr><td style="padding: 6px 0; color: #64748b;">Creator Email</td><td style="padding: 6px 0;">${escapeHtml(cleanEmail)}</td></tr>
+        </table>
+        <p style="font-size: 12px; color: #64748b; margin-bottom: 0;">
+          Security notice: Your event password is not included in this email. Use the Forgot Password option on the Join Event screen if needed.
+        </p>
+      </div>
+    `;
+
+    const dispatchRes = await dispatchTransactionalEmail({
+      to: cleanEmail,
+      subject,
+      html: htmlBody,
+      text: textBody,
+      emailType: 'EVENT_CREATION_CONFIRMATION'
+    });
 
     const emailPayload = {
       type: 'EVENT_CREATION_CONFIRMATION',
       to: cleanEmail,
-      subject: `AttendX Event Created: ${eventData.name} (${eventData.id})`,
+      subject,
       eventId: eventData.id,
       eventName: eventData.name,
       eventStartDate: eventData.date,
+      eventEndDate: endDateStr,
+      isSingleDay: Boolean(eventData.is_single_day),
       eventStartTime: startTime12,
-      eventEndTime: endTime12 + (eventData.ends_next_day ? ' (Next Day)' : ''),
+      eventEndTime: endTime12,
       eventCreationDate: creationDateStr,
       creatorEmail: cleanEmail,
       venue: eventData.venue || 'Not specified',
       organization: eventData.organization || 'Not specified',
-      securityNotice:
-        'For security reasons, your event password is not included in this email. Use the Forgot Password option on the event login screen if you need to reset it.',
+      delivered: dispatchRes.sent,
+      provider: dispatchRes.provider,
+      deliveryError: dispatchRes.error,
       sentAt: new Date().toISOString()
     };
 
     recordSentEmail(emailPayload);
 
     await AttendX.Backend.AuditService.logAction(
-      'EVENT_CONFIRMATION_EMAIL_SENT',
+      dispatchRes.sent ? 'EVENT_CONFIRMATION_EMAIL_SENT' : 'EVENT_CONFIRMATION_EMAIL_FAILED',
       {
         eventId: emailPayload.eventId,
         eventName: emailPayload.eventName,
         eventStartDate: emailPayload.eventStartDate,
+        eventEndDate: emailPayload.eventEndDate,
         eventStartTime: emailPayload.eventStartTime,
         eventEndTime: emailPayload.eventEndTime,
-        eventCreationDate: emailPayload.eventCreationDate,
         creatorEmail: emailPayload.creatorEmail,
-        venue: emailPayload.venue,
-        organization: emailPayload.organization
+        provider: dispatchRes.provider,
+        error: dispatchRes.error
       },
       cleanEmail
     );
 
-    return { sent: true, emailPayload };
+    return {
+      sent: dispatchRes.sent,
+      provider: dispatchRes.provider,
+      error: dispatchRes.error,
+      emailPayload
+    };
   }
 
   async function fetchRecentEvents(limit = 5) {
@@ -424,14 +608,16 @@
   async function createEvent({
     name,
     date,
+    endDate = null,
+    isSingleDay = true,
     time,
     endTime,
-    endsNextDay = false,
     venue,
     organization,
     password,
     createdBy,
-    creatorEmail
+    creatorEmail,
+    allowPastForTesting = false
   }) {
     if (inFlightCreateEvent) {
       return { data: null, error: new Error('Event creation already in progress.') };
@@ -447,9 +633,17 @@
       return { data: null, error: new Error('Network offline. Please check your internet connection.') };
     }
 
-    const timeValidation = validateEventTimes(time, endTime, endsNextDay);
-    if (!timeValidation.valid) {
-      return { data: null, error: new Error(timeValidation.error) };
+    const scheduleCheck = validateEventSchedule({
+      date,
+      endDate: isSingleDay ? date : (endDate || date),
+      isSingleDay,
+      startTimeRaw: time,
+      endTimeRaw: endTime,
+      checkNotPast: !allowPastForTesting
+    });
+
+    if (!scheduleCheck.valid) {
+      return { data: null, error: new Error(scheduleCheck.error) };
     }
 
     const client = AttendX.Backend.Supabase.getClient();
@@ -464,10 +658,11 @@
       const fullPayload = {
         id: eventId,
         name: String(name).trim().slice(0, 120),
-        date,
-        time: timeValidation.startTime24,
-        end_time: timeValidation.endTime24,
-        ends_next_day: timeValidation.endsNextDay,
+        date: scheduleCheck.date,
+        end_date: scheduleCheck.endDate,
+        is_single_day: scheduleCheck.isSingleDay,
+        time: scheduleCheck.startTime24,
+        end_time: scheduleCheck.endTime24,
         venue: venue ? String(venue).trim().slice(0, 120) : null,
         organization: organization ? String(organization).trim().slice(0, 120) : null,
         password: hashedPassword,
@@ -477,9 +672,11 @@
       };
 
       saveEventMeta(eventId, {
-        time: timeValidation.startTime24,
-        end_time: timeValidation.endTime24,
-        ends_next_day: timeValidation.endsNextDay,
+        date: scheduleCheck.date,
+        end_date: scheduleCheck.endDate,
+        is_single_day: scheduleCheck.isSingleDay,
+        time: scheduleCheck.startTime24,
+        end_time: scheduleCheck.endTime24,
         creator_email: resolvedEmail,
         is_closed: false
       });
@@ -497,10 +694,12 @@
           name: fullPayload.name,
           date: fullPayload.date,
           time: fullPayload.time,
+          end_time: fullPayload.end_time,
           venue: fullPayload.venue,
           organization: fullPayload.organization,
           password: fullPayload.password,
-          created_by: resolvedEmail || fullPayload.created_by
+          created_by: resolvedEmail || fullPayload.created_by,
+          creator_email: resolvedEmail
         };
         const retryRes = await client
           .from('events')
@@ -515,21 +714,26 @@
         updateServerClockOffset(data.created_at);
         const normalized = normalizeEventRow({
           ...data,
-          end_time: timeValidation.endTime24,
-          ends_next_day: timeValidation.endsNextDay,
+          end_date: scheduleCheck.endDate,
+          is_single_day: scheduleCheck.isSingleDay,
+          end_time: scheduleCheck.endTime24,
           creator_email: resolvedEmail
         });
         SecurityConfig.markEventCoordinatorVerified(normalized.id);
         AuditService.logAction('EVENT_CREATED', {
           eventId: normalized.id,
           name: normalized.name,
+          date: normalized.date,
+          endDate: normalized.end_date,
+          isSingleDay: normalized.is_single_day,
           startTime: normalized.start_time_12h,
           endTime: normalized.end_time_12h
         });
+        let emailResult = null;
         if (resolvedEmail) {
-          await sendEventCreationConfirmationEmail(normalized, resolvedEmail);
+          emailResult = await sendEventCreationConfirmationEmail(normalized, resolvedEmail);
         }
-        return { data: normalized, error: null };
+        return { data: normalized, emailResult, error: null };
       }
 
       return { data: null, error: error || new Error('Failed to create event') };
@@ -640,6 +844,7 @@
 
   async function requestEventPasswordReset(eventId) {
     const { SecurityConfig, RateLimiter, AuditService } = AttendX.Backend;
+    const { escapeHtml } = AttendX.Utils.Sanitizer;
     if (!SecurityConfig.isCoordinator()) {
       AuditService.logAction('UNAUTHORIZED_EVENT_RESET_REQUEST_BLOCKED', { eventId });
       return {
@@ -669,7 +874,7 @@
     RateLimiter.recordFailure(rateKey, EVENT_RESET_WINDOW_MS);
 
     const genericSuccessMsg =
-      'If this event has a registered creator email, a password reset link has been sent exclusively to the original event creator.';
+      'If this event has a registered creator email, a password reset link has been sent to the original event creator.';
 
     const client = AttendX.Backend.Supabase.getClient();
     if (!client) {
@@ -702,7 +907,7 @@
         reset_token_expires_at: expiresAtIso
       });
 
-      await client
+      const { error: dbUpdateErr } = await client
         .from('events')
         .update({
           reset_token_hash: tokenHash,
@@ -712,26 +917,65 @@
 
       const baseUrl = window.location.protocol.startsWith('http')
         ? window.location.origin + window.location.pathname
-        : 'http://localhost:8000/';
+        : 'https://attendxtracker.vercel.app/';
       const resetLink = `${baseUrl}?event_reset=1&event_id=${encodeURIComponent(cleanId)}&reset_token=${encodeURIComponent(rawToken)}`;
+
+      const subject = `AttendX Event Password Reset: ${normalized.name} (${cleanId})`;
+      const textBody = [
+        `A password reset was requested for AttendX event ${normalized.name} (${cleanId}).`,
+        ``,
+        `Open the link below within 15 minutes to set a new event password:`,
+        resetLink,
+        ``,
+        `If you did not request this reset, you can safely ignore this email.`
+      ].join('\n');
+
+      const htmlBody = `
+        <div style="font-family: sans-serif; color: #0f172a; max-width: 520px; margin: 0 auto; padding: 20px; border: 1px solid #cbd5e1; border-radius: 12px;">
+          <h2 style="margin-top: 0; color: #2563eb;">Reset Event Password</h2>
+          <p>A password reset was requested for <strong>${escapeHtml(normalized.name)}</strong> (<code style="font-family: monospace;">${escapeHtml(cleanId)}</code>).</p>
+          <p style="margin: 20px 0;">
+            <a href="${escapeHtml(resetLink)}" style="display: inline-block; background: #2563eb; color: #ffffff; text-decoration: none; padding: 10px 18px; border-radius: 8px; font-weight: 600;">Reset Event Password</a>
+          </p>
+          <p style="font-size: 12px; color: #64748b;">This single-use link expires in 15 minutes.</p>
+        </div>
+      `;
+
+      const dispatchRes = await dispatchTransactionalEmail({
+        to: creatorEmail,
+        subject,
+        html: htmlBody,
+        text: textBody,
+        emailType: 'EVENT_PASSWORD_RESET',
+        resetLink
+      });
 
       const emailPayload = {
         type: 'EVENT_PASSWORD_RESET',
         to: creatorEmail,
-        subject: `AttendX Event Password Reset: ${normalized.name} (${cleanId})`,
+        subject,
         eventId: cleanId,
         eventName: normalized.name,
         recipientEmail: creatorEmail,
         resetLink,
         expiresAt: expiresAtIso,
+        delivered: dispatchRes.sent,
+        provider: dispatchRes.provider,
+        deliveryError: dispatchRes.error,
         sentAt: new Date().toISOString()
       };
 
       recordSentEmail(emailPayload);
 
       await AuditService.logAction(
-        'EVENT_PASSWORD_RESET_REQUESTED',
-        { eventId: cleanId, expiresAt: expiresAtIso },
+        dispatchRes.sent ? 'EVENT_PASSWORD_RESET_REQUESTED' : 'EVENT_PASSWORD_RESET_EMAIL_FAILED',
+        {
+          eventId: cleanId,
+          expiresAt: expiresAtIso,
+          provider: dispatchRes.provider,
+          dbUpdateError: dbUpdateErr?.message || null,
+          emailError: dispatchRes.error
+        },
         AttendX.State?.user?.email || 'coordinator'
       );
 
@@ -740,6 +984,9 @@
 
       return {
         success: true,
+        emailSent: dispatchRes.sent,
+        emailProvider: dispatchRes.provider,
+        emailError: dispatchRes.error,
         message: genericSuccessMsg,
         isCreatorSession: isSignedInAsCreator,
         creatorResetLink: isSignedInAsCreator ? resetLink : undefined
@@ -993,11 +1240,13 @@
   AttendX.Backend.EventService = {
     generateEventId,
     sanitizeEventId,
+    validateEventSchedule,
     validateEventTimes,
     normalizeEventRow,
     computeEventEndTimestamp,
     isEventExpired,
     verifyEventActiveForAttendance,
+    dispatchTransactionalEmail,
     sendEventCreationConfirmationEmail,
     getSentEmails,
     fetchRecentEvents,

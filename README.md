@@ -1,25 +1,17 @@
-# AttendX
+# AttendX — Campus Event Attendance System
 
-Web application for tracking college event attendance using Supabase. Coordinators can create scheduled events with start and end times, record student attendance, upload pre-registration CSV files, manage event passwords, and export branch-wise Excel sheets. Students can view live event attendance lists and check their status.
+## Setup Instructions
 
-## Setup
+1. **Database Setup (Supabase)**
+   - **Fresh Install (Destructive)**: Open the Supabase SQL Editor and run [`backend/database/schema.sql`](backend/database/schema.sql).
+   - **Existing Database Upgrade (Non-Destructive)**: Open the Supabase SQL Editor and run [`backend/database/migration.sql`](backend/database/migration.sql) to add `is_single_day` and `end_date` and update `public.is_event_active()`.
 
-1. Copy `config.example.js` to `config.js` and configure your Supabase project credentials:
-   ```js
-   const SUPABASE_URL = 'https://your-project.supabase.co';
-   const SUPABASE_ANON_KEY = 'your-anon-key';
-   ```
-   - `SUPABASE_URL`: Your Supabase project endpoint URL.
-   - `SUPABASE_ANON_KEY`: Your Supabase public anonymous client key.
+2. **Frontend Configuration**
+   - Copy `config.example.js` to `config.js` and set `SUPABASE_URL` and `SUPABASE_ANON_KEY` (already pre-filled in `config.js` for your project).
+   - Note: `config.js` is listed in `.gitignore` so your keys are not committed to public repositories.
 
-2. Run `backend/database/schema.sql` and `backend/database/rls_policies.sql` in the Supabase SQL Editor to create the tables, triggers, and row-level security policies.
-
-## Running the Application
-
-Serve the project root directory with any static HTTP server:
-
-```bash
-python3 -m http.server 8000
-```
-
-Open `http://localhost:8000` in your browser.
+3. **Transactional Email Setup (Vercel Serverless Function `api/send-email.js`)**
+   - Add the following Environment Variables in **Vercel Dashboard → Project Settings → Environment Variables** (for Production, Preview, and Development):
+     - `RESEND_API_KEY`: Your Resend API key (`re_...`) — **or** `BREVO_API_KEY` (`xkeysib-...`) if using Brevo.
+     - `EMAIL_FROM`: Verified sender address (e.g., `AttendX <onboarding@resend.dev>` or your verified domain address).
+   - Redeploy your Vercel project after saving the environment variables so `/api/send-email` is active.

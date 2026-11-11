@@ -11,10 +11,7 @@
 
     mount.innerHTML = `
       <div class="bg-surface border border-theme rounded-2xl p-6 mb-4 shadow-card">
-        <div class="text-[1.02rem] font-semibold mb-1.5 text-main">Export Attendance Data</div>
-        <p class="text-[0.84rem] text-muted mb-4 leading-relaxed">
-          Generates separate Excel (.xlsx) files for each branch. Students are ordered by their registered year (Y25, Y24, etc.).
-        </p>
+        <div class="text-[1.02rem] font-semibold mb-4 text-main">Export Attendance Data</div>
         <button
           type="button"
           id="btn-download-excel"

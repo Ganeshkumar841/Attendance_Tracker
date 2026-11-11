@@ -9,13 +9,10 @@
     mount.innerHTML = `
       <section id="screen-role" class="screen hidden flex-1 flex-col">
         <div class="max-w-[760px] mx-auto px-5 w-full pt-12 pb-10 flex-1 flex flex-col justify-center">
-          <div class="mb-9 text-center select-none">
-            <div class="text-[1.85rem] sm:text-[2.15rem] font-semibold mb-2 tracking-[-0.025em] text-main">
+          <div class="mb-8 text-center select-none">
+            <div class="text-[1.85rem] sm:text-[2.15rem] font-semibold tracking-[-0.025em] text-main">
               Welcome, <span id="role-user-name" class="text-accent">User</span>
             </div>
-            <p class="text-muted text-[0.92rem] max-w-[460px] mx-auto leading-relaxed">
-              Select your portal to continue.
-            </p>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -33,8 +30,7 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-[1.02rem] font-semibold text-main mb-0.5">Coordinator / Staff</h3>
-                  <p class="text-[0.8rem] text-muted">Create events &amp; manage attendance</p>
+                  <h3 class="text-[1.02rem] font-semibold text-main">Coordinator / Staff</h3>
                 </div>
               </div>
               <span class="text-muted text-[1.25rem] transition-all duration-150 group-hover:translate-x-[3px] group-hover:text-accent">›</span>
@@ -54,8 +50,7 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-[1.02rem] font-semibold text-main mb-0.5">Student Portal</h3>
-                  <p class="text-[0.8rem] text-muted">View live event attendance lists</p>
+                  <h3 class="text-[1.02rem] font-semibold text-main">Student Portal</h3>
                 </div>
               </div>
               <span class="text-muted text-[1.25rem] transition-all duration-150 group-hover:translate-x-[3px] group-hover:text-accent">›</span>
@@ -76,11 +71,10 @@
 
       <section id="screen-menu" class="screen hidden flex-1 flex-col">
         <div class="max-w-[760px] mx-auto px-5 w-full pt-12 pb-10 flex-1 flex flex-col justify-center">
-          <div class="mb-9 text-center select-none">
-            <div class="text-[1.85rem] sm:text-[2.15rem] font-semibold mb-2 tracking-[-0.025em] text-main">
+          <div class="mb-8 text-center select-none">
+            <div class="text-[1.85rem] sm:text-[2.15rem] font-semibold tracking-[-0.025em] text-main">
               Welcome back, <span id="user-name" class="text-accent">Coordinator</span>
             </div>
-            <p class="text-muted text-[0.92rem]">Create a new attendance session or join an existing campus event.</p>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -99,8 +93,7 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-[1.02rem] font-semibold text-main mb-0.5">Create New Event</h3>
-                  <p class="text-[0.8rem] text-muted">Set up a scheduled attendance session</p>
+                  <h3 class="text-[1.02rem] font-semibold text-main">Create New Event</h3>
                 </div>
               </div>
               <span class="text-muted text-[1.25rem] transition-all duration-150 group-hover:translate-x-[3px] group-hover:text-accent">›</span>
@@ -119,8 +112,7 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-[1.02rem] font-semibold text-main mb-0.5">Join Existing Event</h3>
-                  <p class="text-[0.8rem] text-muted">Co-manage an event with its ID &amp; password</p>
+                  <h3 class="text-[1.02rem] font-semibold text-main">Join Existing Event</h3>
                 </div>
               </div>
               <span class="text-muted text-[1.25rem] transition-all duration-150 group-hover:translate-x-[3px] group-hover:text-accent">›</span>

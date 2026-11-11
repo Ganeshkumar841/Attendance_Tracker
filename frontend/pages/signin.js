@@ -9,9 +9,8 @@
     mount.innerHTML = `
       <section id="screen-login" class="screen hidden flex-1 flex-col items-center justify-center py-10 px-5 pb-14">
         <div class="max-w-[460px] mx-auto px-5 w-full">
-          <div class="text-center mb-7 select-none">
-            <span class="font-sans text-[1.95rem] sm:text-[2.25rem] font-semibold text-main block mb-2 tracking-[-0.03em]">AttendX</span>
-            <p class="text-muted text-[0.94rem] max-w-[360px] mx-auto leading-relaxed">College Event Attendance Management</p>
+          <div class="text-center mb-6 select-none">
+            <span class="font-sans text-[1.95rem] sm:text-[2.25rem] font-semibold text-main block tracking-[-0.03em]">AttendX</span>
           </div>
 
           <div class="bg-surface border border-theme rounded-2xl p-[22px] sm:p-7 shadow-card transition-all">
@@ -104,9 +103,6 @@
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   </button>
                 </div>
-                <div id="pwd-policy-hint" class="hidden text-[0.75rem] text-muted mt-[7px] leading-[1.45]">
-                  Must be at least 8 characters and include both letters and digits.
-                </div>
               </div>
 
               <button
@@ -130,12 +126,10 @@
             </div>
 
             <div id="auth-view-otp" class="hidden">
-              <div id="otp-instructions-box" class="bg-input border border-theme rounded-xl py-3 px-3.5 mb-3.5 text-[0.8rem] leading-relaxed text-secondary">
-                <strong class="text-accent font-medium">1. Click the link in your email:</strong> Open the email sent to <strong id="otp-email-display" class="text-main font-medium"></strong> and click the action link.<br>
-                <strong class="text-accent font-medium">2. Opened on phone or another tab?</strong> Copy the link from the email (or copy the redirected URL from your browser bar) and paste it below:
-              </div>
               <div class="mb-[18px]">
-                <label for="otp-code" id="otp-input-label" class="block text-[0.8rem] font-medium text-secondary mb-[7px]">Paste Email Link or Verification Code</label>
+                <label for="otp-code" id="otp-input-label" class="block text-[0.8rem] font-medium text-secondary mb-[7px]">
+                  Verification Link or Code (<span id="otp-email-display" class="text-main font-medium"></span>)
+                </label>
                 <input
                   type="text"
                   id="otp-code"
@@ -190,9 +184,6 @@
                   >
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   </button>
-                </div>
-                <div class="text-[0.75rem] text-muted mt-[7px] leading-[1.45]">
-                  Must be at least 8 characters and include both letters and digits.
                 </div>
               </div>
               <div class="flex flex-col gap-2.5">
@@ -254,7 +245,6 @@
     const otpView = document.getElementById('auth-view-otp');
     const updatePwdView = document.getElementById('auth-view-update-pwd');
     const pwdField = document.getElementById('field-login-password');
-    const pwdHint = document.getElementById('pwd-policy-hint');
     const forgotLink = document.getElementById('forgot-pwd-link');
     const submitBtn = document.getElementById('auth-submit-btn');
     const resetBackWrap = document.getElementById('reset-back-wrap');
@@ -282,7 +272,6 @@
       tabSignup.className = inactiveTabClass;
       credView.style.display = 'block';
       pwdField.style.display = 'block';
-      pwdHint.style.display = 'none';
       forgotLink.style.display = 'inline';
       resetBackWrap.style.display = 'none';
       submitBtn.textContent = 'Sign In';
@@ -295,7 +284,6 @@
       tabSignup.className = activeTabClass;
       credView.style.display = 'block';
       pwdField.style.display = 'block';
-      pwdHint.style.display = 'block';
       forgotLink.style.display = 'none';
       resetBackWrap.style.display = 'none';
       submitBtn.textContent = 'Create Account';
@@ -308,7 +296,6 @@
       pwdField.style.display = 'none';
       resetBackWrap.style.display = 'block';
       submitBtn.textContent = 'Send Reset Email';
-      showAuthBanner('Enter your registered email address to receive a password reset link.', 'info');
     } else if (mode === 'otp') {
       cardTitle.textContent = state.otpType === 'recovery' ? 'Check your email to reset' : 'Verify your email';
       googleBtn.style.display = 'none';
@@ -366,7 +353,7 @@
         state.otpType = 'recovery';
         switchAuthMode('otp');
         showAuthBanner(
-          `Password reset link sent to ${email}. Click the "Reset Password" link in the email, or copy & paste that link below if opened on another device.`,
+          `Password reset link sent to ${email}.`,
           'success'
         );
         toast('Reset link sent to your email!', 'success');
@@ -431,7 +418,7 @@
         state.pendingEmail = email;
         state.otpType = 'signup';
         switchAuthMode('otp');
-        showAuthBanner(`Account created! Click the confirmation link sent to ${email}, or paste the link below.`, 'success');
+        showAuthBanner(`Account created! Confirmation link sent to ${email}.`, 'success');
         toast('Check your email to confirm your account!', 'info');
       } catch (err) {
         const friendly = AuthService.formatAuthError(err, 'signup');
@@ -474,7 +461,7 @@
           state.otpType = 'signup';
           switchAuthMode('otp');
           showAuthBanner(
-            'Your email is not verified yet. Click the link in your email, paste the link below, or click "Resend Email".',
+            'Your email is not verified yet.',
             'error'
           );
           toast('Please verify your email first', 'error');
@@ -526,7 +513,6 @@
     const verifyType = state.otpType === 'recovery' ? 'recovery' : 'signup';
 
     try {
-      // user pasted the redirected url with #access_token=...
       if (rawInput.includes('access_token=')) {
         const hashPart = rawInput.includes('#')
           ? rawInput.split('#')[1]
@@ -566,7 +552,6 @@
         }
       }
 
-      // user pasted the raw link from the email (?token=...)
       if (rawInput.startsWith('http://') || rawInput.startsWith('https://') || rawInput.includes('token=')) {
         const queryPart = rawInput.includes('?') ? rawInput.split('?')[1].split('#')[0] : rawInput;
         const params = new URLSearchParams(queryPart);
@@ -690,7 +675,7 @@
         showAuthBanner(friendly, 'error');
         toast(friendly, 'error');
       } else {
-        showAuthBanner(`A new verification email has been sent to ${email}. Please check your inbox.`, 'success');
+        showAuthBanner(`Verification email resent to ${email}.`, 'success');
         toast('Email resent!', 'success');
       }
     } catch (err) {

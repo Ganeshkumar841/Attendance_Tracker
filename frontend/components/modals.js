@@ -31,8 +31,7 @@
         aria-labelledby="modal-edit-auth-title"
       >
         <div class="bg-surface border border-theme rounded-2xl p-6 sm:p-7 w-full max-w-[390px] shadow-card animate-modal-in">
-          <h3 id="modal-edit-auth-title" class="text-[1.12rem] font-semibold text-main mb-1.5">Authorization Required</h3>
-          <p class="text-[0.85rem] text-muted mb-5 leading-relaxed">Enter the event password to manage or delete participant records.</p>
+          <h3 id="modal-edit-auth-title" class="text-[1.12rem] font-semibold text-main mb-4">Authorization Required</h3>
           <div class="mb-4">
             <div class="flex items-center justify-between mb-1.5">
               <label for="edit-auth-pass" class="text-[0.8rem] font-medium text-secondary">Event Password</label>
@@ -90,9 +89,9 @@
         aria-labelledby="modal-delete-confirm-title"
       >
         <div class="bg-surface border border-theme rounded-2xl p-6 sm:p-7 w-full max-w-[390px] shadow-card animate-modal-in">
-          <h3 id="modal-delete-confirm-title" class="text-[1.12rem] font-semibold text-danger mb-1.5">Delete Entry?</h3>
-          <p class="text-[0.85rem] text-muted mb-5 leading-relaxed">
-            Remove <strong id="delete-target-roll" class="text-main font-mono font-semibold"></strong> from attendance? This action cannot be undone.
+          <h3 id="modal-delete-confirm-title" class="text-[1.12rem] font-semibold text-danger mb-2">Delete Entry?</h3>
+          <p class="text-[0.85rem] text-secondary mb-5">
+            <strong id="delete-target-roll" class="text-main font-mono font-semibold"></strong>
           </p>
           <div class="flex gap-2.5 mt-5">
             <button
@@ -122,10 +121,7 @@
         aria-labelledby="modal-delete-event-title"
       >
         <div class="bg-surface border border-theme rounded-2xl p-6 sm:p-7 w-full max-w-[390px] shadow-card animate-modal-in">
-          <h3 id="modal-delete-event-title" class="text-[1.12rem] font-semibold text-danger mb-1.5">Discard Event?</h3>
-          <p class="text-[0.85rem] text-muted mb-5 leading-relaxed">
-            This will <strong class="text-main font-medium">permanently delete the event and all attendance records</strong>. Enter the event password to confirm.
-          </p>
+          <h3 id="modal-delete-event-title" class="text-[1.12rem] font-semibold text-danger mb-4">Discard Event?</h3>
           <div class="mb-4">
             <label for="delete-event-pass" class="block text-[0.8rem] font-medium text-secondary mb-1.5">Event Password</label>
             <div class="relative w-full">
@@ -174,10 +170,7 @@
         aria-labelledby="modal-change-event-pwd-title"
       >
         <div class="bg-surface border border-theme rounded-2xl p-6 sm:p-7 w-full max-w-[400px] shadow-card animate-modal-in">
-          <h3 id="modal-change-event-pwd-title" class="text-[1.12rem] font-semibold text-main mb-1.5">Change Event Password</h3>
-          <p class="text-[0.85rem] text-muted mb-5 leading-relaxed">
-            Verify the current event password and set a new password for co-coordinators.
-          </p>
+          <h3 id="modal-change-event-pwd-title" class="text-[1.12rem] font-semibold text-main mb-4">Change Event Password</h3>
           <div class="flex flex-col gap-3.5">
             <div>
               <label for="change-ev-current-pass" class="block text-[0.8rem] font-medium text-secondary mb-1.5">Current Event Password</label>
@@ -256,10 +249,7 @@
         aria-labelledby="modal-forgot-ev-pwd-title"
       >
         <div class="bg-surface border border-theme rounded-2xl p-6 sm:p-7 w-full max-w-[420px] shadow-card animate-modal-in">
-          <h3 id="modal-forgot-ev-pwd-title" class="text-[1.12rem] font-semibold text-main mb-1.5">Event Password Recovery</h3>
-          <p class="text-[0.84rem] text-muted mb-4 leading-relaxed">
-            Enter the Event ID. A single-use password reset link will be sent exclusively to the email address of the administrator who created the event.
-          </p>
+          <h3 id="modal-forgot-ev-pwd-title" class="text-[1.12rem] font-semibold text-main mb-4">Event Password Recovery</h3>
           <div class="mb-4">
             <label for="forgot-ev-id-input" class="block text-[0.8rem] font-medium text-secondary mb-1.5">Event ID</label>
             <input
@@ -301,10 +291,10 @@
         aria-labelledby="modal-reset-ev-pwd-title"
       >
         <div class="bg-surface border border-theme rounded-2xl p-6 sm:p-7 w-full max-w-[400px] shadow-card animate-modal-in">
-          <h3 id="modal-reset-ev-pwd-title" class="text-[1.12rem] font-semibold text-main mb-1.5">Set New Event Password</h3>
-          <p class="text-[0.84rem] text-muted mb-4 leading-relaxed">
-            Resetting password for event <strong id="reset-ev-target-id" class="font-mono text-accent"></strong>.
-          </p>
+          <h3 id="modal-reset-ev-pwd-title" class="text-[1.12rem] font-semibold text-main mb-2">Set New Event Password</h3>
+          <div class="text-[0.84rem] text-secondary mb-4">
+            <strong id="reset-ev-target-id" class="font-mono text-accent"></strong>
+          </div>
           <input type="hidden" id="reset-ev-hidden-id">
           <input type="hidden" id="reset-ev-hidden-token">
           <div class="flex flex-col gap-3.5">
