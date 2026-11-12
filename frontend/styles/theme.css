@@ -48,9 +48,6 @@ summary,
 select,
 .no-tap-outline {
   -webkit-tap-highlight-color: transparent !important;
-  -webkit-touch-callout: none;
-  user-select: none;
-  -webkit-user-select: none;
   outline: none !important;
 }
 

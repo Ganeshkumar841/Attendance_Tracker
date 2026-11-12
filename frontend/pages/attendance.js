@@ -12,14 +12,14 @@
 
     mount.innerHTML = `
       <section id="screen-attendance" class="screen hidden flex-1 flex-col">
-        <div class="border-b border-theme bg-surface select-none">
+        <div class="border-b border-theme bg-surface">
           <div class="max-w-[960px] mx-auto flex items-center justify-between py-3 px-4 sm:px-6 gap-3">
             <div class="flex items-center gap-3 min-w-0">
               <button
                 type="button"
                 id="hdr-back-btn"
                 onclick="leaveAttendanceScreen()"
-                class="py-1.5 px-3.5 rounded-lg text-[0.78rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong cursor-pointer focus:outline-none select-none shrink-0 transition-all"
+                class="py-1.5 px-3.5 rounded-lg text-[0.78rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong cursor-pointer focus:outline-none shrink-0 transition-all"
               >
                 ← Back
               </button>
@@ -41,7 +41,7 @@
             class="hidden mb-5 py-3.5 px-4 rounded-2xl border border-theme bg-warning-bg text-warning text-[0.83rem] leading-relaxed shadow-card"
           ></div>
 
-          <div class="grid grid-cols-3 gap-3.5 mb-6 select-none">
+          <div class="grid grid-cols-3 gap-3.5 mb-6">
             <div class="bg-surface border border-theme rounded-2xl py-4 px-3.5 text-center shadow-card">
               <div id="stat-total" class="text-[1.6rem] font-semibold font-sans text-main leading-tight">0</div>
               <div class="text-[0.68rem] text-muted uppercase tracking-[0.07em] mt-1 font-semibold">Total</div>
@@ -56,12 +56,12 @@
             </div>
           </div>
 
-          <div id="attendance-tabs-bar" class="flex bg-surface rounded-xl p-1 mb-6 border border-theme shadow-card select-none gap-1">
+          <div id="attendance-tabs-bar" class="flex bg-surface rounded-xl p-1 mb-6 border border-theme shadow-card gap-1">
             <button
               type="button"
               id="tab-entry"
               onclick="switchTab('entry')"
-              class="nav-tab flex-1 py-2.5 px-3.5 rounded-lg font-sans text-[0.83rem] font-semibold cursor-pointer text-center transition-all border-none bg-primary text-white shadow-btn-primary focus:outline-none select-none"
+              class="nav-tab flex-1 py-2.5 px-3.5 rounded-lg font-sans text-[0.83rem] font-semibold cursor-pointer text-center transition-all border-none bg-primary text-white shadow-btn-primary focus:outline-none"
             >
               Take Attendance
             </button>
@@ -69,7 +69,7 @@
               type="button"
               id="tab-list"
               onclick="switchTab('list')"
-              class="nav-tab flex-1 py-2.5 px-3.5 rounded-lg font-sans text-[0.83rem] font-medium cursor-pointer text-center transition-all border-none bg-transparent text-muted hover:text-main focus:outline-none select-none"
+              class="nav-tab flex-1 py-2.5 px-3.5 rounded-lg font-sans text-[0.83rem] font-medium cursor-pointer text-center transition-all border-none bg-transparent text-muted hover:text-main focus:outline-none"
             >
               View List
             </button>
@@ -77,7 +77,7 @@
               type="button"
               id="tab-export"
               onclick="switchTab('export')"
-              class="nav-tab flex-1 py-2.5 px-3.5 rounded-lg font-sans text-[0.83rem] font-medium cursor-pointer text-center transition-all border-none bg-transparent text-muted hover:text-main focus:outline-none select-none"
+              class="nav-tab flex-1 py-2.5 px-3.5 rounded-lg font-sans text-[0.83rem] font-medium cursor-pointer text-center transition-all border-none bg-transparent text-muted hover:text-main focus:outline-none"
             >
               Export Data
             </button>
@@ -85,46 +85,46 @@
 
           <div id="panel-entry">
             <div class="bg-surface border border-theme rounded-2xl p-6 mb-5 shadow-card">
-              <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 select-none">Select Year</div>
-              <div class="grid grid-cols-4 gap-2.5 mb-6 select-none">
+              <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3">Select Year</div>
+              <div class="grid grid-cols-4 gap-2.5 mb-6">
                 <button
                   type="button"
                   onclick="selectYear(1)"
-                  class="year-btn py-3 px-2 rounded-xl font-sans text-[0.88rem] font-semibold cursor-pointer border border-theme bg-input text-secondary hover:border-strong hover:text-main transition-all text-center focus:outline-none select-none"
+                  class="year-btn py-3 px-2 rounded-xl font-sans text-[0.88rem] font-semibold cursor-pointer border border-theme bg-input text-secondary hover:border-strong hover:text-main transition-all text-center focus:outline-none"
                 >
                   1st <span id="y1-prefix" class="prefix font-mono text-[0.68rem] text-muted block mt-[3px] font-normal"></span>
                 </button>
                 <button
                   type="button"
                   onclick="selectYear(2)"
-                  class="year-btn py-3 px-2 rounded-xl font-sans text-[0.88rem] font-semibold cursor-pointer border border-theme bg-input text-secondary hover:border-strong hover:text-main transition-all text-center focus:outline-none select-none"
+                  class="year-btn py-3 px-2 rounded-xl font-sans text-[0.88rem] font-semibold cursor-pointer border border-theme bg-input text-secondary hover:border-strong hover:text-main transition-all text-center focus:outline-none"
                 >
                   2nd <span id="y2-prefix" class="prefix font-mono text-[0.68rem] text-muted block mt-[3px] font-normal"></span>
                 </button>
                 <button
                   type="button"
                   onclick="selectYear(3)"
-                  class="year-btn py-3 px-2 rounded-xl font-sans text-[0.88rem] font-semibold cursor-pointer border border-theme bg-input text-secondary hover:border-strong hover:text-main transition-all text-center focus:outline-none select-none"
+                  class="year-btn py-3 px-2 rounded-xl font-sans text-[0.88rem] font-semibold cursor-pointer border border-theme bg-input text-secondary hover:border-strong hover:text-main transition-all text-center focus:outline-none"
                 >
                   3rd <span id="y3-prefix" class="prefix font-mono text-[0.68rem] text-muted block mt-[3px] font-normal"></span>
                 </button>
                 <button
                   type="button"
                   onclick="selectYear(4)"
-                  class="year-btn py-3 px-2 rounded-xl font-sans text-[0.88rem] font-semibold cursor-pointer border border-theme bg-input text-secondary hover:border-strong hover:text-main transition-all text-center focus:outline-none select-none"
+                  class="year-btn py-3 px-2 rounded-xl font-sans text-[0.88rem] font-semibold cursor-pointer border border-theme bg-input text-secondary hover:border-strong hover:text-main transition-all text-center focus:outline-none"
                 >
                   4th <span id="y4-prefix" class="prefix font-mono text-[0.68rem] text-muted block mt-[3px] font-normal"></span>
                 </button>
               </div>
 
-              <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 select-none">Roll Number</div>
+              <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3">Roll Number</div>
               <div
                 id="roll-wrap"
                 class="flex items-center bg-input border border-theme rounded-xl overflow-hidden transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20"
               >
                 <div
                   id="roll-prefix"
-                  class="py-3 px-4 bg-surface-tint font-mono text-[0.92rem] text-accent whitespace-nowrap border-r border-theme font-semibold select-none"
+                  class="py-3 px-4 bg-surface-tint font-mono text-[0.92rem] text-accent whitespace-nowrap border-r border-theme font-semibold"
                 >
                   Y??
                 </div>
@@ -142,21 +142,33 @@
                 type="button"
                 id="btn-mark-attendance"
                 onclick="addEntry()"
-                class="mt-5 w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                class="mt-5 w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none disabled:opacity-60 disabled:pointer-events-none"
               >
                 Mark Attendance
               </button>
             </div>
 
-            <div class="bg-surface border border-theme rounded-2xl p-6 shadow-card">
-              <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 select-none">Pre-registration</div>
+            <div id="prereg-card" class="bg-surface border border-theme rounded-2xl p-6 shadow-card">
+              <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3">Pre-registration</div>
+
+              <div class="mb-3.5">
+                <div class="text-[0.72rem] font-semibold text-secondary mb-2">CSV Format Sample</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <pre class="m-0 py-2 px-3 rounded-xl bg-input border border-theme font-mono text-[0.74rem] text-secondary leading-relaxed overflow-x-auto">23A91A0501
+23A91A0502
+23A91A0503</pre>
+                  <pre class="m-0 py-2 px-3 rounded-xl bg-input border border-theme font-mono text-[0.74rem] text-secondary leading-relaxed overflow-x-auto">roll_no
+23A91A0501
+23A91A0502</pre>
+                </div>
+              </div>
 
               <input type="file" id="prereg-file" accept=".csv,text/csv" class="hidden" onchange="loadPreregCSV(this)">
               <button
                 type="button"
                 id="btn-upload-prereg"
                 onclick="document.getElementById('prereg-file').click()"
-                class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-sans text-[0.84rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-sans text-[0.84rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none disabled:opacity-60 disabled:pointer-events-none"
               >
                 Upload Pre-reg CSV
               </button>
@@ -313,7 +325,7 @@
     }
   }
 
-  function switchTab(tab) {
+  function switchTab(tab, options = {}) {
     const { SecurityConfig, EventService, AuditService } = AttendX.Backend;
     const { toast } = AttendX.Components.Toast;
     const state = AttendX.State;
@@ -338,9 +350,9 @@
     syncAttendanceRoleUI();
 
     const activeTabClass =
-      'nav-tab flex-1 py-2.5 px-3.5 rounded-lg font-sans text-[0.83rem] font-semibold cursor-pointer text-center transition-all border-none bg-primary text-white shadow-btn-primary focus:outline-none select-none';
+      'nav-tab flex-1 py-2.5 px-3.5 rounded-lg font-sans text-[0.83rem] font-semibold cursor-pointer text-center transition-all border-none bg-primary text-white shadow-btn-primary focus:outline-none';
     const inactiveTabClass =
-      'nav-tab flex-1 py-2.5 px-3.5 rounded-lg font-sans text-[0.83rem] font-medium cursor-pointer text-center transition-all border-none bg-transparent text-muted hover:text-main focus:outline-none select-none';
+      'nav-tab flex-1 py-2.5 px-3.5 rounded-lg font-sans text-[0.83rem] font-medium cursor-pointer text-center transition-all border-none bg-transparent text-muted hover:text-main focus:outline-none';
 
     ['entry', 'list', 'export'].forEach(t => {
       const tabBtn = document.getElementById('tab-' + t);
@@ -377,6 +389,10 @@
     } else if (tab === 'export' && isCoord) {
       AttendX.Pages.ExportPage.renderBranchSummary();
     }
+
+    if (!options.skipHistory && AttendX.App?.syncRouteForAttendanceTab) {
+      AttendX.App.syncRouteForAttendanceTab(tab, options.subRoute);
+    }
   }
 
   function stopExpirationMonitor() {
@@ -389,6 +405,9 @@
   function handleSessionExpiredTransition() {
     const state = AttendX.State;
     if (!state.currentEvent) return;
+    if (AttendX.Pages?.ViewList?.clearRecentlyRemoved) {
+      AttendX.Pages.ViewList.clearRecentlyRemoved(state.currentEvent.id);
+    }
     syncAttendanceRoleUI();
     if (state.activeAttendanceTab === 'entry' || !state.activeAttendanceTab) {
       switchTab('list');
@@ -408,6 +427,9 @@
     if (!state.currentEvent) return;
 
     wasExpiredState = EventService.isEventExpired(state.currentEvent);
+    if (wasExpiredState && AttendX.Pages?.ViewList?.clearRecentlyRemoved) {
+      AttendX.Pages.ViewList.clearRecentlyRemoved(state.currentEvent.id);
+    }
 
     expirationTimer = setInterval(() => {
       if (!state.currentEvent) {
@@ -427,6 +449,9 @@
     const { SecurityConfig, AttendanceService } = AttendX.Backend;
     stopExpirationMonitor();
     AttendanceService.unsubscribeRealtime();
+    if (AttendX.Pages?.ViewList?.resetSelectionState) {
+      AttendX.Pages.ViewList.resetSelectionState();
+    }
     if (AttendX.App?.clearPersistedActiveEvent) {
       AttendX.App.clearPersistedActiveEvent();
     }
@@ -455,7 +480,7 @@
     const yearPrefixes = AttendX.State.yearPrefixes;
 
     const baseBtnClass =
-      'year-btn py-3 px-2 rounded-xl font-sans text-[0.88rem] font-semibold cursor-pointer border transition-all text-center focus:outline-none select-none ';
+      'year-btn py-3 px-2 rounded-xl font-sans text-[0.88rem] font-semibold cursor-pointer border transition-all text-center focus:outline-none ';
     const activeClass = 'bg-primary border-primary text-white shadow-btn-primary';
     const inactiveClass = 'border-theme bg-input text-secondary hover:border-strong hover:text-main';
 
@@ -476,7 +501,7 @@
     }
   }
 
-  function enterAttendance() {
+  function enterAttendance(initialTabOverride = null, routeOptions = {}) {
     const state = AttendX.State;
     const { SecurityConfig, EventService } = AttendX.Backend;
     if (!state.currentEvent) return;
@@ -486,6 +511,10 @@
 
     if (AttendX.App?.persistActiveEventSession) {
       AttendX.App.persistActiveEventSession(state.currentEvent);
+    }
+
+    if (AttendX.Pages?.ViewList?.resetSelectionState) {
+      AttendX.Pages.ViewList.resetSelectionState();
     }
 
     state.selectedYear = null;
@@ -501,13 +530,16 @@
     AttendX.Backend.AttendanceService.subscribeToEventAttendance(state.currentEvent.id, {
       onInsert(record) {
         if (!record) return;
+        if (AttendX.Pages?.ViewList?.removeRollFromRecentlyRemoved) {
+          AttendX.Pages.ViewList.removeRollFromRecentlyRemoved(state.currentEvent.id, record.rollNo);
+        }
         const exists = state.attendance.some(
           a => String(a.id) === String(record.id) || a.rollNo === record.rollNo
         );
         if (!exists) {
           state.attendance.push(record);
-          updateAttendanceUI();
         }
+        updateAttendanceUI();
       },
       onUpdate(record) {
         if (!record) return;
@@ -522,6 +554,10 @@
         updateAttendanceUI();
       },
       onDelete(deletedId, deletedRollNo) {
+        if (AttendX.Pages?.ViewList?.removeIdFromSelection) {
+          AttendX.Pages.ViewList.removeIdFromSelection(deletedId);
+          if (deletedRollNo) AttendX.Pages.ViewList.removeIdFromSelection(deletedRollNo);
+        }
         const beforeLen = state.attendance.length;
         state.attendance = state.attendance.filter(a => {
           if (deletedRollNo && a.rollNo === String(deletedRollNo).toUpperCase()) return false;
@@ -532,21 +568,29 @@
           updateAttendanceUI();
         }
       },
+      onSync(freshList) {
+        if (Array.isArray(freshList)) {
+          state.attendance = freshList;
+          updateAttendanceUI();
+        }
+      },
       onExpired() {
         wasExpiredState = true;
         handleSessionExpiredTransition();
       }
     });
 
-    AttendX.App.showScreen('screen-attendance');
+    AttendX.App.showScreen('screen-attendance', { skipHistory: true });
 
     const isCoord =
       SecurityConfig.isCoordinator() &&
       SecurityConfig.isEventCoordinatorVerified(state.currentEvent?.id);
 
     const isExpired = EventService.isEventExpired(state.currentEvent);
+    const defaultTab = isCoord && !isExpired ? 'entry' : 'list';
+    const targetTab = initialTabOverride || defaultTab;
 
-    switchTab(isCoord && !isExpired ? 'entry' : 'list');
+    switchTab(targetTab, routeOptions);
   }
 
   async function addEntry() {
@@ -638,7 +682,6 @@
         if (EventService.isEventExpired(state.currentEvent)) {
           handleSessionExpiredTransition();
         }
-        // 23505 is postgres unique constraint violation
         if (error.code === '23505') {
           toast('Already marked: ' + fullRoll, 'error');
         } else {
@@ -648,6 +691,9 @@
       }
 
       if (data) {
+        if (AttendX.Pages?.ViewList?.removeRollFromRecentlyRemoved) {
+          AttendX.Pages.ViewList.removeRollFromRecentlyRemoved(state.currentEvent.id, data.rollNo);
+        }
         const alreadyAddedByRealtime = state.attendance.some(
           a => String(a.id) === String(data.id) || a.rollNo === data.rollNo
         );
@@ -798,25 +844,24 @@
     const prereg = all.filter(a => a.status === 'preregistered');
 
     const totalEl = document.getElementById('stat-total');
-    const attEl = document.getElementById('stat-attended');
-    const preEl = document.getElementById('stat-prereg');
+    const attendedEl = document.getElementById('stat-attended');
+    const preregEl = document.getElementById('stat-prereg');
 
-    if (totalEl) totalEl.textContent = String(all.length);
-    if (attEl) attEl.textContent = String(attended.length);
-    if (preEl) preEl.textContent = String(prereg.length);
+    if (totalEl) totalEl.textContent = all.length;
+    if (attendedEl) attendedEl.textContent = attended.length;
+    if (preregEl) preregEl.textContent = prereg.length;
 
     syncAttendanceRoleUI();
     AttendX.Pages.ViewList.renderList();
-
-    if (AttendX.Backend.SecurityConfig.isCoordinator()) {
+    if (AttendX.State.activeAttendanceTab === 'export') {
       AttendX.Pages.ExportPage.renderBranchSummary();
     }
   }
 
   global.switchTab = switchTab;
+  global.leaveAttendanceScreen = leaveAttendanceScreen;
   global.selectYear = selectYear;
   global.enterAttendance = enterAttendance;
-  global.leaveAttendanceScreen = leaveAttendanceScreen;
   global.addEntry = addEntry;
   global.loadPreregCSV = loadPreregCSV;
   global.updateAttendanceUI = updateAttendanceUI;
@@ -825,11 +870,12 @@
     renderAttendancePage,
     syncAttendanceRoleUI,
     switchTab,
+    stopExpirationMonitor,
+    startExpirationMonitor,
+    leaveAttendanceScreen,
     selectYear,
     updateYearUI,
     enterAttendance,
-    leaveAttendanceScreen,
-    stopExpirationMonitor,
     addEntry,
     loadPreregCSV,
     updateAttendanceUI

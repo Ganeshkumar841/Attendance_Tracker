@@ -2,7 +2,7 @@
   const AttendX = (global.AttendX = global.AttendX || {});
   AttendX.Backend = AttendX.Backend || {};
 
-  // leave out password and reset token columns for public/student queries
+  // leave out password column for public/student queries
   const PUBLIC_EVENT_COLUMNS =
     'id, name, date, end_date, is_single_day, time, end_time, venue, organization, created_by, creator_email, is_closed, created_at';
   const LEGACY_PUBLIC_EVENT_COLUMNS =
@@ -256,12 +256,7 @@
       end_time_12h: endParsed ? endParsed.time12 : (endRaw || '-'),
       creator_email: creatorEmail ? String(creatorEmail).trim().toLowerCase() : null,
       is_closed: Boolean(rawEv.is_closed ?? meta.is_closed ?? false),
-      password: meta.password_override || rawEv.password,
-      reset_token_hash: rawEv.reset_token_hash !== undefined ? rawEv.reset_token_hash : (meta.reset_token_hash ?? null),
-      reset_token_expires_at:
-        rawEv.reset_token_expires_at !== undefined
-          ? rawEv.reset_token_expires_at
-          : (meta.reset_token_expires_at ?? null)
+      password: meta.password_override || rawEv.password
     };
   }
 
@@ -332,7 +327,7 @@
     return { active: true, expired: false, error: null };
   }
 
-  async function dispatchTransactionalEmail({ to, subject, html, text, emailType, resetLink }) {
+  async function dispatchTransactionalEmail({ to, subject, html, text }) {
     const errors = [];
 
     // 1. Try Vercel Serverless Function (/api/send-email) when running over HTTP(S)
@@ -375,34 +370,20 @@
       }
     }
 
-    // 3. For password reset, fallback to Supabase Auth's built-in recovery mailer with redirectTo = resetLink
-    if (emailType === 'EVENT_PASSWORD_RESET' && resetLink && client?.auth?.resetPasswordForEmail) {
-      try {
-        const { error } = await client.auth.resetPasswordForEmail(to, { redirectTo: resetLink });
-        if (!error) {
-          return { sent: true, provider: 'supabase-auth-recovery', error: null };
-        }
-        errors.push(`Supabase Auth recovery email error: ${error.message || error}`);
-      } catch (err) {
-        errors.push(`Supabase Auth exception: ${err.message || err}`);
-      }
-    }
-
     const combinedError =
       errors.length > 0
         ? errors.join(' | ')
-        : 'No transactional email provider configured (set RESEND_API_KEY or BREVO_API_KEY in Vercel, or configure Supabase Auth SMTP).';
+        : 'No transactional email provider configured (set RESEND_API_KEY or BREVO_API_KEY in Vercel).';
 
     return { sent: false, provider: null, error: combinedError };
   }
 
-  async function sendEventCreationConfirmationEmail(eventData, creatorEmail) {
+  async function sendEventCreationConfirmationEmail(eventData, creatorEmail, plainPassword = '') {
     const cleanEmail = String(creatorEmail || '').trim().toLowerCase();
     if (!eventData || !eventData.id || !cleanEmail) {
       return { sent: false, error: 'Missing event data or creator email address.' };
     }
 
-    // send confirmation email only once per event creation
     if (confirmedEmailEventIds.has(eventData.id)) {
       return { sent: false, skippedDuplicate: true, error: null };
     }
@@ -412,6 +393,7 @@
     const startTime12 = formatTime12h(eventData.time);
     const endTime12 = formatTime12h(eventData.end_time);
     const endDateStr = eventData.end_date || eventData.date;
+    const resolvedPlainPassword = String(plainPassword || eventData.password || '');
     const creationDateStr = eventData.created_at
       ? new Date(eventData.created_at).toLocaleString('en-IN', {
           timeZone: 'Asia/Kolkata',
@@ -426,29 +408,26 @@
 
     const subject = `AttendX Event Created: ${eventData.name} (${eventData.id})`;
     const textBody = [
-      `Your AttendX event has been created.`,
-      ``,
       `Event ID: ${eventData.id}`,
       `Event Name: ${eventData.name}`,
+      `Event Password: ${resolvedPlainPassword}`,
       `Start Date: ${eventData.date}`,
       `End Date: ${endDateStr}`,
       `Start Time: ${startTime12}`,
       `End Time: ${endTime12}`,
       `Venue: ${eventData.venue || 'Not specified'}`,
       `Organization: ${eventData.organization || 'Not specified'}`,
-      `Created At: ${creationDateStr}`,
-      `Creator Email: ${cleanEmail}`,
-      ``,
-      `For security reasons, your event password is never sent via email. Use Forgot Password on the Join Event screen if you need to reset it.`
+      `Created On: ${creationDateStr}`,
+      `Creator Email: ${cleanEmail}`
     ].join('\n');
 
     const htmlBody = `
       <div style="font-family: sans-serif; color: #0f172a; max-width: 520px; margin: 0 auto; padding: 20px; border: 1px solid #cbd5e1; border-radius: 12px;">
         <h2 style="margin-top: 0; color: #2563eb;">AttendX Event Created</h2>
-        <p>Your attendance session has been registered with the details below:</p>
-        <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px;">
+        <table style="width: 100%; border-collapse: collapse; margin: 12px 0 0 0; font-size: 14px;">
           <tr><td style="padding: 6px 0; color: #64748b;">Event ID</td><td style="padding: 6px 0; font-weight: 600; font-family: monospace;">${escapeHtml(eventData.id)}</td></tr>
           <tr><td style="padding: 6px 0; color: #64748b;">Event Name</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(eventData.name)}</td></tr>
+          <tr><td style="padding: 6px 0; color: #64748b;">Event Password</td><td style="padding: 6px 0; font-weight: 600; font-family: monospace;">${escapeHtml(resolvedPlainPassword)}</td></tr>
           <tr><td style="padding: 6px 0; color: #64748b;">Start Date</td><td style="padding: 6px 0;">${escapeHtml(eventData.date)}</td></tr>
           <tr><td style="padding: 6px 0; color: #64748b;">End Date</td><td style="padding: 6px 0;">${escapeHtml(endDateStr)}</td></tr>
           <tr><td style="padding: 6px 0; color: #64748b;">Start Time</td><td style="padding: 6px 0;">${escapeHtml(startTime12)}</td></tr>
@@ -458,9 +437,6 @@
           <tr><td style="padding: 6px 0; color: #64748b;">Created On</td><td style="padding: 6px 0;">${escapeHtml(creationDateStr)}</td></tr>
           <tr><td style="padding: 6px 0; color: #64748b;">Creator Email</td><td style="padding: 6px 0;">${escapeHtml(cleanEmail)}</td></tr>
         </table>
-        <p style="font-size: 12px; color: #64748b; margin-bottom: 0;">
-          Security notice: Your event password is not included in this email. Use the Forgot Password option on the Join Event screen if needed.
-        </p>
       </div>
     `;
 
@@ -468,8 +444,7 @@
       to: cleanEmail,
       subject,
       html: htmlBody,
-      text: textBody,
-      emailType: 'EVENT_CREATION_CONFIRMATION'
+      text: textBody
     });
 
     const emailPayload = {
@@ -478,6 +453,7 @@
       subject,
       eventId: eventData.id,
       eventName: eventData.name,
+      eventPassword: resolvedPlainPassword,
       eventStartDate: eventData.date,
       eventEndDate: endDateStr,
       isSingleDay: Boolean(eventData.is_single_day),
@@ -651,7 +627,7 @@
 
     inFlightCreateEvent = true;
     try {
-      const hashedPassword = await SecurityConfig.hashSecret(password);
+      const plainPassword = String(password || '');
       const resolvedEmail = String(creatorEmail || AttendX.State?.user?.email || '').trim().toLowerCase() || null;
       const eventId = generateEventId();
 
@@ -665,7 +641,7 @@
         end_time: scheduleCheck.endTime24,
         venue: venue ? String(venue).trim().slice(0, 120) : null,
         organization: organization ? String(organization).trim().slice(0, 120) : null,
-        password: hashedPassword,
+        password: plainPassword,
         created_by: createdBy ? String(createdBy).trim().slice(0, 80) : null,
         creator_email: resolvedEmail,
         is_closed: false
@@ -678,6 +654,7 @@
         time: scheduleCheck.startTime24,
         end_time: scheduleCheck.endTime24,
         creator_email: resolvedEmail,
+        password_override: plainPassword,
         is_closed: false
       });
 
@@ -687,7 +664,6 @@
         .select()
         .single();
 
-      // fallback if remote database has not migrated new columns yet
       if (error && (error.code === 'PGRST204' || error.code === '42703' || /column/i.test(error.message || ''))) {
         const legacyPayload = {
           id: eventId,
@@ -717,7 +693,8 @@
           end_date: scheduleCheck.endDate,
           is_single_day: scheduleCheck.isSingleDay,
           end_time: scheduleCheck.endTime24,
-          creator_email: resolvedEmail
+          creator_email: resolvedEmail,
+          password: plainPassword
         });
         SecurityConfig.markEventCoordinatorVerified(normalized.id);
         AuditService.logAction('EVENT_CREATED', {
@@ -731,7 +708,7 @@
         });
         let emailResult = null;
         if (resolvedEmail) {
-          emailResult = await sendEventCreationConfirmationEmail(normalized, resolvedEmail);
+          emailResult = await sendEventCreationConfirmationEmail(normalized, resolvedEmail, plainPassword);
         }
         return { data: normalized, emailResult, error: null };
       }
@@ -842,39 +819,36 @@
     return { valid: true, error: null };
   }
 
-  async function requestEventPasswordReset(eventId) {
+  async function requestEventPasswordReset(eventId, candidateCreatorEmail) {
     const { SecurityConfig, RateLimiter, AuditService } = AttendX.Backend;
     const { escapeHtml } = AttendX.Utils.Sanitizer;
-    if (!SecurityConfig.isCoordinator()) {
-      AuditService.logAction('UNAUTHORIZED_EVENT_RESET_REQUEST_BLOCKED', { eventId });
-      return {
-        success: false,
-        error: 'Access denied: Only coordinators can request event password recovery.'
-      };
-    }
 
     const cleanId = sanitizeEventId(eventId);
+    const cleanCandidateEmail = String(candidateCreatorEmail || '').trim().toLowerCase();
+
     if (!cleanId) {
-      return { success: false, error: 'Please enter a valid Event ID first.' };
+      return { success: false, error: 'Please enter a valid Event ID.' };
+    }
+
+    if (!cleanCandidateEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanCandidateEmail)) {
+      return { success: false, error: 'Please enter a valid creator email address.' };
     }
 
     const rateKey = 'ev_pwd_reset_' + cleanId;
-    const { MAX_EVENT_RESET_REQUESTS, EVENT_RESET_WINDOW_MS, EVENT_RESET_TOKEN_TTL_MS } = SecurityConfig;
+    const { MAX_EVENT_RESET_REQUESTS, EVENT_RESET_WINDOW_MS } = SecurityConfig;
     const limitStatus = RateLimiter.checkLimit(rateKey, MAX_EVENT_RESET_REQUESTS, EVENT_RESET_WINDOW_MS);
 
     if (!limitStatus.allowed) {
       const mins = Math.ceil(limitStatus.retryAfterSec / 60);
       return {
         success: false,
-        error: `Password reset rate limit reached for this event. Please wait ${mins} minute(s) before requesting again.`
+        error: `Too many requests for this event. Please wait ${mins} minute(s) before trying again.`
       };
     }
 
-    // count every reset request toward rate limit to prevent email spam
     RateLimiter.recordFailure(rateKey, EVENT_RESET_WINDOW_MS);
 
-    const genericSuccessMsg =
-      'If this event has a registered creator email, a password reset link has been sent to the original event creator.';
+    const genericSuccessMsg = 'If the details match, the password has been emailed.';
 
     const client = AttendX.Backend.Supabase.getClient();
     if (!client) {
@@ -889,55 +863,35 @@
         .single();
 
       if (error || !ev) {
-        return { success: true, message: genericSuccessMsg };
+        return { success: true, emailSent: true, message: genericSuccessMsg };
       }
 
       const normalized = normalizeEventRow(ev);
-      const creatorEmail = normalized.creator_email;
-      if (!creatorEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(creatorEmail)) {
-        return { success: true, message: genericSuccessMsg };
+      const creatorEmail = String(normalized.creator_email || '').trim().toLowerCase();
+
+      if (!creatorEmail || creatorEmail !== cleanCandidateEmail) {
+        return { success: true, emailSent: true, message: genericSuccessMsg };
       }
 
-      const rawToken = SecurityConfig.generateSecureToken(32);
-      const tokenHash = await SecurityConfig.hashSecret(rawToken);
-      const expiresAtIso = new Date(getTrustedNowMs() + EVENT_RESET_TOKEN_TTL_MS).toISOString();
-
-      saveEventMeta(cleanId, {
-        reset_token_hash: tokenHash,
-        reset_token_expires_at: expiresAtIso
-      });
-
-      const { error: dbUpdateErr } = await client
-        .from('events')
-        .update({
-          reset_token_hash: tokenHash,
-          reset_token_expires_at: expiresAtIso
-        })
-        .eq('id', cleanId);
-
-      const baseUrl = window.location.protocol.startsWith('http')
-        ? window.location.origin + window.location.pathname
-        : 'https://attendxtracker.vercel.app/';
-      const resetLink = `${baseUrl}?event_reset=1&event_id=${encodeURIComponent(cleanId)}&reset_token=${encodeURIComponent(rawToken)}`;
-
-      const subject = `AttendX Event Password Reset: ${normalized.name} (${cleanId})`;
+      const storedPassword = String(normalized.password || '');
+      const subject = `AttendX Event Password: ${normalized.name} (${cleanId})`;
       const textBody = [
-        `A password reset was requested for AttendX event ${normalized.name} (${cleanId}).`,
+        `Event ID: ${cleanId}`,
+        `Event Name: ${normalized.name}`,
+        `Event Password: ${storedPassword}`,
         ``,
-        `Open the link below within 15 minutes to set a new event password:`,
-        resetLink,
-        ``,
-        `If you did not request this reset, you can safely ignore this email.`
+        `To change the password, go to the Export section and use the Change Password option.`
       ].join('\n');
 
       const htmlBody = `
         <div style="font-family: sans-serif; color: #0f172a; max-width: 520px; margin: 0 auto; padding: 20px; border: 1px solid #cbd5e1; border-radius: 12px;">
-          <h2 style="margin-top: 0; color: #2563eb;">Reset Event Password</h2>
-          <p>A password reset was requested for <strong>${escapeHtml(normalized.name)}</strong> (<code style="font-family: monospace;">${escapeHtml(cleanId)}</code>).</p>
-          <p style="margin: 20px 0;">
-            <a href="${escapeHtml(resetLink)}" style="display: inline-block; background: #2563eb; color: #ffffff; text-decoration: none; padding: 10px 18px; border-radius: 8px; font-weight: 600;">Reset Event Password</a>
-          </p>
-          <p style="font-size: 12px; color: #64748b;">This single-use link expires in 15 minutes.</p>
+          <h2 style="margin-top: 0; color: #2563eb;">AttendX Event Password</h2>
+          <table style="width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px;">
+            <tr><td style="padding: 6px 0; color: #64748b;">Event ID</td><td style="padding: 6px 0; font-weight: 600; font-family: monospace;">${escapeHtml(cleanId)}</td></tr>
+            <tr><td style="padding: 6px 0; color: #64748b;">Event Name</td><td style="padding: 6px 0; font-weight: 600;">${escapeHtml(normalized.name)}</td></tr>
+            <tr><td style="padding: 6px 0; color: #64748b;">Event Password</td><td style="padding: 6px 0; font-weight: 600; font-family: monospace;">${escapeHtml(storedPassword)}</td></tr>
+          </table>
+          <p style="font-size: 13px; color: #64748b; margin-bottom: 0;">To change the password, go to the Export section and use the Change Password option.</p>
         </div>
       `;
 
@@ -945,20 +899,17 @@
         to: creatorEmail,
         subject,
         html: htmlBody,
-        text: textBody,
-        emailType: 'EVENT_PASSWORD_RESET',
-        resetLink
+        text: textBody
       });
 
       const emailPayload = {
-        type: 'EVENT_PASSWORD_RESET',
+        type: 'EVENT_PASSWORD_REMINDER',
         to: creatorEmail,
         subject,
         eventId: cleanId,
         eventName: normalized.name,
+        eventPassword: storedPassword,
         recipientEmail: creatorEmail,
-        resetLink,
-        expiresAt: expiresAtIso,
         delivered: dispatchRes.sent,
         provider: dispatchRes.provider,
         deliveryError: dispatchRes.error,
@@ -968,151 +919,24 @@
       recordSentEmail(emailPayload);
 
       await AuditService.logAction(
-        dispatchRes.sent ? 'EVENT_PASSWORD_RESET_REQUESTED' : 'EVENT_PASSWORD_RESET_EMAIL_FAILED',
+        dispatchRes.sent ? 'EVENT_PASSWORD_EMAIL_SENT' : 'EVENT_PASSWORD_EMAIL_FAILED',
         {
           eventId: cleanId,
-          expiresAt: expiresAtIso,
           provider: dispatchRes.provider,
-          dbUpdateError: dbUpdateErr?.message || null,
           emailError: dispatchRes.error
         },
-        AttendX.State?.user?.email || 'coordinator'
+        creatorEmail
       );
-
-      const currentUserEmail = String(AttendX.State?.user?.email || '').trim().toLowerCase();
-      const isSignedInAsCreator = Boolean(currentUserEmail && currentUserEmail === creatorEmail);
 
       return {
         success: true,
         emailSent: dispatchRes.sent,
         emailProvider: dispatchRes.provider,
         emailError: dispatchRes.error,
-        message: genericSuccessMsg,
-        isCreatorSession: isSignedInAsCreator,
-        creatorResetLink: isSignedInAsCreator ? resetLink : undefined
+        message: genericSuccessMsg
       };
     } catch (_err) {
-      return { success: false, error: 'Unable to process password reset request right now.' };
-    }
-  }
-
-  async function verifyEventResetToken(eventId, rawToken) {
-    const { SecurityConfig } = AttendX.Backend;
-    const cleanId = sanitizeEventId(eventId);
-    const cleanToken = String(rawToken || '').trim();
-
-    if (!cleanId || !cleanToken) {
-      return { valid: false, error: 'Invalid or missing password reset token.' };
-    }
-
-    const client = AttendX.Backend.Supabase.getClient();
-    if (!client) return { valid: false, error: 'Database client not configured.' };
-
-    try {
-      const { data: ev, error } = await client
-        .from('events')
-        .select('*')
-        .eq('id', cleanId)
-        .single();
-
-      if (error || !ev) {
-        return { valid: false, error: 'Invalid or expired password reset link.' };
-      }
-
-      const normalized = normalizeEventRow(ev);
-      const storedHash = normalized.reset_token_hash;
-      const expiresAt = normalized.reset_token_expires_at;
-
-      if (!storedHash || !expiresAt) {
-        return { valid: false, error: 'This password reset link has already been used or invalidated.' };
-      }
-
-      const expiresMs = new Date(expiresAt).getTime();
-      if (isNaN(expiresMs) || getTrustedNowMs() >= expiresMs) {
-        saveEventMeta(cleanId, { reset_token_hash: null, reset_token_expires_at: null });
-        await client
-          .from('events')
-          .update({ reset_token_hash: null, reset_token_expires_at: null })
-          .eq('id', cleanId);
-        return { valid: false, error: 'This password reset link has expired. Please request a new one.' };
-      }
-
-      const candidateHash = await SecurityConfig.hashSecret(cleanToken);
-      if (!SecurityConfig.timingSafeEqual(candidateHash, storedHash)) {
-        return { valid: false, error: 'Invalid password reset token.' };
-      }
-
-      const currentUserEmail = String(AttendX.State?.user?.email || '').trim().toLowerCase();
-      if (currentUserEmail && normalized.creator_email && currentUserEmail !== normalized.creator_email) {
-        return {
-          valid: false,
-          error: 'Unauthorized: Only the original event creator account can reset this event password.'
-        };
-      }
-
-      return { valid: true, event: normalized, error: null };
-    } catch (_err) {
-      return { valid: false, error: 'Unable to verify reset token right now.' };
-    }
-  }
-
-  async function resetEventPasswordWithToken(eventId, rawToken, newPassword) {
-    const { SecurityConfig, RateLimiter, AuditService } = AttendX.Backend;
-    const passStr = String(newPassword || '');
-    if (passStr.length < 4) {
-      return { success: false, error: 'New event password must be at least 4 characters long.' };
-    }
-
-    const verification = await verifyEventResetToken(eventId, rawToken);
-    if (!verification.valid || !verification.event) {
-      return { success: false, error: verification.error || 'Invalid or expired reset link.' };
-    }
-
-    const ev = verification.event;
-    const isSameAsOld = await SecurityConfig.verifySecret(passStr, ev.password);
-    if (isSameAsOld) {
-      return { success: false, error: 'New password must be different from the previous event password.' };
-    }
-
-    const newHashedPassword = await SecurityConfig.hashSecret(passStr);
-    const client = AttendX.Backend.Supabase.getClient();
-
-    try {
-      saveEventMeta(ev.id, {
-        password_override: newHashedPassword,
-        reset_token_hash: null,
-        reset_token_expires_at: null
-      });
-
-      const { error: fullErr } = await client
-        .from('events')
-        .update({
-          password: newHashedPassword,
-          reset_token_hash: null,
-          reset_token_expires_at: null
-        })
-        .eq('id', ev.id);
-
-      if (fullErr) {
-        await client
-          .from('events')
-          .update({ password: newHashedPassword })
-          .eq('id', ev.id);
-      }
-
-      RateLimiter.resetLimit('join_ev_' + ev.id);
-      RateLimiter.resetLimit('auth_ev_' + ev.id);
-
-      if (AttendX.State?.currentEvent && AttendX.State.currentEvent.id === ev.id) {
-        AttendX.State.currentEvent.password = newHashedPassword;
-        AttendX.State.currentEvent.reset_token_hash = null;
-        AttendX.State.currentEvent.reset_token_expires_at = null;
-      }
-
-      await AuditService.logAction('EVENT_PASSWORD_RESET_SUCCESS', { eventId: ev.id });
-      return { success: true, error: null };
-    } catch (_err) {
-      return { success: false, error: 'Unable to update event password right now.' };
+      return { success: false, error: 'Unable to process password request right now.' };
     }
   }
 
@@ -1159,36 +983,21 @@
         return { success: false, error: 'New password must be different from the current password.' };
       }
 
-      const newHashedPassword = await SecurityConfig.hashSecret(nextPass);
       saveEventMeta(cleanId, {
-        password_override: newHashedPassword,
-        reset_token_hash: null,
-        reset_token_expires_at: null
+        password_override: nextPass
       });
 
       const { error: updateErr } = await client
         .from('events')
-        .update({
-          password: newHashedPassword,
-          reset_token_hash: null,
-          reset_token_expires_at: null
-        })
+        .update({ password: nextPass })
         .eq('id', cleanId);
 
       if (updateErr) {
-        const { error: fallbackErr } = await client
-          .from('events')
-          .update({ password: newHashedPassword })
-          .eq('id', cleanId);
-        if (fallbackErr) {
-          return { success: false, error: 'Failed to update password in database.' };
-        }
+        return { success: false, error: 'Failed to update password in database.' };
       }
 
       if (AttendX.State?.currentEvent && AttendX.State.currentEvent.id === cleanId) {
-        AttendX.State.currentEvent.password = newHashedPassword;
-        AttendX.State.currentEvent.reset_token_hash = null;
-        AttendX.State.currentEvent.reset_token_expires_at = null;
+        AttendX.State.currentEvent.password = nextPass;
       }
 
       RateLimiter.resetLimit('join_ev_' + cleanId);
@@ -1255,8 +1064,6 @@
     verifyAndGetEvent,
     verifyActiveEventPassword,
     requestEventPasswordReset,
-    verifyEventResetToken,
-    resetEventPasswordWithToken,
     changeEventPassword,
     deleteEventAndRecords
   };

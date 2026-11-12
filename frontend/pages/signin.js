@@ -9,7 +9,7 @@
     mount.innerHTML = `
       <section id="screen-login" class="screen hidden flex-1 flex-col items-center justify-center py-10 px-5 pb-14">
         <div class="max-w-[460px] mx-auto px-5 w-full">
-          <div class="text-center mb-6 select-none">
+          <div class="text-center mb-6">
             <span class="font-sans text-[1.95rem] sm:text-[2.25rem] font-semibold text-main block tracking-[-0.03em]">AttendX</span>
           </div>
 
@@ -22,9 +22,9 @@
               type="button"
               id="btn-google-login"
               onclick="loginGoogle()"
-              class="w-full inline-flex items-center justify-center gap-2.5 py-2.5 px-5 rounded-xl font-sans text-[0.88rem] font-medium bg-surface2 text-main border border-theme hover:border-strong hover:bg-surface-hover transition-all cursor-pointer focus:outline-none select-none"
+              class="w-full inline-flex items-center justify-center gap-2.5 py-2.5 px-5 rounded-xl font-sans text-[0.88rem] font-medium bg-surface2 text-main border border-theme hover:border-strong hover:bg-surface-hover transition-all cursor-pointer focus:outline-none"
             >
-              <svg class="w-[18px] h-[18px]" viewBox="0 0 48 48">
+              <svg class="w-[18px] h-[18px] select-none" viewBox="0 0 48 48">
                 <path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.6-8 19.6-20 0-1.3-.1-2.7-.4-4z"/>
                 <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/>
                 <path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5.1l-6.2-5.2C29.3 35.3 26.8 36 24 36c-5.3 0-9.7-2.9-11.3-7.1l-6.5 5C9.6 39.5 16.3 44 24 44z"/>
@@ -33,18 +33,18 @@
               Continue with Google
             </button>
 
-            <div id="auth-divider-or" class="flex items-center gap-3 my-[18px] text-muted text-[0.74rem] uppercase font-semibold tracking-[0.05em] select-none">
+            <div id="auth-divider-or" class="flex items-center gap-3 my-[18px] text-muted text-[0.74rem] uppercase font-semibold tracking-[0.05em]">
               <span class="flex-1 h-px bg-theme"></span>
               <span>or</span>
               <span class="flex-1 h-px bg-theme"></span>
             </div>
 
-            <div id="auth-mode-tabs" class="flex bg-input rounded-xl p-1 mb-[18px] border border-theme select-none">
+            <div id="auth-mode-tabs" class="flex bg-input rounded-xl p-1 mb-[18px] border border-theme">
               <button
                 type="button"
                 id="tab-auth-signin"
                 onclick="switchAuthMode('signin')"
-                class="auth-tab flex-1 py-2 px-3 rounded-lg text-[0.82rem] font-semibold cursor-pointer text-center transition-all font-sans bg-primary text-white shadow-btn-primary focus:outline-none select-none"
+                class="auth-tab flex-1 py-2 px-3 rounded-lg text-[0.82rem] font-semibold cursor-pointer text-center transition-all font-sans bg-primary text-white shadow-btn-primary focus:outline-none"
               >
                 Sign In
               </button>
@@ -52,7 +52,7 @@
                 type="button"
                 id="tab-auth-signup"
                 onclick="switchAuthMode('signup')"
-                class="auth-tab flex-1 py-2 px-3 rounded-lg text-[0.82rem] font-medium cursor-pointer text-center transition-all font-sans bg-transparent text-muted hover:text-main focus:outline-none select-none"
+                class="auth-tab flex-1 py-2 px-3 rounded-lg text-[0.82rem] font-medium cursor-pointer text-center transition-all font-sans bg-transparent text-muted hover:text-main focus:outline-none"
               >
                 Sign Up
               </button>
@@ -80,7 +80,7 @@
                     type="button"
                     id="forgot-pwd-link"
                     onclick="switchAuthMode('reset')"
-                    class="bg-transparent border-none text-accent text-[0.78rem] font-medium cursor-pointer p-0 font-sans hover:opacity-85 hover:underline focus:outline-none select-none"
+                    class="bg-transparent border-none text-accent text-[0.78rem] font-medium cursor-pointer p-0 font-sans hover:opacity-85 hover:underline focus:outline-none"
                   >
                     Forgot password?
                   </button>
@@ -109,7 +109,7 @@
                 type="button"
                 id="auth-submit-btn"
                 onclick="loginEmail()"
-                class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer mb-2 focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer mb-2 focus:outline-none disabled:opacity-60 disabled:pointer-events-none"
               >
                 Sign In
               </button>
@@ -118,7 +118,7 @@
                 <button
                   type="button"
                   onclick="switchAuthMode('signin')"
-                  class="bg-transparent border-none text-accent text-[0.78rem] font-medium cursor-pointer p-0 font-sans hover:opacity-85 hover:underline focus:outline-none select-none"
+                  class="bg-transparent border-none text-accent text-[0.78rem] font-medium cursor-pointer p-0 font-sans hover:opacity-85 hover:underline focus:outline-none"
                 >
                   ← Back to Sign In
                 </button>
@@ -143,7 +143,7 @@
                   type="button"
                   id="btn-verify-otp"
                   onclick="verifyEmailOtp()"
-                  class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                  class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none disabled:opacity-60 disabled:pointer-events-none"
                 >
                   Verify Code &amp; Continue
                 </button>
@@ -151,14 +151,14 @@
                   type="button"
                   id="btn-resend-otp"
                   onclick="resendVerificationEmail()"
-                  class="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-xl font-sans text-[0.83rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                  class="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-xl font-sans text-[0.83rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none disabled:opacity-60 disabled:pointer-events-none"
                 >
                   Resend Email
                 </button>
                 <button
                   type="button"
                   onclick="switchAuthMode('signin')"
-                  class="bg-transparent border-none text-accent text-[0.78rem] font-medium cursor-pointer p-0 font-sans hover:opacity-85 hover:underline mt-1 focus:outline-none select-none"
+                  class="bg-transparent border-none text-accent text-[0.78rem] font-medium cursor-pointer p-0 font-sans hover:opacity-85 hover:underline mt-1 focus:outline-none"
                 >
                   ← Back to Sign In
                 </button>
@@ -191,14 +191,14 @@
                   type="button"
                   id="btn-update-pwd"
                   onclick="submitNewPassword()"
-                  class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                  class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none disabled:opacity-60 disabled:pointer-events-none"
                 >
                   Update Password
                 </button>
                 <button
                   type="button"
                   onclick="switchAuthMode('signin')"
-                  class="bg-transparent border-none text-accent text-[0.78rem] font-medium cursor-pointer p-0 font-sans hover:opacity-85 hover:underline mt-1 focus:outline-none select-none"
+                  class="bg-transparent border-none text-accent text-[0.78rem] font-medium cursor-pointer p-0 font-sans hover:opacity-85 hover:underline mt-1 focus:outline-none"
                 >
                   Cancel
                 </button>
@@ -259,9 +259,9 @@
     updatePwdView.style.display = 'none';
 
     const activeTabClass =
-      'auth-tab flex-1 py-2 px-3 rounded-lg text-[0.82rem] font-semibold cursor-pointer text-center transition-all font-sans bg-primary text-white shadow-btn-primary focus:outline-none select-none';
+      'auth-tab flex-1 py-2 px-3 rounded-lg text-[0.82rem] font-semibold cursor-pointer text-center transition-all font-sans bg-primary text-white shadow-btn-primary focus:outline-none';
     const inactiveTabClass =
-      'auth-tab flex-1 py-2 px-3 rounded-lg text-[0.82rem] font-medium cursor-pointer text-center transition-all font-sans bg-transparent text-muted hover:text-main focus:outline-none select-none';
+      'auth-tab flex-1 py-2 px-3 rounded-lg text-[0.82rem] font-medium cursor-pointer text-center transition-all font-sans bg-transparent text-muted hover:text-main focus:outline-none';
 
     if (mode === 'signin') {
       cardTitle.textContent = 'Sign in to continue';
@@ -395,7 +395,6 @@
           return;
         }
 
-        // supabase returns empty identities array when email is already registered
         if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
           switchAuthMode('signin');
           showAuthBanner(
@@ -513,84 +512,6 @@
     const verifyType = state.otpType === 'recovery' ? 'recovery' : 'signup';
 
     try {
-      if (rawInput.includes('access_token=')) {
-        const hashPart = rawInput.includes('#')
-          ? rawInput.split('#')[1]
-          : rawInput.split('?')[1] || rawInput;
-        const params = new URLSearchParams(hashPart);
-        const accessToken = params.get('access_token');
-        const refreshToken = params.get('refresh_token');
-        const urlType = params.get('type') || verifyType;
-
-        if (accessToken && refreshToken) {
-          if (urlType === 'recovery' || verifyType === 'recovery') {
-            state.isPasswordRecovery = true;
-          }
-          const { data, error } = await AuthService.setSessionTokens(accessToken, refreshToken);
-          btn.disabled = false;
-          btn.textContent = 'Verify Code & Continue';
-
-          if (error) {
-            const friendly = AuthService.formatAuthError(error, verifyType);
-            showAuthBanner(friendly, 'error');
-            toast(friendly, 'error');
-            return;
-          }
-          if (urlType === 'recovery' || verifyType === 'recovery') {
-            switchAuthMode('update-password');
-            showAuthBanner('Reset link verified! Enter your new password below.', 'success');
-            toast('Link verified! Set your new password.', 'success');
-            return;
-          }
-          if (data?.session) {
-            SecurityConfig.clearSessionRole();
-            state.user = AuthService.extractUserFromSession(data.session);
-            toast('Email verified & logged in!', 'success');
-            AttendX.App.afterLogin();
-            return;
-          }
-        }
-      }
-
-      if (rawInput.startsWith('http://') || rawInput.startsWith('https://') || rawInput.includes('token=')) {
-        const queryPart = rawInput.includes('?') ? rawInput.split('?')[1].split('#')[0] : rawInput;
-        const params = new URLSearchParams(queryPart);
-        const tokenHash = params.get('token_hash') || params.get('token');
-        const urlType = params.get('type') || verifyType;
-
-        if (tokenHash) {
-          if (urlType === 'recovery' || verifyType === 'recovery') {
-            state.isPasswordRecovery = true;
-          }
-          const { data, error } = await AuthService.verifyOtpPayload({
-            token_hash: tokenHash,
-            type: urlType
-          });
-          btn.disabled = false;
-          btn.textContent = 'Verify Code & Continue';
-
-          if (error) {
-            const friendly = AuthService.formatAuthError(error, verifyType);
-            showAuthBanner(friendly, 'error');
-            toast(friendly, 'error');
-            return;
-          }
-          if (urlType === 'recovery' || verifyType === 'recovery') {
-            switchAuthMode('update-password');
-            showAuthBanner('Reset link verified! Enter your new password below.', 'success');
-            toast('Reset link verified!', 'success');
-            return;
-          }
-          if (data?.session) {
-            SecurityConfig.clearSessionRole();
-            state.user = AuthService.extractUserFromSession(data.session);
-            toast('Email verified & logged in!', 'success');
-            AttendX.App.afterLogin();
-            return;
-          }
-        }
-      }
-
       if (!email) {
         btn.disabled = false;
         btn.textContent = 'Verify Code & Continue';

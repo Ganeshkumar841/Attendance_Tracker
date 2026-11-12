@@ -1,6 +1,5 @@
-// Non-destructive migration script to upgrade an existing public.events table in-place
-// without dropping existing events or attendance records.
-
+-- Non-destructive migration script for AttendX Round 2
+-- 1. Ensure single-day & end_date columns exist
 ALTER TABLE public.events ADD COLUMN IF NOT EXISTS is_single_day boolean NOT NULL DEFAULT true;
 ALTER TABLE public.events ADD COLUMN IF NOT EXISTS end_date date;
 
@@ -29,6 +28,28 @@ ALTER TABLE public.events ALTER COLUMN end_date SET NOT NULL;
 ALTER TABLE public.events DROP CONSTRAINT IF EXISTS chk_events_end_date;
 ALTER TABLE public.events ADD CONSTRAINT chk_events_end_date CHECK (end_date >= date);
 
+-- 2. Remove obsolete password reset token columns
+ALTER TABLE public.events
+  DROP COLUMN IF EXISTS reset_token_hash,
+  DROP COLUMN IF EXISTS reset_token_expires_at;
+
+-- 3. Enable REPLICA IDENTITY FULL and add public.attendance to supabase_realtime publication safely
+ALTER TABLE public.attendance REPLICA IDENTITY FULL;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime'
+      AND schemaname = 'public'
+      AND tablename = 'attendance'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.attendance;
+  END IF;
+END $$;
+
+-- 4. Ensure server-side active check function is up to date
 CREATE OR REPLACE FUNCTION public.is_event_active(ev_id text)
 RETURNS boolean
 LANGUAGE plpgsql

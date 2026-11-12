@@ -3,7 +3,7 @@ DROP TABLE IF EXISTS public.attendance CASCADE;
 DROP TABLE IF EXISTS public.events CASCADE;
 DROP TABLE IF EXISTS public.audit_logs CASCADE;
 
--- 2. Create updated events table (with is_single_day, end_date, end_time, creator_email & password reset support)
+-- 2. Create updated events table (with is_single_day, end_date, end_time, creator_email; reset token columns removed)
 CREATE TABLE public.events (
   id text PRIMARY KEY,
   name text NOT NULL,
@@ -18,8 +18,6 @@ CREATE TABLE public.events (
   created_by text,
   creator_email text,
   is_closed boolean DEFAULT false,
-  reset_token_hash text,
-  reset_token_expires_at timestamptz,
   created_at timestamptz DEFAULT now(),
   CONSTRAINT chk_events_end_date CHECK (end_date >= date),
   CONSTRAINT chk_events_schedule_order CHECK (
@@ -54,8 +52,22 @@ CREATE TABLE public.audit_logs (
   url text
 );
 
--- 5. Enable Realtime delete payloads & indexes
+-- 5. Enable Realtime delete payloads, add public.attendance to supabase_realtime publication & create indexes
 ALTER TABLE public.attendance REPLICA IDENTITY FULL;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime'
+      AND schemaname = 'public'
+      AND tablename = 'attendance'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.attendance;
+  END IF;
+END $$;
+
 CREATE INDEX IF NOT EXISTS idx_attendance_event_id ON public.attendance(event_id);
 CREATE INDEX IF NOT EXISTS idx_attendance_roll_no ON public.attendance(event_id, roll_no);
 CREATE INDEX IF NOT EXISTS idx_events_created_at ON public.events(created_at DESC);

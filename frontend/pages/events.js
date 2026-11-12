@@ -6,7 +6,6 @@
   let isJoiningEvent = false;
   let isStudentLoadingEvent = false;
   let isSubmittingForgotPwd = false;
-  let isSubmittingResetPwd = false;
 
   function buildHourOptions(defaultHour = 9) {
     let html = '';
@@ -39,7 +38,7 @@
             <button
               type="button"
               onclick="showScreen('screen-menu')"
-              class="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong text-secondary hover:text-main cursor-pointer text-[0.8rem] font-medium font-sans mb-4 transition-all focus:outline-none select-none"
+              class="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong text-secondary hover:text-main cursor-pointer text-[0.8rem] font-medium font-sans mb-4 transition-all focus:outline-none"
             >
               ← Back to Menu
             </button>
@@ -59,7 +58,7 @@
                 >
               </div>
 
-              <label class="inline-flex items-center gap-2.5 text-[0.84rem] font-medium text-secondary cursor-pointer select-none">
+              <label class="inline-flex items-center gap-2.5 text-[0.84rem] font-medium text-secondary cursor-pointer">
                 <input
                   type="checkbox"
                   id="ev-single-day"
@@ -111,7 +110,7 @@
                       >
                         ${buildHourOptions(9)}
                       </select>
-                      <span class="text-muted font-sans text-[0.9rem]">:</span>
+                      <span class="text-muted font-sans text-[0.9rem] select-none">:</span>
                       <select
                         id="ev-start-min"
                         aria-label="Start Minute"
@@ -157,7 +156,7 @@
                       >
                         ${buildHourOptions(11)}
                       </select>
-                      <span class="text-muted font-sans text-[0.9rem]">:</span>
+                      <span class="text-muted font-sans text-[0.9rem] select-none">:</span>
                       <select
                         id="ev-end-min"
                         aria-label="End Minute"
@@ -240,7 +239,7 @@
                 type="button"
                 id="btn-create-event"
                 onclick="createNewEvent()"
-                class="mt-1 w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                class="mt-1 w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none disabled:opacity-60 disabled:pointer-events-none"
               >
                 Create Event
               </button>
@@ -274,21 +273,21 @@
               <button
                 type="button"
                 onclick="enterAttendance()"
-                class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none"
+                class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none"
               >
                 Open Event Session
               </button>
               <button
                 type="button"
                 onclick="copyEventId()"
-                class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-sans text-[0.86rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
+                class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-sans text-[0.86rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none"
               >
                 Copy Event ID
               </button>
               <button
                 type="button"
                 onclick="showScreen('screen-menu')"
-                class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-sans text-[0.86rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
+                class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl font-sans text-[0.86rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none"
               >
                 ← Back to Menu
               </button>
@@ -303,7 +302,7 @@
             <button
               type="button"
               onclick="showScreen('screen-menu')"
-              class="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong text-secondary hover:text-main cursor-pointer text-[0.8rem] font-medium font-sans mb-4 transition-all focus:outline-none select-none"
+              class="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong text-secondary hover:text-main cursor-pointer text-[0.8rem] font-medium font-sans mb-4 transition-all focus:outline-none"
             >
               ← Back to Menu
             </button>
@@ -329,9 +328,9 @@
                     type="button"
                     id="btn-forgot-event-pwd"
                     onclick="openForgotEventPasswordModal()"
-                    class="bg-transparent border-none text-accent text-[0.78rem] font-medium cursor-pointer p-0 font-sans hover:underline focus:outline-none select-none"
+                    class="bg-transparent border-none text-accent text-[0.78rem] font-medium cursor-pointer p-0 font-sans hover:underline focus:outline-none"
                   >
-                    Forgot Password?
+                    Forgot event password?
                   </button>
                 </div>
                 <div class="relative w-full">
@@ -357,14 +356,14 @@
                 type="button"
                 id="btn-join-event"
                 onclick="joinEvent()"
-                class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none disabled:opacity-60 disabled:pointer-events-none"
               >
                 Join Event
               </button>
             </div>
 
             <div class="mt-8">
-              <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 flex items-center gap-2.5 select-none">
+              <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 flex items-center gap-2.5">
                 <span class="flex-1 h-px bg-theme"></span>
                 <span>Recent Events</span>
                 <span class="flex-1 h-px bg-theme"></span>
@@ -398,14 +397,14 @@
                 type="button"
                 id="btn-student-view-event"
                 onclick="joinEventAsStudent()"
-                class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none disabled:opacity-60 disabled:pointer-events-none"
+                class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none disabled:opacity-60 disabled:pointer-events-none"
               >
                 View Attendance List
               </button>
             </div>
 
             <div class="mt-8">
-              <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 flex items-center gap-2.5 select-none">
+              <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 flex items-center gap-2.5">
                 <span class="flex-1 h-px bg-theme"></span>
                 <span>Recent Campus Events</span>
                 <span class="flex-1 h-px bg-theme"></span>
@@ -417,7 +416,7 @@
               <button
                 type="button"
                 onclick="logout()"
-                class="inline-flex items-center justify-center py-2.5 px-5 rounded-xl font-sans text-[0.82rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
+                class="inline-flex items-center justify-center py-2.5 px-5 rounded-xl font-sans text-[0.82rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none"
               >
                 Sign Out
               </button>
@@ -574,7 +573,7 @@
           <button
             type="button"
             data-event-id="${safeId}"
-            class="recent-event-item w-full text-left flex items-center justify-between py-3.5 px-4 bg-surface border border-theme hover:border-strong hover:bg-surface2 rounded-xl gap-3 transition-all cursor-pointer animate-slide-in focus:outline-none select-none active:scale-[0.99]"
+            class="recent-event-item w-full text-left flex items-center justify-between py-3.5 px-4 bg-surface border border-theme hover:border-strong hover:bg-surface2 rounded-xl gap-3 transition-all cursor-pointer animate-slide-in focus:outline-none active:scale-[0.99]"
           >
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
@@ -627,7 +626,7 @@
           <button
             type="button"
             data-student-event-id="${safeId}"
-            class="student-recent-event-item w-full text-left flex items-center justify-between py-3.5 px-4 bg-surface border border-theme hover:border-strong hover:bg-surface2 rounded-xl gap-3 transition-all cursor-pointer animate-slide-in focus:outline-none select-none active:scale-[0.99]"
+            class="student-recent-event-item w-full text-left flex items-center justify-between py-3.5 px-4 bg-surface border border-theme hover:border-strong hover:bg-surface2 rounded-xl gap-3 transition-all cursor-pointer animate-slide-in focus:outline-none active:scale-[0.99]"
           >
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
@@ -742,6 +741,8 @@
       state.attendance = [];
       state.editAuthorized = true;
       state.pendingDeleteId = null;
+      state.pendingDeleteRoll = null;
+      state.pendingBulkDelete = false;
 
       document.getElementById('display-event-id').textContent = data.id;
       document.getElementById('display-event-name').textContent = data.name;
@@ -761,14 +762,18 @@
           emailBox.innerHTML = `Confirmation email sent to <strong id="display-creator-email" class="font-semibold">${targetEmail}</strong>.`;
         } else {
           emailBox.className = 'bg-warning-bg border border-theme rounded-xl py-3 px-4 mb-5 text-[0.8rem] text-warning leading-relaxed';
-          emailBox.innerHTML = `Event saved (<strong id="display-creator-email" class="font-semibold">${targetEmail}</strong>). Email delivery notice: ${escapeHtml(emailResult?.error || 'Configure RESEND_API_KEY in Vercel to enable confirmation emails.')}`;
+          emailBox.innerHTML = `Event saved (<strong id="display-creator-email" class="font-semibold">${targetEmail}</strong>). Email delivery notice: ${escapeHtml(emailResult?.error || 'Check email provider configuration.')}`;
         }
       }
 
       document.getElementById('ev-pass').value = '';
 
       AttendX.App.showScreen('screen-event-created');
-      toast('Event created!', 'success');
+      if (emailResult && !emailResult.sent && emailResult.error) {
+        toast('Event created, but email failed: ' + emailResult.error, 'error');
+      } else {
+        toast('Event created!', 'success');
+      }
     } finally {
       isCreatingEvent = false;
       if (btn) {
@@ -829,6 +834,8 @@
       state.currentEvent = ev;
       state.editAuthorized = false;
       state.pendingDeleteId = null;
+      state.pendingDeleteRoll = null;
+      state.pendingBulkDelete = false;
       state.studentSearchQuery = '';
 
       const { data: attList } = await AttendanceService.fetchByEvent(ev.id);
@@ -884,6 +891,7 @@
       state.editAuthorized = false;
       state.pendingDeleteId = null;
       state.pendingDeleteRoll = null;
+      state.pendingBulkDelete = false;
       state.studentSearchQuery = '';
 
       const { data: attList } = await AttendanceService.fetchByEvent(ev.id);
@@ -913,9 +921,11 @@
   function openForgotEventPasswordModal(prefillEventId) {
     const joinIdVal = prefillEventId || document.getElementById('join-id')?.value.trim().toUpperCase() || '';
     const input = document.getElementById('forgot-ev-id-input');
+    const emailInput = document.getElementById('forgot-ev-email-input');
     const statusBox = document.getElementById('forgot-ev-status-box');
 
     if (input) input.value = joinIdVal;
+    if (emailInput) emailInput.value = '';
     if (statusBox) {
       statusBox.className = 'hidden';
       statusBox.innerHTML = '';
@@ -932,12 +942,19 @@
     const { escapeHtml } = AttendX.Utils.Sanitizer;
 
     const input = document.getElementById('forgot-ev-id-input');
+    const emailInput = document.getElementById('forgot-ev-email-input');
     const statusBox = document.getElementById('forgot-ev-status-box');
     const btn = document.getElementById('btn-submit-forgot-ev-pwd');
     const rawId = input ? input.value.trim().toUpperCase() : '';
+    const rawEmail = emailInput ? emailInput.value.trim().toLowerCase() : '';
 
     if (!rawId) {
       toast('Please enter the Event ID', 'error');
+      return;
+    }
+
+    if (!rawEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+      toast('Please enter a valid creator email address', 'error');
       return;
     }
 
@@ -948,122 +965,35 @@
     }
 
     try {
-      const res = await EventService.requestEventPasswordReset(rawId);
+      const res = await EventService.requestEventPasswordReset(rawId, rawEmail);
       if (!res.success) {
         if (statusBox) {
           statusBox.className = 'mb-4 py-3 px-3.5 rounded-xl text-[0.8rem] leading-relaxed border border-theme bg-danger-bg text-danger';
-          statusBox.textContent = res.error || 'Unable to send reset link.';
+          statusBox.textContent = res.error || 'Unable to process password request.';
         }
-        toast(res.error || 'Unable to send reset link', 'error');
+        toast(res.error || 'Unable to process password request', 'error');
+        return;
+      }
+
+      if (res.emailSent === false && res.emailError) {
+        if (statusBox) {
+          statusBox.className = 'mb-4 py-3 px-3.5 rounded-xl text-[0.8rem] leading-relaxed border border-theme bg-warning-bg text-warning';
+          statusBox.innerHTML = `Delivery error: ${escapeHtml(res.emailError)}`;
+        }
+        toast('Email delivery error: ' + res.emailError, 'error');
         return;
       }
 
       if (statusBox) {
-        const isEmailDelivered = res.emailSent !== false;
-        statusBox.className = isEmailDelivered
-          ? 'mb-4 py-3 px-3.5 rounded-xl text-[0.8rem] leading-relaxed border border-theme bg-success-bg text-success'
-          : 'mb-4 py-3 px-3.5 rounded-xl text-[0.8rem] leading-relaxed border border-theme bg-warning-bg text-warning';
-
-        let html = escapeHtml(res.message);
-        if (!isEmailDelivered && res.emailError) {
-          html += `<div class="mt-1.5 text-[0.75rem]">Delivery error: ${escapeHtml(res.emailError)}</div>`;
-        }
-        if (res.isCreatorSession && res.creatorResetLink) {
-          const urlObj = new URL(res.creatorResetLink, window.location.origin);
-          const evIdParam = escapeHtml(urlObj.searchParams.get('event_id') || rawId);
-          const tokenParam = escapeHtml(urlObj.searchParams.get('reset_token') || '');
-          html += `<div class="mt-2.5 pt-2.5 border-t border-theme"><button type="button" onclick="openResetEventPasswordModal('${evIdParam}', '${tokenParam}')" class="text-accent font-semibold underline cursor-pointer bg-transparent border-none p-0 text-[0.8rem]">Verified Creator Session: Open Reset Form →</button></div>`;
-        }
-        statusBox.innerHTML = html;
+        statusBox.className = 'mb-4 py-3 px-3.5 rounded-xl text-[0.8rem] leading-relaxed border border-theme bg-success-bg text-success';
+        statusBox.textContent = 'If the details match, the password has been emailed.';
       }
-      toast(
-        res.emailSent === false
-          ? 'Reset token generated (check email provider settings)'
-          : 'Password reset link dispatched to creator email',
-        res.emailSent === false ? 'info' : 'success'
-      );
+      toast('If the details match, the password has been emailed.', 'success');
     } finally {
       isSubmittingForgotPwd = false;
       if (btn) {
         btn.disabled = false;
-        btn.textContent = 'Send Reset Link';
-      }
-    }
-  }
-
-  async function openResetEventPasswordModal(eventId, rawToken) {
-    const { EventService } = AttendX.Backend;
-    const { toast } = AttendX.Components.Toast;
-
-    const verifyRes = await EventService.verifyEventResetToken(eventId, rawToken);
-    if (!verifyRes.valid) {
-      toast(verifyRes.error || 'Invalid or expired reset link', 'error');
-      return false;
-    }
-
-    AttendX.Components.Modals.closeModal('modal-forgot-event-password');
-
-    const targetLabel = document.getElementById('reset-ev-target-id');
-    const hiddenId = document.getElementById('reset-ev-hidden-id');
-    const hiddenToken = document.getElementById('reset-ev-hidden-token');
-
-    if (targetLabel) targetLabel.textContent = `${verifyRes.event.name} (${verifyRes.event.id})`;
-    if (hiddenId) hiddenId.value = verifyRes.event.id;
-    if (hiddenToken) hiddenToken.value = rawToken;
-
-    AttendX.Components.Modals.openModal('modal-reset-event-password');
-    return true;
-  }
-
-  async function executeResetEventPassword() {
-    if (isSubmittingResetPwd) return;
-    const { EventService } = AttendX.Backend;
-    const { toast } = AttendX.Components.Toast;
-
-    const eventId = document.getElementById('reset-ev-hidden-id')?.value || '';
-    const token = document.getElementById('reset-ev-hidden-token')?.value || '';
-    const newPass = document.getElementById('reset-ev-new-pass')?.value || '';
-    const confirmPass = document.getElementById('reset-ev-confirm-pass')?.value || '';
-
-    if (!newPass || newPass.length < 4) {
-      toast('New event password must be at least 4 characters', 'error');
-      return;
-    }
-
-    if (newPass !== confirmPass) {
-      toast('New password and confirmation do not match', 'error');
-      return;
-    }
-
-    const btn = document.getElementById('btn-submit-reset-ev-pwd');
-    isSubmittingResetPwd = true;
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Updating...';
-    }
-
-    try {
-      const res = await EventService.resetEventPasswordWithToken(eventId, token, newPass);
-      if (!res.success) {
-        toast(res.error || 'Failed to reset event password', 'error');
-        return;
-      }
-
-      AttendX.Components.Modals.closeModal('modal-reset-event-password');
-      if (window.history && window.history.replaceState && window.location.search.includes('event_reset=')) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-
-      const joinIdInput = document.getElementById('join-id');
-      if (joinIdInput && eventId) {
-        joinIdInput.value = eventId;
-      }
-      toast('Event password updated! You can now join with the new password.', 'success');
-    } finally {
-      isSubmittingResetPwd = false;
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'Save New Password';
+        btn.textContent = 'Send Password';
       }
     }
   }
@@ -1080,8 +1010,6 @@
   global.quickJoin = quickJoin;
   global.openForgotEventPasswordModal = openForgotEventPasswordModal;
   global.submitForgotEventPassword = submitForgotEventPassword;
-  global.openResetEventPasswordModal = openResetEventPasswordModal;
-  global.executeResetEventPassword = executeResetEventPassword;
 
   AttendX.Pages.Events = {
     renderEventsPages,
@@ -1099,8 +1027,6 @@
     joinEventAsStudent,
     quickJoin,
     openForgotEventPasswordModal,
-    submitForgotEventPassword,
-    openResetEventPasswordModal,
-    executeResetEventPassword
+    submitForgotEventPassword
   };
 })(window);

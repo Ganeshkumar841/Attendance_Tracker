@@ -1,18 +1,12 @@
 (function (global) {
   const AttendX = (global.AttendX = global.AttendX || {});
 
-  const INITIAL_URL_HASH = window.location.hash || '';
-  const INITIAL_URL_SEARCH = window.location.search || '';
-  const IS_EVENT_RESET = INITIAL_URL_SEARCH.includes('event_reset=1');
-  const IS_INITIAL_RECOVERY =
-    !IS_EVENT_RESET &&
-    (INITIAL_URL_HASH.includes('type=recovery') || INITIAL_URL_SEARCH.includes('type=recovery'));
-
   const CACHED_USER_KEY = 'attendx_cached_user_v2';
   const ACTIVE_EVENT_KEY = 'attendx_active_event_v2';
   const SIGNOUT_SIGNAL_KEY = 'attendx_signout_signal_v2';
 
   let signoutChannel = null;
+  let isHandlingPopState = false;
 
   const yearPrefixes = AttendX.Utils.Sanitizer.computeAcademicYears();
 
@@ -22,6 +16,16 @@
     'screen-event-created',
     'screen-join'
   ]);
+
+  const SCREEN_TO_PATH = {
+    'screen-login': '/signin',
+    'screen-role': '/menu',
+    'screen-menu': '/coordinator',
+    'screen-create': '/events/create',
+    'screen-event-created': '/events/create',
+    'screen-join': '/events/join',
+    'screen-student-events': '/student'
+  };
 
   AttendX.State = {
     user: null,
@@ -34,15 +38,83 @@
     editAuthorized: false,
     pendingDeleteId: null,
     pendingDeleteRoll: null,
+    pendingBulkDelete: false,
     events: [],
-    authMode: IS_INITIAL_RECOVERY ? 'update-password' : 'signin',
+    authMode: 'signin',
     pendingEmail: '',
     otpType: 'signup',
-    isPasswordRecovery: IS_INITIAL_RECOVERY,
+    isPasswordRecovery: false,
     theme: 'light',
     selectedYear: null,
     yearPrefixes
   };
+
+  function isHttpEnvironment() {
+    return typeof window !== 'undefined' && /^https?:$/i.test(window.location?.protocol || '');
+  }
+
+  function updateBrowserHistory(path, stateObj = {}, replace = false) {
+    if (!isHttpEnvironment() || isHandlingPopState || !window.history) return;
+    try {
+      const cleanPath = path || '/signin';
+      if (window.location.pathname === cleanPath && !replace) return;
+      if (replace) {
+        window.history.replaceState(stateObj, document.title, cleanPath);
+      } else {
+        window.history.pushState(stateObj, document.title, cleanPath);
+      }
+    } catch (_e) {}
+  }
+
+  function syncRouteForAttendanceTab(tab, subRoute = null) {
+    const evId = AttendX.State.currentEvent?.id;
+    if (!evId) return;
+    let targetPath = `/events/${encodeURIComponent(evId)}/attendance`;
+    if (subRoute === 'prereg') {
+      targetPath = `/events/${encodeURIComponent(evId)}/prereg`;
+    } else if (tab === 'export') {
+      targetPath = `/events/${encodeURIComponent(evId)}/export`;
+    }
+    updateBrowserHistory(targetPath, {
+      screenId: 'screen-attendance',
+      eventId: evId,
+      tab,
+      subRoute
+    });
+  }
+
+  function parseRouteFromPathname(pathname) {
+    const clean = String(pathname || '/').replace(/\/+$/, '') || '/';
+    if (clean === '/' || clean === '/index.html' || clean === '/signin') {
+      return { type: 'screen', screenId: 'screen-login' };
+    }
+    if (clean === '/menu') {
+      return { type: 'screen', screenId: 'screen-role' };
+    }
+    if (clean === '/coordinator') {
+      return { type: 'screen', screenId: 'screen-menu' };
+    }
+    if (clean === '/events/create') {
+      return { type: 'screen', screenId: 'screen-create' };
+    }
+    if (clean === '/events/join') {
+      return { type: 'screen', screenId: 'screen-join' };
+    }
+    if (clean === '/student') {
+      return { type: 'screen', screenId: 'screen-student-events' };
+    }
+
+    const evMatch = clean.match(/^\/events\/([A-Za-z0-9_-]+)\/(attendance|prereg|export|list)$/);
+    if (evMatch) {
+      return {
+        type: 'event',
+        eventId: evMatch[1].toUpperCase(),
+        action: evMatch[2].toLowerCase()
+      };
+    }
+
+    return null;
+  }
 
   function cacheUserSession(user) {
     try {
@@ -95,7 +167,7 @@
     } catch (_e) {}
   }
 
-  function showScreen(id) {
+  function showScreen(id, options = {}) {
     const state = AttendX.State;
     const { SecurityConfig } = AttendX.Backend;
 
@@ -139,6 +211,100 @@
     if (id === 'screen-join' || id === 'screen-student-events') {
       AttendX.Pages.Events.fetchRecentEvents();
     }
+
+    if (!options.skipHistory && id !== 'screen-attendance') {
+      const mappedPath = SCREEN_TO_PATH[id] || '/signin';
+      updateBrowserHistory(mappedPath, { screenId: id }, Boolean(options.replaceHistory));
+    }
+  }
+
+  async function navigateToParsedRoute(route, options = { skipHistory: false }) {
+    const state = AttendX.State;
+    const { SecurityConfig, AttendanceService, EventService } = AttendX.Backend;
+
+    if (!state.user) {
+      showScreen('screen-login', options);
+      return true;
+    }
+
+    const activeRole = SecurityConfig.restoreSessionRole(state.user.id);
+    if (!activeRole) {
+      showScreen('screen-role', options);
+      return true;
+    }
+
+    if (!route) return false;
+
+    if (route.type === 'screen') {
+      if (route.screenId === 'screen-login') {
+        showScreen(activeRole === 'student' ? 'screen-student-events' : 'screen-menu', options);
+        return true;
+      }
+      showScreen(route.screenId, options);
+      return true;
+    }
+
+    if (route.type === 'event' && route.eventId) {
+      const targetEvId = route.eventId;
+
+      if (activeRole === 'student') {
+        const { event: ev } = await EventService.getPublicEventById(targetEvId);
+        if (ev) {
+          state.currentEvent = ev;
+          const { data: attList } = await AttendanceService.fetchByEvent(ev.id);
+          state.attendance = attList || [];
+          AttendX.Pages.Attendance.enterAttendance('list', { skipHistory: options.skipHistory });
+          return true;
+        }
+        showScreen('screen-student-events', options);
+        return true;
+      }
+
+      // Coordinator deep-link protection: require event to be unlocked in session
+      if (!SecurityConfig.isEventCoordinatorVerified(targetEvId)) {
+        const joinIdInput = document.getElementById('join-id');
+        if (joinIdInput) joinIdInput.value = targetEvId;
+        showScreen('screen-join', { replaceHistory: true });
+        return true;
+      }
+
+      const persistedEv = loadPersistedActiveEvent();
+      let resolvedEv =
+        (state.currentEvent && state.currentEvent.id === targetEvId ? state.currentEvent : null) ||
+        (persistedEv && persistedEv.id === targetEvId ? persistedEv : null);
+
+      if (!resolvedEv) {
+        const { event: pubEv } = await EventService.getPublicEventById(targetEvId);
+        resolvedEv = pubEv;
+      }
+
+      if (!resolvedEv) {
+        const joinIdInput = document.getElementById('join-id');
+        if (joinIdInput) joinIdInput.value = targetEvId;
+        showScreen('screen-join', { replaceHistory: true });
+        return true;
+      }
+
+      state.currentEvent = resolvedEv;
+      const { data: attList } = await AttendanceService.fetchByEvent(resolvedEv.id);
+      state.attendance = attList || [];
+
+      const tab = route.action === 'export' ? 'export' : route.action === 'list' ? 'list' : 'entry';
+      const subRoute = route.action === 'prereg' ? 'prereg' : null;
+      AttendX.Pages.Attendance.enterAttendance(tab, {
+        skipHistory: options.skipHistory,
+        subRoute
+      });
+
+      if (subRoute === 'prereg') {
+        setTimeout(() => {
+          document.getElementById('prereg-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 60);
+      }
+      return true;
+    }
+
+    return false;
   }
 
   async function afterLogin(preserveCurrentScreen = false) {
@@ -170,6 +336,12 @@
         AttendX.Components.Header.updateHeaderRoleBadge(currentActive);
         return;
       }
+    }
+
+    const parsedRoute = isHttpEnvironment() ? parseRouteFromPathname(window.location.pathname) : null;
+    if (parsedRoute && parsedRoute.screenId !== 'screen-login') {
+      const handled = await navigateToParsedRoute(parsedRoute, { skipHistory: false });
+      if (handled) return;
     }
 
     const persistedEvent = loadPersistedActiveEvent();
@@ -216,6 +388,7 @@
     state.editAuthorized = false;
     state.pendingDeleteId = null;
     state.pendingDeleteRoll = null;
+    state.pendingBulkDelete = false;
 
     if (AttendX.Pages?.SignIn?.switchAuthMode) {
       AttendX.Pages.SignIn.switchAuthMode('signin');
@@ -258,9 +431,28 @@
       } catch (_e) {}
     }
 
-    global.addEventListener('storage', e => {
-      if (e.key === SIGNOUT_SIGNAL_KEY && e.newValue) {
-        handleSignedOutCleanup();
+    if (typeof global.addEventListener === 'function') {
+      global.addEventListener('storage', e => {
+        if (e.key === SIGNOUT_SIGNAL_KEY && e.newValue) {
+          handleSignedOutCleanup();
+        }
+      });
+    }
+  }
+
+  function initHistoryRouter() {
+    if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return;
+    window.addEventListener('popstate', async () => {
+      isHandlingPopState = true;
+      try {
+        const route = parseRouteFromPathname(window.location.pathname);
+        if (route) {
+          await navigateToParsedRoute(route, { skipHistory: true });
+        } else {
+          await afterLogin(false);
+        }
+      } finally {
+        isHandlingPopState = false;
       }
     });
   }
@@ -275,7 +467,6 @@
     }
 
     const { AuthService } = AttendX.Backend;
-    const { showAuthBanner, switchAuthMode } = AttendX.Pages.SignIn;
     const state = AttendX.State;
 
     client.auth
@@ -283,18 +474,7 @@
       .then(({ data: { session } }) => {
         if (session) {
           state.user = AuthService.extractUserFromSession(session);
-          if (
-            !IS_EVENT_RESET &&
-            (state.isPasswordRecovery ||
-              state.authMode === 'update-password' ||
-              INITIAL_URL_HASH.includes('type=recovery'))
-          ) {
-            showScreen('screen-login');
-            switchAuthMode('update-password');
-            showAuthBanner('Reset link verified! Enter your new password below.', 'success');
-          } else {
-            afterLogin(true);
-          }
+          afterLogin(true);
         } else if (!state.user) {
           handleSignedOutCleanup();
         }
@@ -306,13 +486,6 @@
       });
 
     client.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY' && !IS_EVENT_RESET) {
-        state.isPasswordRecovery = true;
-        showScreen('screen-login');
-        switchAuthMode('update-password');
-        showAuthBanner('Password recovery link verified! Enter your new password below.', 'success');
-        return;
-      }
       if (event === 'SIGNED_OUT' || !session) {
         handleSignedOutCleanup();
         return;
@@ -320,10 +493,6 @@
       if (session) {
         state.user = AuthService.extractUserFromSession(session);
         cacheUserSession(state.user);
-        if (!IS_EVENT_RESET && (state.isPasswordRecovery || state.authMode === 'update-password')) {
-          showScreen('screen-login');
-          return;
-        }
         const loginScreen = document.getElementById('screen-login');
         if (!document.querySelector('.screen.active') || (loginScreen && loginScreen.classList.contains('active'))) {
           afterLogin();
@@ -343,6 +512,7 @@
 
     AttendX.Utils.Theme.initTheme();
     initCrossTabSignOutListener();
+    initHistoryRouter();
 
     const prefixes = AttendX.State.yearPrefixes;
     ['1', '2', '3', '4'].forEach(y => {
@@ -361,12 +531,10 @@
       endDateInput.min = todayStr;
     }
 
-    const { AuthService, Supabase, SecurityConfig } = AttendX.Backend;
-    const { showAuthBanner, switchAuthMode } = AttendX.Pages.SignIn;
+    const { SecurityConfig } = AttendX.Backend;
 
-    // synchronously restore cached user and role so hard refresh never flashes the login screen
     const cachedUser = loadCachedUserSession();
-    if (cachedUser && !IS_INITIAL_RECOVERY) {
+    if (cachedUser) {
       AttendX.State.user = cachedUser;
       const role = SecurityConfig.restoreSessionRole(cachedUser.id);
       const nameEl = document.getElementById('user-name');
@@ -374,98 +542,36 @@
       const roleNameEl = document.getElementById('role-user-name');
       if (roleNameEl) roleNameEl.textContent = cachedUser.name;
 
-      const persistedEv = loadPersistedActiveEvent();
-      if (role && persistedEv && persistedEv.id) {
-        AttendX.State.currentEvent = persistedEv;
-        if (role === 'coordinator') {
-          SecurityConfig.markEventCoordinatorVerified(persistedEv.id);
-        }
-        AttendX.Pages.Attendance.enterAttendance();
-        AttendX.Backend.AttendanceService.fetchByEvent(persistedEv.id).then(({ data }) => {
-          if (Array.isArray(data)) {
-            AttendX.State.attendance = data;
-            AttendX.Pages.Attendance.updateAttendanceUI();
-          }
-        });
-      } else if (role === 'coordinator') {
-        showScreen('screen-menu');
-      } else if (role === 'student') {
-        showScreen('screen-student-events');
+      const initialRoute = isHttpEnvironment() ? parseRouteFromPathname(window.location.pathname) : null;
+      if (initialRoute && initialRoute.screenId !== 'screen-login') {
+        await navigateToParsedRoute(initialRoute, { skipHistory: true });
       } else {
-        showScreen('screen-role');
+        const persistedEv = loadPersistedActiveEvent();
+        if (role && persistedEv && persistedEv.id) {
+          AttendX.State.currentEvent = persistedEv;
+          if (role === 'coordinator') {
+            SecurityConfig.markEventCoordinatorVerified(persistedEv.id);
+          }
+          AttendX.Pages.Attendance.enterAttendance();
+          AttendX.Backend.AttendanceService.fetchByEvent(persistedEv.id).then(({ data }) => {
+            if (Array.isArray(data)) {
+              AttendX.State.attendance = data;
+              AttendX.Pages.Attendance.updateAttendanceUI();
+            }
+          });
+        } else if (role === 'coordinator') {
+          showScreen('screen-menu', { replaceHistory: true });
+        } else if (role === 'student') {
+          showScreen('screen-student-events', { replaceHistory: true });
+        } else {
+          showScreen('screen-role', { replaceHistory: true });
+        }
       }
     } else {
-      showScreen('screen-login');
+      showScreen('screen-login', { replaceHistory: true });
     }
 
     initSupabaseAuthListeners();
-
-    if (IS_EVENT_RESET) {
-      const searchParams = new URLSearchParams(INITIAL_URL_SEARCH);
-      const resetEventId = searchParams.get('event_id');
-      const resetToken = searchParams.get('reset_token');
-      if (resetEventId && resetToken) {
-        setTimeout(() => {
-          AttendX.Pages.Events.openResetEventPasswordModal(resetEventId, resetToken);
-        }, 120);
-      }
-    }
-
-    if (
-      INITIAL_URL_HASH.includes('error_description=') ||
-      INITIAL_URL_SEARCH.includes('error_description=')
-    ) {
-      const rawParams = new URLSearchParams(
-        INITIAL_URL_HASH.replace(/^#/, '') || INITIAL_URL_SEARCH.replace(/^\?/, '')
-      );
-      const errDesc = rawParams.get('error_description');
-      if (errDesc) {
-        const friendly = AuthService.formatAuthError(
-          decodeURIComponent(errDesc.replace(/\+/g, ' ')),
-          'otp'
-        );
-        showAuthBanner(friendly, 'error');
-      }
-    }
-
-    if (
-      Supabase.isConfigured() &&
-      !IS_EVENT_RESET &&
-      (INITIAL_URL_SEARCH.includes('token_hash=') || INITIAL_URL_SEARCH.includes('token='))
-    ) {
-      const searchParams = new URLSearchParams(INITIAL_URL_SEARCH);
-      const tokenHash = searchParams.get('token_hash') || searchParams.get('token');
-      const linkType = searchParams.get('type') || 'recovery';
-
-      if (tokenHash) {
-        if (linkType === 'recovery') {
-          AttendX.State.isPasswordRecovery = true;
-        }
-        const { data, error } = await AuthService.verifyOtpPayload({
-          token_hash: tokenHash,
-          type: linkType
-        });
-        if (!error && linkType === 'recovery') {
-          showScreen('screen-login');
-          switchAuthMode('update-password');
-          showAuthBanner('Reset link verified! Enter your new password below.', 'success');
-          return;
-        } else if (!error && data?.session) {
-          SecurityConfig.clearSessionRole();
-          AttendX.State.user = AuthService.extractUserFromSession(data.session);
-          afterLogin();
-          return;
-        } else if (error) {
-          showAuthBanner(AuthService.formatAuthError(error, linkType), 'error');
-        }
-      }
-    }
-
-    if (IS_INITIAL_RECOVERY) {
-      showScreen('screen-login');
-      switchAuthMode('update-password');
-      showAuthBanner('Reset link verified! Enter your new password below.', 'success');
-    }
   }
 
   document.addEventListener('DOMContentLoaded', bootstrapApp);
@@ -476,6 +582,7 @@
 
   AttendX.App = {
     showScreen,
+    syncRouteForAttendanceTab,
     afterLogin,
     logout,
     confirmLogout,

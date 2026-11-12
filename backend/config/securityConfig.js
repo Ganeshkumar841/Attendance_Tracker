@@ -10,7 +10,6 @@
     EVENT_PWD_LOCKOUT_MS: 10 * 60 * 1000,
     MAX_EVENT_RESET_REQUESTS: 3,
     EVENT_RESET_WINDOW_MS: 60 * 60 * 1000,
-    EVENT_RESET_TOKEN_TTL_MS: 15 * 60 * 1000,
     MAX_STUDENT_LOOKUP_ATTEMPTS: 25,
     STUDENT_LOOKUP_WINDOW_MS: 5 * 60 * 1000,
     MAX_FILE_SIZE_BYTES: 5 * 1024 * 1024,
@@ -22,27 +21,9 @@
   const VERIFIED_EVENTS_KEY = 'attendx_verified_events_v2';
   const VALID_ROLES = new Set(['coordinator', 'student']);
 
-  // keep role in closure so changing AttendX.State.role in devtools won't bypass checks
   let privateRole = null;
   let privateRoleUserId = null;
   const privateVerifiedEvents = new Set();
-
-  function generateSecureToken(byteLength = 24) {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
-    let token = '';
-    if (global.crypto && global.crypto.getRandomValues) {
-      const bytes = new Uint8Array(byteLength);
-      global.crypto.getRandomValues(bytes);
-      for (let i = 0; i < byteLength; i++) {
-        token += chars[bytes[i] % chars.length];
-      }
-      return token;
-    }
-    for (let i = 0; i < byteLength; i++) {
-      token += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return token;
-  }
 
   async function hashSecret(plainText) {
     const raw = String(plainText || '');
@@ -74,7 +55,7 @@
     return diff === 0;
   }
 
-  // supports both sha256 hashed passwords and older plain-text ones
+  // supports both plain-text passwords and legacy sha256 hashed ones
   async function verifySecret(candidatePlain, storedValue) {
     if (!candidatePlain || !storedValue) return false;
     const stored = String(storedValue);
@@ -118,6 +99,7 @@
         AttendX.State.editAuthorized = false;
         AttendX.State.pendingDeleteId = null;
         AttendX.State.pendingDeleteRoll = null;
+        AttendX.State.pendingBulkDelete = false;
       }
     }
 
@@ -175,6 +157,7 @@
       AttendX.State.editAuthorized = false;
       AttendX.State.pendingDeleteId = null;
       AttendX.State.pendingDeleteRoll = null;
+      AttendX.State.pendingBulkDelete = false;
     }
     try {
       sessionStorage.removeItem(ROLE_STORAGE_KEY);
@@ -209,7 +192,6 @@
 
   AttendX.Backend.SecurityConfig = {
     ...SECURITY_CONFIG,
-    generateSecureToken,
     hashSecret,
     verifySecret,
     timingSafeEqual,

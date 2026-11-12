@@ -6,35 +6,35 @@
 
   const SCRIPTS = [
     'https://cdn.tailwindcss.com',
-    'frontend/styles/tailwind.config.js?v=2.6',
-    'backend/config/securityConfig.js?v=2.6',
-    'backend/config/supabaseClient.js?v=2.6',
-    'backend/middleware/rateLimiter.js?v=2.6',
-    'backend/middleware/sessionManager.js?v=2.6',
-    'backend/services/auditService.js?v=2.6',
-    'backend/services/authService.js?v=2.6',
-    'backend/services/eventService.js?v=2.6',
-    'backend/services/attendanceService.js?v=2.6',
-    'frontend/utils/sanitizer.js?v=2.6',
-    'frontend/utils/theme.js?v=2.6',
-    'frontend/utils/exporter.js?v=2.6',
-    'frontend/components/header.js?v=2.6',
-    'frontend/components/footer.js?v=2.6',
-    'frontend/components/modals.js?v=2.6',
-    'frontend/components/toast.js?v=2.6',
-    'frontend/pages/signin.js?v=2.6',
-    'frontend/pages/menu.js?v=2.6',
-    'frontend/pages/events.js?v=2.6',
-    'frontend/pages/viewList.js?v=2.6',
-    'frontend/pages/exportPage.js?v=2.6',
-    'frontend/pages/attendance.js?v=2.6',
-    'frontend/app.js?v=2.6'
+    'frontend/styles/tailwind.config.js?v=2.7',
+    'backend/config/securityConfig.js?v=2.7',
+    'backend/config/supabaseClient.js?v=2.7',
+    'backend/middleware/rateLimiter.js?v=2.7',
+    'backend/middleware/sessionManager.js?v=2.7',
+    'backend/services/auditService.js?v=2.7',
+    'backend/services/authService.js?v=2.7',
+    'backend/services/eventService.js?v=2.7',
+    'backend/services/attendanceService.js?v=2.7',
+    'frontend/utils/sanitizer.js?v=2.7',
+    'frontend/utils/theme.js?v=2.7',
+    'frontend/utils/exporter.js?v=2.7',
+    'frontend/components/header.js?v=2.7',
+    'frontend/components/footer.js?v=2.7',
+    'frontend/components/modals.js?v=2.7',
+    'frontend/components/toast.js?v=2.7',
+    'frontend/pages/signin.js?v=2.7',
+    'frontend/pages/menu.js?v=2.7',
+    'frontend/pages/events.js?v=2.7',
+    'frontend/pages/viewList.js?v=2.7',
+    'frontend/pages/exportPage.js?v=2.7',
+    'frontend/pages/attendance.js?v=2.7',
+    'frontend/app.js?v=2.7'
   ];
 
   function ensureModularMounts() {
     if (!document.getElementById('app-header-mount')) {
       document.body.className =
-        'font-sans bg-app text-main min-h-screen overflow-x-hidden flex flex-col select-none';
+        'font-sans bg-app text-main min-h-screen overflow-x-hidden flex flex-col';
       document.body.innerHTML = `
         <div id="app-header-mount"></div>
         <main id="app" class="relative z-[1] flex-1 flex flex-col">

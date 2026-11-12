@@ -9,7 +9,7 @@
     mount.innerHTML = `
       <section id="screen-role" class="screen hidden flex-1 flex-col">
         <div class="max-w-[760px] mx-auto px-5 w-full pt-12 pb-10 flex-1 flex flex-col justify-center">
-          <div class="mb-8 text-center select-none">
+          <div class="mb-8 text-center">
             <div class="text-[1.85rem] sm:text-[2.15rem] font-semibold tracking-[-0.025em] text-main">
               Welcome, <span id="role-user-name" class="text-accent">User</span>
             </div>
@@ -20,10 +20,10 @@
               type="button"
               id="btn-role-coordinator"
               onclick="selectRole('coordinator')"
-              class="group bg-surface border border-theme hover:border-strong hover:bg-surface2 rounded-2xl p-6 cursor-pointer transition-all duration-150 flex items-center justify-between gap-4 text-left w-full shadow-card focus:outline-none select-none active:scale-[0.99]"
+              class="group bg-surface border border-theme hover:border-strong hover:bg-surface2 rounded-2xl p-6 cursor-pointer transition-all duration-150 flex items-center justify-between gap-4 text-left w-full shadow-card focus:outline-none active:scale-[0.99]"
             >
               <div class="flex items-center gap-4">
-                <div class="w-11 h-11 rounded-xl flex items-center justify-center text-accent shrink-0 bg-surface-tint border border-theme">
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center text-accent shrink-0 bg-surface-tint border border-theme select-none">
                   <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                     <polyline points="9 12 11 14 15 10"></polyline>
@@ -33,17 +33,17 @@
                   <h3 class="text-[1.02rem] font-semibold text-main">Coordinator / Staff</h3>
                 </div>
               </div>
-              <span class="text-muted text-[1.25rem] transition-all duration-150 group-hover:translate-x-[3px] group-hover:text-accent">›</span>
+              <span class="text-muted text-[1.25rem] transition-all duration-150 group-hover:translate-x-[3px] group-hover:text-accent select-none">›</span>
             </button>
 
             <button
               type="button"
               id="btn-role-student"
               onclick="selectRole('student')"
-              class="group bg-surface border border-theme hover:border-strong hover:bg-surface2 rounded-2xl p-6 cursor-pointer transition-all duration-150 flex items-center justify-between gap-4 text-left w-full shadow-card focus:outline-none select-none active:scale-[0.99]"
+              class="group bg-surface border border-theme hover:border-strong hover:bg-surface2 rounded-2xl p-6 cursor-pointer transition-all duration-150 flex items-center justify-between gap-4 text-left w-full shadow-card focus:outline-none active:scale-[0.99]"
             >
               <div class="flex items-center gap-4">
-                <div class="w-11 h-11 rounded-xl flex items-center justify-center text-accent shrink-0 bg-surface-tint border border-theme">
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center text-accent shrink-0 bg-surface-tint border border-theme select-none">
                   <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
                     <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
@@ -53,7 +53,7 @@
                   <h3 class="text-[1.02rem] font-semibold text-main">Student Portal</h3>
                 </div>
               </div>
-              <span class="text-muted text-[1.25rem] transition-all duration-150 group-hover:translate-x-[3px] group-hover:text-accent">›</span>
+              <span class="text-muted text-[1.25rem] transition-all duration-150 group-hover:translate-x-[3px] group-hover:text-accent select-none">›</span>
             </button>
           </div>
 
@@ -61,7 +61,7 @@
             <button
               type="button"
               onclick="logout()"
-              class="inline-flex items-center justify-center py-2.5 px-5 rounded-xl font-sans text-[0.82rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
+              class="inline-flex items-center justify-center py-2.5 px-5 rounded-xl font-sans text-[0.82rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none"
             >
               Sign Out
             </button>
@@ -71,7 +71,7 @@
 
       <section id="screen-menu" class="screen hidden flex-1 flex-col">
         <div class="max-w-[760px] mx-auto px-5 w-full pt-12 pb-10 flex-1 flex flex-col justify-center">
-          <div class="mb-8 text-center select-none">
+          <div class="mb-8 text-center">
             <div class="text-[1.85rem] sm:text-[2.15rem] font-semibold tracking-[-0.025em] text-main">
               Welcome back, <span id="user-name" class="text-accent">Coordinator</span>
             </div>
@@ -81,10 +81,10 @@
             <button
               type="button"
               onclick="showScreen('screen-create')"
-              class="group bg-surface border border-theme hover:border-strong hover:bg-surface2 rounded-2xl p-6 cursor-pointer transition-all duration-150 flex items-center justify-between gap-4 text-left w-full shadow-card focus:outline-none select-none active:scale-[0.99]"
+              class="group bg-surface border border-theme hover:border-strong hover:bg-surface2 rounded-2xl p-6 cursor-pointer transition-all duration-150 flex items-center justify-between gap-4 text-left w-full shadow-card focus:outline-none active:scale-[0.99]"
             >
               <div class="flex items-center gap-4">
-                <div class="w-11 h-11 rounded-xl flex items-center justify-center text-accent shrink-0 bg-surface-tint border border-theme">
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center text-accent shrink-0 bg-surface-tint border border-theme select-none">
                   <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                     <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -96,16 +96,16 @@
                   <h3 class="text-[1.02rem] font-semibold text-main">Create New Event</h3>
                 </div>
               </div>
-              <span class="text-muted text-[1.25rem] transition-all duration-150 group-hover:translate-x-[3px] group-hover:text-accent">›</span>
+              <span class="text-muted text-[1.25rem] transition-all duration-150 group-hover:translate-x-[3px] group-hover:text-accent select-none">›</span>
             </button>
 
             <button
               type="button"
               onclick="showScreen('screen-join')"
-              class="group bg-surface border border-theme hover:border-strong hover:bg-surface2 rounded-2xl p-6 cursor-pointer transition-all duration-150 flex items-center justify-between gap-4 text-left w-full shadow-card focus:outline-none select-none active:scale-[0.99]"
+              class="group bg-surface border border-theme hover:border-strong hover:bg-surface2 rounded-2xl p-6 cursor-pointer transition-all duration-150 flex items-center justify-between gap-4 text-left w-full shadow-card focus:outline-none active:scale-[0.99]"
             >
               <div class="flex items-center gap-4">
-                <div class="w-11 h-11 rounded-xl flex items-center justify-center text-accent shrink-0 bg-surface-tint border border-theme">
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center text-accent shrink-0 bg-surface-tint border border-theme select-none">
                   <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
@@ -115,7 +115,7 @@
                   <h3 class="text-[1.02rem] font-semibold text-main">Join Existing Event</h3>
                 </div>
               </div>
-              <span class="text-muted text-[1.25rem] transition-all duration-150 group-hover:translate-x-[3px] group-hover:text-accent">›</span>
+              <span class="text-muted text-[1.25rem] transition-all duration-150 group-hover:translate-x-[3px] group-hover:text-accent select-none">›</span>
             </button>
           </div>
 
@@ -123,7 +123,7 @@
             <button
               type="button"
               onclick="logout()"
-              class="inline-flex items-center justify-center py-2.5 px-5 rounded-xl font-sans text-[0.82rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
+              class="inline-flex items-center justify-center py-2.5 px-5 rounded-xl font-sans text-[0.82rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none"
             >
               Sign Out
             </button>
@@ -154,6 +154,7 @@
     state.editAuthorized = false;
     state.pendingDeleteId = null;
     state.pendingDeleteRoll = null;
+    state.pendingBulkDelete = false;
     state.studentSearchQuery = '';
     if (AttendX.App?.clearPersistedActiveEvent) {
       AttendX.App.clearPersistedActiveEvent();
@@ -194,6 +195,7 @@
     state.editAuthorized = false;
     state.pendingDeleteId = null;
     state.pendingDeleteRoll = null;
+    state.pendingBulkDelete = false;
     state.studentSearchQuery = '';
     if (AttendX.App?.clearPersistedActiveEvent) {
       AttendX.App.clearPersistedActiveEvent();

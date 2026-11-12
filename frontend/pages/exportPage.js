@@ -16,39 +16,39 @@
           type="button"
           id="btn-download-excel"
           onclick="exportExcel()"
-          class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none select-none"
+          class="w-full inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-sans text-[0.9rem] font-semibold bg-primary hover:bg-primary-hover text-white shadow-btn-primary transition-all cursor-pointer focus:outline-none"
         >
           Download Excel Report(s)
         </button>
       </div>
 
       <div class="bg-surface border border-theme rounded-2xl p-6 mb-4 shadow-card">
-        <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 select-none">Branch Summary (Attended)</div>
+        <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3">Branch Summary (Attended)</div>
         <div id="branch-summary"></div>
       </div>
 
       <div class="bg-surface border border-theme rounded-2xl p-6 shadow-card">
-        <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3 select-none">Event &amp; Session Management</div>
+        <div class="text-[0.74rem] font-semibold tracking-[0.05em] uppercase text-muted mb-3">Event &amp; Session Management</div>
         <div class="flex flex-col gap-2.5">
           <button
             type="button"
             id="btn-open-change-ev-pwd"
             onclick="openModal('modal-change-event-password')"
-            class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-sans text-[0.84rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
+            class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-sans text-[0.84rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none"
           >
-            Change Event Password
+            Change Password
           </button>
           <button
             type="button"
             onclick="leaveAttendanceScreen()"
-            class="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-xl font-sans text-[0.84rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
+            class="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-xl font-sans text-[0.84rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none"
           >
             Back to Menu
           </button>
           <button
             type="button"
             onclick="confirmLogout()"
-            class="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-xl font-sans text-[0.84rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none select-none"
+            class="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-xl font-sans text-[0.84rem] font-medium text-secondary hover:text-main bg-surface2 hover:bg-surface-hover border border-theme hover:border-strong transition-all cursor-pointer focus:outline-none"
           >
             Sign Out
           </button>
@@ -56,9 +56,9 @@
           <button
             type="button"
             onclick="openModal('modal-delete-event')"
-            class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-sans text-[0.84rem] font-medium bg-danger-bg text-danger border border-theme hover:border-danger/40 transition-all cursor-pointer focus:outline-none select-none"
+            class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-sans text-[0.84rem] font-medium bg-danger-bg text-danger border border-theme hover:border-danger/40 transition-all cursor-pointer focus:outline-none"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 select-none">
               <polyline points="3 6 5 6 21 6"></polyline>
               <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
               <path d="M10 11v6"></path>
@@ -141,20 +141,14 @@
 
     const currentPass = document.getElementById('change-ev-current-pass')?.value || '';
     const newPass = document.getElementById('change-ev-new-pass')?.value || '';
-    const confirmPass = document.getElementById('change-ev-confirm-pass')?.value || '';
 
-    if (!currentPass || !newPass || !confirmPass) {
-      toast('Please fill in all password fields', 'error');
+    if (!currentPass || !newPass) {
+      toast('Please fill in both password fields', 'error');
       return;
     }
 
     if (newPass.length < 4) {
-      toast('New event password must be at least 4 characters', 'error');
-      return;
-    }
-
-    if (newPass !== confirmPass) {
-      toast('New password and confirmation do not match', 'error');
+      toast('Event password must be at least 4 characters', 'error');
       return;
     }
 
@@ -178,7 +172,7 @@
       }
 
       AttendX.Components.Modals.closeModal('modal-change-event-password');
-      toast('Event password updated! Previous password is no longer valid.', 'success');
+      toast('Event password updated!', 'success');
     } finally {
       isChangingEventPassword = false;
       if (btn) {
@@ -241,11 +235,16 @@
       if (AttendX.Pages?.Attendance?.stopExpirationMonitor) {
         AttendX.Pages.Attendance.stopExpirationMonitor();
       }
+      if (AttendX.Pages?.ViewList?.clearRecentlyRemoved) {
+        AttendX.Pages.ViewList.clearRecentlyRemoved(eventId);
+      }
       AttendanceService.unsubscribeRealtime();
       state.currentEvent = null;
       state.attendance = [];
       state.editAuthorized = false;
       state.pendingDeleteId = null;
+      state.pendingDeleteRoll = null;
+      state.pendingBulkDelete = false;
       state.events = (state.events || []).filter(e => e.id !== eventId);
       if (AttendX.App?.clearPersistedActiveEvent) {
         AttendX.App.clearPersistedActiveEvent();

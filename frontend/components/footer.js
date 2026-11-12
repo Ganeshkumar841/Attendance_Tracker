@@ -7,7 +7,7 @@
     if (!mount) return;
 
     mount.innerHTML = `
-      <footer class="w-full py-3.5 px-5 border-t border-theme bg-surface/60 text-center text-[0.76rem] text-muted select-none">
+      <footer class="w-full py-3.5 px-5 border-t border-theme bg-surface/60 text-center text-[0.76rem] text-muted">
         <div class="max-w-[760px] mx-auto flex items-center justify-center text-center">
           <strong class="font-medium text-secondary">AttendX</strong>
         </div>

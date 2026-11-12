@@ -6,6 +6,8 @@
   let activeSubscribedEventId = null;
   let activeCallbacks = null;
   let broadcastChannel = null;
+  let reconnectTimeoutId = null;
+  let isReconnecting = false;
 
   const CROSS_TAB_STORAGE_KEY = 'attendx_cross_tab_sync_v2';
 
@@ -19,13 +21,15 @@
       } catch (_e) {}
     }
 
-    global.addEventListener('storage', e => {
-      if (e.key === CROSS_TAB_STORAGE_KEY && e.newValue) {
-        try {
-          handleCrossTabPayload(JSON.parse(e.newValue));
-        } catch (_err) {}
-      }
-    });
+    if (typeof global.addEventListener === 'function') {
+      global.addEventListener('storage', e => {
+        if (e.key === CROSS_TAB_STORAGE_KEY && e.newValue) {
+          try {
+            handleCrossTabPayload(JSON.parse(e.newValue));
+          } catch (_err) {}
+        }
+      });
+    }
   }
 
   function emitCrossTabEvent(type, eventId, payload) {
@@ -55,6 +59,10 @@
       activeCallbacks.onUpdate(msg.payload);
     } else if (msg.type === 'DELETE' && msg.payload && typeof activeCallbacks.onDelete === 'function') {
       activeCallbacks.onDelete(msg.payload.id, msg.payload.rollNo);
+    } else if (msg.type === 'BULK_DELETE' && Array.isArray(msg.payload?.items) && typeof activeCallbacks.onDelete === 'function') {
+      msg.payload.items.forEach(item => {
+        activeCallbacks.onDelete(item.id, item.rollNo);
+      });
     } else if (msg.type === 'EXPIRED' && typeof activeCallbacks.onExpired === 'function') {
       activeCallbacks.onExpired();
     }
@@ -160,7 +168,7 @@
     }
   }
 
-  async function insertEntry({ eventId, rollNo, year, yearLabel, branch, num, recordedBy }) {
+  async function insertEntry({ eventId, rollNo, year, yearLabel, branch, num, status = 'attended', recordedBy }) {
     if (!verifyCoordinatorWriteAccess(eventId, 'INSERT_ENTRY')) {
       return { data: null, error: new Error('Forbidden: Student accounts are read-only.') };
     }
@@ -182,6 +190,8 @@
     const client = AttendX.Backend.Supabase.getClient();
     if (!client) return { data: null, error: new Error('Database not configured') };
 
+    const normalizedStatus = status === 'preregistered' ? 'preregistered' : 'attended';
+
     try {
       const { data, error } = await client
         .from('attendance')
@@ -193,7 +203,7 @@
             year_label: yearLabel,
             branch,
             num,
-            status: 'attended',
+            status: normalizedStatus,
             recorded_by: recordedBy || 'Coordinator'
           }
         ])
@@ -272,20 +282,13 @@
       if (id !== undefined && id !== null && String(id) !== String(rollNo)) {
         const resById = await client.from('attendance').delete().eq('id', id);
         error = resById.error;
-      }
-
-      // fallback delete by event_id + roll_no in case id wasn't numeric
-      if (eventId && rollNo) {
+      } else if (eventId && rollNo) {
         const resByRoll = await client
           .from('attendance')
           .delete()
           .eq('event_id', eventId)
           .eq('roll_no', rollNo);
-        if (error && !resByRoll.error) {
-          error = null;
-        } else if (!error && resByRoll.error) {
-          error = resByRoll.error;
-        }
+        error = resByRoll.error;
       }
 
       if (!error) {
@@ -298,19 +301,74 @@
     }
   }
 
-  function subscribeToEventAttendance(eventId, callbacks) {
-    if (!eventId) return;
+  async function deleteEntriesBulk({ ids = [], rollNos = [], eventId }) {
+    if (!verifyCoordinatorWriteAccess(eventId, 'BULK_DELETE_ENTRIES') || !AttendX.State?.editAuthorized) {
+      return { error: new Error('Forbidden: Unauthorized bulk delete request.') };
+    }
 
-    const cleanEventId = String(eventId).trim().toUpperCase();
-    unsubscribeRealtime();
-
-    activeSubscribedEventId = cleanEventId;
-    activeCallbacks = callbacks || null;
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      return { error: new Error('Network offline. Unable to delete selected entries.') };
+    }
 
     const client = AttendX.Backend.Supabase.getClient();
-    if (!client) return;
+    if (!client) return { error: new Error('Database not configured') };
 
-    realtimeChannel = client
+    const validUuidIds = (Array.isArray(ids) ? ids : []).filter(
+      id => id !== undefined && id !== null && !rollNos.includes(String(id))
+    );
+
+    try {
+      let error = null;
+      if (validUuidIds.length > 0) {
+        const res = await client
+          .from('attendance')
+          .delete()
+          .in('id', validUuidIds);
+        error = res.error;
+      } else if (eventId && Array.isArray(rollNos) && rollNos.length > 0) {
+        const res = await client
+          .from('attendance')
+          .delete()
+          .eq('event_id', eventId)
+          .in('roll_no', rollNos);
+        error = res.error;
+      }
+
+      if (!error) {
+        const items = validUuidIds.map((id, idx) => ({ id, rollNo: rollNos[idx] || null }));
+        emitCrossTabEvent('BULK_DELETE', eventId, { items });
+        AttendX.Backend.AuditService.logAction('ATTENDANCE_BULK_DELETED', {
+          count: validUuidIds.length || rollNos.length,
+          eventId
+        });
+      }
+
+      return { error };
+    } catch (err) {
+      return { error: err };
+    }
+  }
+
+  function createRealtimeSubscription(cleanEventId, callbacks) {
+    const client = AttendX.Backend.Supabase.getClient();
+    if (!client || !cleanEventId) return;
+
+    if (realtimeChannel) {
+      try {
+        client.removeChannel(realtimeChannel);
+      } catch (_e) {}
+      realtimeChannel = null;
+    }
+
+    const handleMissingPayloadFallback = async () => {
+      if (typeof callbacks?.onSync !== 'function') return;
+      const { data, error } = await fetchByEvent(cleanEventId);
+      if (!error && Array.isArray(data)) {
+        callbacks.onSync(data);
+      }
+    };
+
+    const channel = client
       .channel('attendance_channel_' + cleanEventId)
       .on(
         'postgres_changes',
@@ -321,8 +379,12 @@
           filter: `event_id=eq.${cleanEventId}`
         },
         payload => {
-          if (payload?.new && typeof callbacks?.onInsert === 'function') {
-            callbacks.onInsert(mapDbToLocal(payload.new));
+          if (payload?.new && (payload.new.id || payload.new.roll_no)) {
+            if (typeof callbacks?.onInsert === 'function') {
+              callbacks.onInsert(mapDbToLocal(payload.new));
+            }
+          } else {
+            handleMissingPayloadFallback();
           }
         }
       )
@@ -335,8 +397,12 @@
           filter: `event_id=eq.${cleanEventId}`
         },
         payload => {
-          if (payload?.new && typeof callbacks?.onUpdate === 'function') {
-            callbacks.onUpdate(mapDbToLocal(payload.new));
+          if (payload?.new && (payload.new.id || payload.new.roll_no)) {
+            if (typeof callbacks?.onUpdate === 'function') {
+              callbacks.onUpdate(mapDbToLocal(payload.new));
+            }
+          } else {
+            handleMissingPayloadFallback();
           }
         }
       )
@@ -345,20 +411,63 @@
         {
           event: 'DELETE',
           schema: 'public',
-          table: 'attendance'
+          table: 'attendance',
+          filter: `event_id=eq.${cleanEventId}`
         },
         payload => {
-          if (payload?.old && typeof callbacks?.onDelete === 'function') {
-            if (!payload.old.event_id || String(payload.old.event_id).toUpperCase() === cleanEventId) {
+          if (payload?.old && (payload.old.id !== undefined || payload.old.roll_no)) {
+            if (typeof callbacks?.onDelete === 'function') {
               callbacks.onDelete(payload.old.id, payload.old.roll_no);
             }
+          } else {
+            handleMissingPayloadFallback();
           }
         }
       )
-      .subscribe();
+      .subscribe(status => {
+        if (status === 'SUBSCRIBED') {
+          isReconnecting = false;
+        } else if (
+          (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') &&
+          activeSubscribedEventId === cleanEventId &&
+          !isReconnecting
+        ) {
+          isReconnecting = true;
+          if (reconnectTimeoutId) clearTimeout(reconnectTimeoutId);
+          reconnectTimeoutId = setTimeout(async () => {
+            if (activeSubscribedEventId !== cleanEventId) return;
+            createRealtimeSubscription(cleanEventId, activeCallbacks);
+            const { data, error } = await fetchByEvent(cleanEventId);
+            if (!error && Array.isArray(data) && typeof activeCallbacks?.onSync === 'function') {
+              activeCallbacks.onSync(data);
+            }
+            isReconnecting = false;
+          }, 1200);
+        }
+      });
+
+    realtimeChannel = channel;
+  }
+
+  function subscribeToEventAttendance(eventId, callbacks) {
+    if (!eventId) return;
+
+    const cleanEventId = String(eventId).trim().toUpperCase();
+    unsubscribeRealtime();
+
+    activeSubscribedEventId = cleanEventId;
+    activeCallbacks = callbacks || null;
+
+    createRealtimeSubscription(cleanEventId, callbacks);
   }
 
   function unsubscribeRealtime() {
+    if (reconnectTimeoutId) {
+      clearTimeout(reconnectTimeoutId);
+      reconnectTimeoutId = null;
+    }
+    isReconnecting = false;
+
     const client = AttendX.Backend.Supabase.getClient();
     if (realtimeChannel && client) {
       try {
@@ -381,6 +490,7 @@
     insertEntry,
     bulkInsertPrereg,
     deleteEntry,
+    deleteEntriesBulk,
     subscribeToEventAttendance,
     unsubscribeRealtime,
     isRealtimeSubscribed,
